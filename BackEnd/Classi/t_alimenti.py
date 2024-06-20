@@ -52,16 +52,15 @@ class t_alimenti:
             self.DB.create_connection()
             self.Cursor = self.DB.create_cursor()
             self.DB.begin_transaction()
-        except Exception as e:
-            print(e)
-            return {'Error': str(e)}, 400
+        except:
+            return {'Error': 'Cannot connect to the database'}, 400
         key = request.args
         if 'id' not in key:
             return {'Error':'Wrong Key'}, 403
         try:
             id = int(request.args.get('id'))
         except:
-            return {'Error': 'id deve essere un intero'}, 403
+            return {'Error': 'id must be an integer!'}, 403
         if (isinstance(id, int)):
             try:
                 self.Cursor.callproc('get_t_alimenti', [id])
@@ -72,7 +71,6 @@ class t_alimenti:
                     self.Monoins_Tot, self.Polins_Tot, self.Ac_Oleico, self.Ac_Linoleico, self.Ac_Linolenico, self.Altri_Polins, self.Colesterolo,
                     self.Fibre_Alim, self.Alcool, self.Ferro, self.Ca, self.Na, self.K, self.P, self.Zn, self.Vit_B1, self.Vit_B2,
                     self.Vit_B3, self.Vit_C, self.Vit_B6, self.Folico, self.Retinolo_Eq, self.Beta_Carotene, self.Vit_E, self.Vit_D) = result
-                    self.DB.commit_transaction()
                     lista = []
                     lista.append({
                         'id': self.ID,
@@ -112,6 +110,8 @@ class t_alimenti:
                         'vit_e': self.Vit_E,
                         'vit_d': self.Vit_D
                     })
+                    self.DB.commit_transaction()
+                    self.DB.close_connection()
                     return lista
             except Exception as e:
                 print(e)
@@ -119,4 +119,4 @@ class t_alimenti:
                 self.DB.close_connection()
                 return {'Error': str(e)}, 500
         else:
-            return {'Error': 'id deve essere un intero'}, 400
+            return {'Error': 'id must be an integer'}, 400

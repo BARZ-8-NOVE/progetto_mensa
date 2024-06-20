@@ -20,6 +20,7 @@ class Database:
                 print("Connection to MySQL DB successful")
         except Error as e:
             print(f"The error '{e}' occurred")
+            raise Exception
 
     def close_connection(self):
         """Close a database connection."""
