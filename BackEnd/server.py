@@ -5,9 +5,9 @@ from flask import Flask
 # Aggiungi la directory di progetto al PYTHONPATH
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from InfoDB.db_connection import Database
+from Classi.ClasseDB.db_connection import Database
 
-from Classi.t_alimenti import t_alimenti
+from Classi.ClasseAlimenti.Classe_t_alimenti import t_alimenti
 
 progetto_mensa = Flask(__name__)
 
@@ -20,7 +20,7 @@ def fetch_data_prova_connessione():
     db = Database()
     db.create_connection()
     if db.Connection:
-        query = "SELECT * FROM t_alimenti"  # Cambia 'your_table' con il nome della tua tabella
+        query = "SELECT * FROM cucina.t_alimenti"  
         rows = db.fetch_all(query)
         for row in rows:
             print(row)

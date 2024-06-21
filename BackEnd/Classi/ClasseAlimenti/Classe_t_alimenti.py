@@ -1,4 +1,4 @@
-from InfoDB.db_connection import Database
+from  Classi.ClasseDB.db_connection import Database
 from flask import request
 
 class t_alimenti:
