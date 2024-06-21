@@ -5,15 +5,15 @@ class t_alimenti:
 
     def __init__(self) -> None:
 
-        self.ID = None
-        self.Alimento = None
-        self.Parte_Edibile_Gr = None
-        self.Energia_Kcal = None
-        self.Energia_KJ = None
-        self.Acqua_Gr = None
-        self.Prot_Tot_Gr = None
-        self.Prot_Anim = None
-        self.Prot_Veg = None
+        self.__ID = None
+        self.__Alimento = None
+        self.__Parte_Edibile_Gr = None
+        self.__Energia_Kcal = None
+        self.__Energia_KJ = None
+        self.__Acqua_Gr = None
+        self.__Prot_Tot_Gr = None
+        self.__Prot_Anim = None
+        self.__Prot_Veg = None
         self.Glucidi_Tot = None
         self.Amido = None
         self.Glucidi_Solub = None
@@ -45,6 +45,10 @@ class t_alimenti:
         self.Vit_E = None
         self.Vit_D = None
 
+    @property
+    def id(self):
+        return self.__ID
+
     def get_t_alimenti_by_id(self):
 
         try:
@@ -66,21 +70,21 @@ class t_alimenti:
                 self.Cursor.callproc('get_t_alimenti', [id])
                 for results in self.Cursor.stored_results():
                     result = results.fetchone()
-                    (self.ID, self.Alimento, self.Parte_Edibile_Gr, self.Energia_Kcal, self.Energia_KJ, self.Acqua_Gr, self.Prot_Tot_Gr,
-                    self.Prot_Anim, self.Prot_Veg, self.Glucidi_Tot, self.Amido, self.Glucidi_Solub, self.Lipidi_Tot, self.Saturi_Tot,
+                    (self.__ID, self.__Alimento, self.__Parte_Edibile_Gr, self.__Energia_Kcal, self.__Energia_KJ, self.__Acqua_Gr, self.__Prot_Tot_Gr,
+                    self.__Prot_Anim, self.__Prot_Veg, self.Glucidi_Tot, self.Amido, self.Glucidi_Solub, self.Lipidi_Tot, self.Saturi_Tot,
                     self.Monoins_Tot, self.Polins_Tot, self.Ac_Oleico, self.Ac_Linoleico, self.Ac_Linolenico, self.Altri_Polins, self.Colesterolo,
                     self.Fibre_Alim, self.Alcool, self.Ferro, self.Ca, self.Na, self.K, self.P, self.Zn, self.Vit_B1, self.Vit_B2,
                     self.Vit_B3, self.Vit_C, self.Vit_B6, self.Folico, self.Retinolo_Eq, self.Beta_Carotene, self.Vit_E, self.Vit_D) = result
                     lista = []
                     lista.append({
-                        'id': self.ID,
-                        'alimento': self.Alimento,
-                        'parte_edibile_gr': self.Parte_Edibile_Gr,
-                        'energia_kcal': self.Energia_Kcal,
-                        'acqua_gr': self.Acqua_Gr,
-                        'prot_tot_gr': self.Prot_Tot_Gr,
-                        'prot_anim': self.Prot_Anim,
-                        'prot_veg': self.Prot_Veg,
+                        'id': self.__ID,
+                        'alimento': self.__Alimento,
+                        'parte_edibile_gr': self.__Parte_Edibile_Gr,
+                        'energia_kcal': self.__Energia_Kcal,
+                        'acqua_gr': self.__Acqua_Gr,
+                        'prot_tot_gr': self.__Prot_Tot_Gr,
+                        'prot_anim': self.__Prot_Anim,
+                        'prot_veg': self.__Prot_Veg,
                         'glucidi_tot': self.Glucidi_Tot,
                         'lipidi_tot': self.Lipidi_Tot,
                         'saturi_tot': self.Saturi_Tot,
