@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.config import DATABASE_URI
 from Classi.ClasseDB.db_connection import get_db, Base, engine
 from Classi.ClasseAlimenti.Classe_t_alimenti import TAlimenti
-
+from Classi.ClasseUtenti.Classe_t_funzionalita.Controller_t_funzionalita import t_funzionalita_controller
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
@@ -28,6 +28,8 @@ def get_all_alimenti():
     response = t_alimenti_instance.get_all(session)  # Chiamare il metodo sull'istanza
     session.close()  # Chiudi la sessione dopo l'uso
     return jsonify(response), 200 if 'Error' not in response else 404
+
+app.register_blueprint(t_funzionalita_controller, url_prefix='/funzionalita')
 
 if __name__ == '__main__':
     app.run(debug=True)
