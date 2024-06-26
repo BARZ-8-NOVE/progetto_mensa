@@ -21,5 +21,13 @@ def get_alimenti(id):
     session.close()  # Chiudi la sessione dopo l'uso
     return jsonify(response), 200 if 'Error' not in response else 404
 
+@app.route('/alimenti/all', methods=['GET'])
+def get_all_alimenti():
+    session = sessionmaker(bind=db)()
+    t_alimenti_instance = TAlimenti()  # Creare un'istanza di TAlimenti
+    response = t_alimenti_instance.get_all(session)  # Chiamare il metodo sull'istanza
+    session.close()  # Chiudi la sessione dopo l'uso
+    return jsonify(response), 200 if 'Error' not in response else 404
+
 if __name__ == '__main__':
     app.run(debug=True)
