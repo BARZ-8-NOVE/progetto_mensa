@@ -1,32 +1,18 @@
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from ClasseDB.config import DATABASE_URI
+from sqlalchemy import Column, Integer, String
+from ClasseDB.db_connection import Base
 
-Base = declarative_base()
-
-class TTipologiaConservazzioni(Base):
-    __tablename__ = 't_tipologiaconservazione'
+class TTipologiaConservazioni(Base):
+    __tablename__ = 't_tipologiaconservazioni'  # Assicurati che il nome della tabella sia corretto
 
     ID = Column(Integer, primary_key=True, autoincrement=True)
     nome = Column(String)
 
-    def __init__(self, db_session):
-        self.db_session = db_session
-
-    def get_t_allergeni_by_id(self, id):
+    def get_t_tipologiaconservazione_by_id(self, db_session, id):
         try:
-            result = self.db_session.query(TTipologiaConservazzioni).filter_by(ID=id).first()
+            result = db_session.query(TTipologiaConservazioni).filter_by(ID=id).first()
             if result:
-                return {'id': result.ID,
-                        'nome': result.nome}
-            
+                return {'id': result.ID, 'nome': result.nome}
             else:
                 return {'Error': 'No data found for the given id'}, 404
         except Exception as e:
             return {'Error': str(e)}, 500
-
-    def get_db_session():
-        engine = create_engine(DATABASE_URI)
-        Session = sessionmaker(bind=engine)
-        return Session()

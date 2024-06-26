@@ -6,7 +6,7 @@ from flask import Flask
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from Classi.ClasseDB.db_connection import Database
-from Classi.ClasseUtenti.ClasseUtenti import t_utenti
+from progetto_mensa.BackEnd.Classi.ClasseUtenti.Classe_t_utenti import t_utenti
 from Classi.ClasseAlimenti.Classe_t_alimenti import t_alimenti
 
 progetto_mensa = Flask(__name__)
