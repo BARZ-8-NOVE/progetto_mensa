@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from ClasseDB.db_connection import Base
+from Classi.ClasseDB.db_connection import Base
 
 class TAllergeni(Base):
     __tablename__ = 't_allergeni'
@@ -11,10 +11,7 @@ class TAllergeni(Base):
         try:
             result = db_session.query(TAllergeni).filter_by(ID=id).first()
             if result:
-                return {
-                    'id': result.ID,
-                    'nome': result.nome
-                }
+                return {'id': result.ID, 'nome': result.nome}
             else:
                 return {'Error': 'No data found for the given id'}, 404
         except Exception as e:

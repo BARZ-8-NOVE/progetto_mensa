@@ -1,27 +1,16 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from ClasseDB.db_connection import Base
+from Classi.ClasseDB.db_connection import Base
+from .Classe_t_tipologiaconservazione import TTipologiaConservazioni  # Assicurati che il percorso sia corretto
 
 class TTipologiaAlimenti(Base):
     __tablename__ = 't_tipologiaalimenti'
 
-    ID = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     nome = Column(String)
-    fktipologiaConservazione = Column(Integer, ForeignKey('t_tipologiaconservazione.ID'))
+    descrizione = Column(String)
+    conservazione_id = Column(Integer, ForeignKey('t_tipologiaconservazioni.ID'))
+    conservazione = relationship('TTipologiaConservazioni', foreign_keys=[conservazione_id])
 
-    # Definizione della relazione con TTipologiaConservazioni
-    tipologia_conservazione = relationship("TTipologiaConservazioni")
-
-    def get_t_tipologiaAlimenti_by_id(self, db_session, id):
-        try:
-            result = db_session.query(TTipologiaAlimenti).filter_by(ID=id).first()
-            if result:
-                return {
-                    'id': result.ID,
-                    'nome': result.nome,
-                    'fktipologiaConservazione': result.fktipologiaConservazione
-                }
-            else:
-                return {'Error': 'No data found for the given id'}, 404
-        except Exception as e:
-            return {'Error': str(e)}, 500
+    def __repr__(self):
+        return f"<TTipologiaAlimenti(nome='{self.nome}', descrizione='{self.descrizione}')>"

@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String
-from ClasseDB.db_connection import Base
+from Classi.ClasseDB.db_connection import Base
 
 class TTipologiaConservazioni(Base):
-    __tablename__ = 't_tipologiaconservazioni'  # Assicurati che il nome della tabella sia corretto
+    __tablename__ = 't_tipologiaconservazioni'
 
     ID = Column(Integer, primary_key=True, autoincrement=True)
     nome = Column(String)

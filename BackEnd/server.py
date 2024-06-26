@@ -1,31 +1,25 @@
-import sys
-import os
-from flask import Flask
+from flask import Flask, jsonify
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from Classi.ClasseDB.config import DATABASE_URI
+from Classi.ClasseDB.db_connection import get_db, Base, engine
+from Classi.ClasseAlimenti.Classe_t_alimenti import TAlimenti
 
-# Aggiungi la directory di progetto al PYTHONPATH
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from Classi.ClasseDB.db_connection import Database
-from progetto_mensa.BackEnd.Classi.ClasseUtenti.Classe_t_utenti import t_utenti
-from Classi.ClasseAlimenti.Classe_t_alimenti import t_alimenti
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-progetto_mensa = Flask(__name__)
+db = engine
 
-@progetto_mensa.route('/get_t_alimenti', methods = ['GET'])
-def get_t_alimenti():
-    alimenti = t_alimenti()
-    return alimenti.get_t_alimenti_by_id()
+@app.route('/alimenti/<int:id>', methods=['GET'])
+def get_alimenti(id):
+    session = sessionmaker(bind=db)()
+    t_alimenti_instance = TAlimenti()  # Creare un'istanza di TAlimenti
+    response = t_alimenti_instance.get_t_alimenti_by_id(session, id)  # Chiamare il metodo sull'istanza
+    session.close()  # Chiudi la sessione dopo l'uso
+    return jsonify(response), 200 if 'Error' not in response else 404
 
-def fetch_data_prova_connessione():
-    db = Database()
-    db.create_connection()
-    if db.Connection:
-        query = "SELECT * FROM cucina.t_alimenti"  
-        rows = db.fetch_all(query)
-        for row in rows:
-            print(row)
-        db.close_connection()
-
-if __name__ == "__main__":
-    progetto_mensa.run('0.0.0.0', port = 81, debug = True)
-    #fetch_data_prova_connessione()
+if __name__ == '__main__':
+    app.run(debug=True)

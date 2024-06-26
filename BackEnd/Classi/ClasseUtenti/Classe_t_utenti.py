@@ -1,6 +1,9 @@
-from Classi.ClasseDB.db_connection import Database
+from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy.orm import relationship
+from Classi.ClasseDB.db_connection import Base
 
-class t_utenti:
+
+class TUtenti:
 
     # Costanti
     __MAX_USERNAME = 50
