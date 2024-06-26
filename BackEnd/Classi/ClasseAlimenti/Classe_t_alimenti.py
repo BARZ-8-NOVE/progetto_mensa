@@ -42,3 +42,23 @@ class TAlimenti(Base):
                 return {'Error': 'No data found for the given id'}, 404
         except Exception as e:
             return {'Error': str(e)}, 500
+        
+        
+    @classmethod
+    def get_all(cls, db_session):
+        try:
+            results = db_session.query(cls).all()
+            return [{
+                'id': result.ID,
+                'alimento': result.Alimento,
+                'energia_kcal': result.Energia_Kcal,
+                'energia_kj': result.Energia_KJ,
+                'prot_tot_gr': result.Prot_Tot_Gr,
+                'glucidi_tot': result.Glucidi_Tot,
+                'lipidi_tot': result.Lipidi_Tot,
+                'saturi_tot': result.Saturi_Tot,
+                'fkAllergene': result.fkAllergene,
+                'fkTipologiaAlimento': result.fkTipologiaAlimento
+            } for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 500

@@ -1,6 +1,13 @@
-from sqlalchemy import create_engine,MetaData, Column, Integer, String, Float, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from BackEnd.Classi.ClasseDB.config import DATABASE_URI
-
-meta = MetaData
+# from Classi.ClasseAlimenti.Classe_t_allergeni import TAllergeni
+# from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti import TTipologiaAlimenti
+# from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione import TTipologiaConservazioni
+# from Classi.ClasseMenu.Classe_t_menu import TMenu
+# from Classi.ClasseMenu.Classe_t_tipiMenu import TTipiMenu
+# from Classi.ClasseOrdini.Classe_t_ordini import TOrdini
+# from Classi.ClasseOrdini.Classe_t_ordiniPiatti import TOrdiniPiatti
+# from Classi.ClassePiatti.Classe_t_piatti import TPiatti
+# from Classi.ClassePiatti.Classe_t_tipiPiatti import TTipiPiatti
+# from Classi.ClassePreparazioni.Classe_t_preparazioni import TPreparazioni
+# from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni import TTipiPreparazioni
+# from Classi.ClasseServizi.Classe_t_servizi import TServizi
+# from Classi.ClasseUtenti.Classe_t_utenti import TUtenti

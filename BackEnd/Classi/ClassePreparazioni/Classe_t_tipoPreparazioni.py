@@ -4,4 +4,8 @@ from Classi.ClasseDB.db_connection import Base
 class TTipiPreparazioni(Base):
     __tablename__ = 't_tipipreparazioni'
 
+    id = Column(Integer, primary_key=True)
+    descrizione = Column(String(255), nullable=False)
 
+    def __repr__(self):
+        return f"<TTipiPreparazioni(id={self.id}, descrizione='{self.descrizione}')>"
