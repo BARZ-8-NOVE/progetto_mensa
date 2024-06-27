@@ -36,12 +36,19 @@ def update_funzionalita():
         nome = str(dati['nome'])
         frmNome = str(dati['frmNome'])
         return service_t_funzionalita.update_funzionalita(id, nome, frmNome)
+    except ValueError as ve:
+        return {'Error': str(ve)}, 403
     except Exception as e:
         return {'Error': str(e)}, 400
     
 @t_funzionalita_controller.route('/delete_funzionalita/<int:id>', methods=['DELETE'])
 def delete_funzionalita(id):
-    id = int(id)
-    funzionalita = service_t_funzionalita.delete_funzionalita(id)
+    try:
+        id = int(id)
+        funzionalita = service_t_funzionalita.delete_funzionalita(id)
+    except ValueError as ve:
+        return {'Error': str(ve)}, 403
+    except Exception as e:
+        return {'Error': str(e)}, 400
     return funzionalita
     
