@@ -15,9 +15,9 @@ class TAlimenti(Base):
     Glucidi_Tot = Column(Float)
     Lipidi_Tot = Column(Float)
     Saturi_Tot = Column(Float)
-    fkAllergene = Column(Integer, ForeignKey('t_allergeni.ID'))
+    fkAllergene = Column(Integer, ForeignKey('t_allergeni.id'))
     fkTipologiaAlimento = Column(Integer, ForeignKey('t_tipologiaalimenti.id'))
 
     # Definizioni delle relazioni
-    allergene = relationship("TAllergeni", foreign_keys=[fkAllergene])
+
     tipologia_alimento = relationship("TTipologiaAlimenti", foreign_keys=[fkTipologiaAlimento])

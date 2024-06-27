@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
+from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Domain_t_tipoPreparazioni import TTipiPreparazioni
 
 class TPreparazioni(Base):
     __tablename__ = 't_preparazioni'

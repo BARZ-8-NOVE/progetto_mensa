@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String
 from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.orm import relationship
 
