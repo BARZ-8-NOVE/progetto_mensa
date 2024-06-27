@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
-from Classi.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
+from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
 
 class Repository_t_funzionalita:
 

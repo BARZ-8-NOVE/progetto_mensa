@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from Classi.Classe_t_autorizzazioni.Service_t_autorizzazioni import Service_t_autorizzazioni
+from Classi.ClasseUtenti.Classe_t_autorizzazioni.Service_t_autorizzazioni import Service_t_autorizzazioni
 
 t_autorizzazioni_controller = Blueprint('autorizzazioni', __name__)
 service_t_autorizzazioni = Service_t_autorizzazioni()
@@ -23,6 +23,8 @@ def create_autorizzazione():
         nome = str(dati['nome'])
         fkListaFunzionalita = str(dati['fkListaFunzionalita'])
         return service_t_autorizzazioni.create_autorizzazione(nome, fkListaFunzionalita)
+    except ValueError as ve:
+        return {'Error': str(ve)}
     except Exception as e:
         return {'Error': str(e)}, 403
     
@@ -36,12 +38,19 @@ def update_autorizzazione():
         nome = str(dati['nome'])
         fkListaFunzionalita = str(dati['fkListaFunzionalita'])
         return service_t_autorizzazioni.update_autorizzazione(id, nome, fkListaFunzionalita)
+    except ValueError as ve:
+        return {'Error': str(ve)}, 403
     except Exception as e:
         return {'Error': str(e)}, 400
     
 @t_autorizzazioni_controller.route('/delete_autorizzazione/<int:id>', methods=['DELETE'])
 def delete_autorizzazione(id):
-    id = int(id)
-    autorizzazione = service_t_autorizzazioni.delete_autorizzazione(id)
+    try:
+        id = int(id)
+        autorizzazione = service_t_autorizzazioni.delete_autorizzazione(id)
+    except ValueError as ve:
+        return {'Error': str(ve)}, 403
+    except Exception as e:
+        return {'Error': str(e)}, 400
     return autorizzazione
     

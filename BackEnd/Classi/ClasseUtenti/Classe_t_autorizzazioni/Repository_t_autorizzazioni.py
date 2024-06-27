@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
-from Classi.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
+from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
 
 class Repository_t_autorizzazioni:
 

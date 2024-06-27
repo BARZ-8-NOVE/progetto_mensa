@@ -1,4 +1,4 @@
-from Classi.Classe_t_autorizzazioni.Repository_t_autorizzazioni import Repository_t_autorizzazioni
+from Classi.ClasseUtenti.Classe_t_autorizzazioni.Repository_t_autorizzazioni import Repository_t_autorizzazioni
 
 class Service_t_autorizzazioni:
 

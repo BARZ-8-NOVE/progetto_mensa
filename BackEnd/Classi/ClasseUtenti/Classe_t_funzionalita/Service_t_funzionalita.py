@@ -1,4 +1,4 @@
-from Classi.Classe_t_funzionalita.Repository_t_funzionalita import Repository_t_funzionalita
+from Classi.ClasseUtenti.Classe_t_funzionalita.Repository_t_funzionalita import Repository_t_funzionalita
 
 class Service_t_funzionalita:
 
