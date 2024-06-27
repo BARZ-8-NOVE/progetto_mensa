@@ -17,8 +17,8 @@ class Service_t_autorizzazioni:
             raise ValueError(f"nome cannot be more than {self.__MAX_LENGTH_FKLISTAFUNZIONALITA} characters!")
         
     def __checkId(self, id:int):
-        if (id is None) or (id < 0):
-            raise ValueError("id cannot be None or less than 0!")
+        if (id is None) or (id < 0) or (id == 0):
+            raise ValueError("id cannot be None, 0, or less than 0!")
         
     def get_autorizzazioni_all(self):
         return self.repository.get_autorizzazioni_all()

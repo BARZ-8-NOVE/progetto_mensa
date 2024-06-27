@@ -26,7 +26,11 @@ class Repository_t_autorizzazioni:
             self.session.rollback()
             self.session.close()
             return {'Error': str(e)}, 500
-        return [{'id': result.id, 'nome': result.nome, 'frmNome': result.fkListaFunzionalita} for result in results]
+        return [{
+                    'id': result.id,
+                    'nome': result.nome, 
+                    'fkListaFunzionalita': result.fkListaFunzionalita
+                } for result in results]
 
     def get_autorizzazione_by_id(self, id:int):
         try:
@@ -35,14 +39,14 @@ class Repository_t_autorizzazioni:
             return {'Error':str(e)}, 400
         if result:
             self.session.close()
-            return {'id': result.id, 'nome': result.nome, 'frmNome': result.fkListaFunzionalita}
+            return {'id': result.id, 'nome': result.nome, 'fkListaFunzionalita': result.fkListaFunzionalita}
         else:
             self.session.close()
             return {'Error':f'No match found for this id: {id}'}, 404
         
     def create_autorizzazione(self, nome:str, fkListaFunzionalita:str):
         try:
-            autorizzazione = TAutorizzazioni(nome=nome, frmNome = fkListaFunzionalita)
+            autorizzazione = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
             self.session.add(autorizzazione)
             self.session.commit()
             self.session.close()
