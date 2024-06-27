@@ -1,21 +1,18 @@
-from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Repository_t_tipologiaalimenti import RepositoryTipologiaAlimenti
+from .Repository_t_tipologiaalimenti import Repository_t_tipologiaalimenti
 
-class ServiceTipologiaAlimenti:
+class Service_t_tipologiaalimenti:
 
-    def __init__(self) -> None:
-        self.repository = RepositoryTipologiaAlimenti()
+    def __init__(self):
+        self.repository = Repository_t_tipologiaalimenti()
 
-    def get_all(self):
-        return self.repository.get_all()
+    def get_all_tipologiaalimenti(self):
+        return self.repository.get_all_tipologiaalimenti()
 
-    def get_by_id(self, id):
-        return self.repository.get_by_id(id)
-    
-    def create(self, nome, descrizione, conservazione_id):
-        return self.repository.create(nome, descrizione, conservazione_id)
+    def get_tipologiaalimenti_by_id(self, id):
+        return self.repository.get_tipologiaalimenti_by_id(id)
 
-    def update(self, id, nome, descrizione, conservazione_id):
-        return self.repository.update(id, nome, descrizione, conservazione_id)
+    def create_tipologiaalimenti(self, nome, fktipologiaConservazione):
+        return self.repository.create_tipologiaalimenti(nome, fktipologiaConservazione)
 
-    def delete(self, id):
-        return self.repository.delete(id)
+    def delete_tipologiaalimenti(self, id):
+        return self.repository.delete_tipologiaalimenti(id)
