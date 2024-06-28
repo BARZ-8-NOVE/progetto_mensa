@@ -17,7 +17,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = engine
 
-app.register_blueprint(t_preparazioni_controller, url_prefix='/t_preparazioni')
+app.register_blueprint(t_preparazioni_controller, url_prefix='/preparazioni')
 app.register_blueprint(t_alimenti_controller, url_prefix='/alimenti')
 app.register_blueprint(t_funzionalita_controller, url_prefix='/funzionalita')
 app.register_blueprint(t_autorizzazioni_controller, url_prefix='/autorizzazioni')
