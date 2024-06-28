@@ -8,6 +8,6 @@ class TTipologiaAlimenti(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     nome = Column(String)
-    fktipologiaConservazione = Column(Integer, ForeignKey('t_tipologiaconservazioni.ID'))
+    fktipologiaConservazione = Column(Integer, ForeignKey('t_tipologiaconservazione.id'))
 
     

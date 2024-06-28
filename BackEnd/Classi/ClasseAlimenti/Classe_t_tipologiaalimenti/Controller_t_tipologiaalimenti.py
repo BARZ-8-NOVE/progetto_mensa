@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from .Service_t_tipologiaalimenti import Service_t_tipologiaalimenti
 
-t_tipologiaalimenti_controller = Blueprint('t_tipologiaalimenti', __name__)
+t_tipologiaalimenti_controller = Blueprint('tipologiaalimenti', __name__)
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 
 @t_tipologiaalimenti_controller.route('/get_all', methods=['GET'])
@@ -12,7 +12,7 @@ def get_all_tipologiaalimenti():
 def get_tipologiaalimenti_by_id(id):
     return service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
 
-@t_tipologiaalimenti_controller.route('/create_tipologiaalimenti', methods=['POST'])
+@t_tipologiaalimenti_controller.route('/create', methods=['POST'])
 def create_tipologiaalimenti():
     dati = request.json
     if 'nome' not in dati or 'fktipologiaConservazione' not in dati:
@@ -24,6 +24,6 @@ def create_tipologiaalimenti():
     except Exception as e:
         return {'Error': str(e)}, 403
 
-@t_tipologiaalimenti_controller.route('/delete_tipologiaalimenti/<int:id>', methods=['DELETE'])
+@t_tipologiaalimenti_controller.route('/delete/<int:id>', methods=['DELETE'])
 def delete_tipologiaalimenti(id):
     return service_t_tipologiaalimenti.delete_tipologiaalimenti(id)

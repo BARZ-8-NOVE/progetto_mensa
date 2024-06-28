@@ -28,15 +28,29 @@ class RepositoryTipologiaConservazioni:
             logging.error(f"Error getting conservazione by id {id}: {e}")
             return {'Error': str(e)}, 400
         
-    def create(self, id, nome):
+    def create(self, nome):
         try:
-            tipologiaconservazioni = TTipologiaConservazioni(id=id, nome=nome)
-            self.session.add(tipologiaconservazioni)
+            tipologia_conservazione = TTipologiaConservazioni(nome=nome)
+            self.session.add(tipologia_conservazione)
             self.session.commit()
-            return {'tipologiaconservazioni': 'added!'}, 200
+            return {'tipologia_conservazione': 'added!'}, 200
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error creating conservazione: {e}")
+            logging.error(f"Error creating tipologia conservazione: {e}")
+            return {'Error': str(e)}, 500
+        
+    def update(self, id, nome):
+        try:
+            tipologia_conservazione = self.session.query(TTipologiaConservazioni).filter_by(id=id).first()
+            if tipologia_conservazione:
+                tipologia_conservazione.nome = nome
+                self.session.commit()
+                return {'tipologia_conservazione': 'updated!'}, 200
+            else:
+                return {'Error': f'No match found for this ID: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            logging.error(f"Error updating tipologia conservazione with ID {id}: {e}")
             return {'Error': str(e)}, 500
 
     def delete(self, id):
