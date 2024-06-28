@@ -81,7 +81,6 @@ class Repository_t_tipiUtente:
         else:
             return {'Error':f'cannot find tipoUtente for this id: {id}'}, 404
 
-        
     def delete_tipoUtente(self, id:int):
         try:
             result = self.exists_tipoUtente(id)
