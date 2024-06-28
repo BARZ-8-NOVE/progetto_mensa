@@ -9,5 +9,3 @@ class TServizi(Base):
     ordinatore = Column(Integer)
     inMenu = Column(Boolean)
 
-    def __repr__(self):
-        return f"<TServizi(id={self.id}, descrizione='{self.descrizione}', ordinatore={self.ordinatore}, inMenu={self.inMenu})>"

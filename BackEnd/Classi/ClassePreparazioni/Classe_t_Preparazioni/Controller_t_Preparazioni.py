@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 
-t_preparazioni_controller = Blueprint('t_preparazioni', __name__)
+t_preparazioni_controller = Blueprint('preparazioni', __name__)
 service_t_preparazioni = Service_t_preparazioni()
 
 @t_preparazioni_controller.route('/get_all', methods=['GET'])
@@ -12,7 +12,7 @@ def get_all_preparazioni():
 def get_preparazione_by_id(id):
     return service_t_preparazioni.get_preparazione_by_id(id)
 
-@t_preparazioni_controller.route('/create_preparazione', methods=['POST'])
+@t_preparazioni_controller.route('/create', methods=['POST'])
 def create_preparazione():
     dati = request.json
     if 'fkTipoPreparazione' not in dati or 'descrizione' not in dati or 'isEstivo' not in dati or 'isInvernale' not in dati:
@@ -38,6 +38,6 @@ def create_preparazione():
     except Exception as e:
         return {'Error': str(e)}, 403
 
-@t_preparazioni_controller.route('/delete_preparazione/<int:id>', methods=['PUT'])
+@t_preparazioni_controller.route('/delete/<int:id>', methods=['DELETE'])
 def delete_preparazione(id):
     return service_t_preparazioni.delete_preparazione(id)
