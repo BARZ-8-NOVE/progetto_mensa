@@ -12,16 +12,16 @@ class RepositoryAlimenti:
     def get_all(self):
         try:
             results = self.session.query(TAlimenti).all()
-            return [{'ID': result.ID, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
+            return [{'ID': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
         except Exception as e:
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
 
     def get_by_id(self, id):
         try:
-            result = self.session.query(TAlimenti).filter_by(ID=id).first()
+            result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
-                return {'ID': result.ID, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
+                return {'ID': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
@@ -41,7 +41,7 @@ class RepositoryAlimenti:
 
     def update(self, id, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento):
         try:
-            alimento = self.session.query(TAlimenti).filter_by(ID=id).first()
+            alimento = self.session.query(TAlimenti).filter_by(id=id).first()
             if alimento:
                 alimento.Alimento = Alimento
                 alimento.Energia_Kcal = Energia_Kcal
@@ -63,7 +63,7 @@ class RepositoryAlimenti:
 
     def delete(self, id):
         try:
-            result = self.session.query(TAlimenti).filter_by(ID=id).first()
+            result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
                 self.session.delete(result)
                 self.session.commit()

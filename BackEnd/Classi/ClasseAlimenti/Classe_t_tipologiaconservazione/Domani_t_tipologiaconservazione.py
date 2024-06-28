@@ -3,9 +3,9 @@ from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.orm import relationship
 
 class TTipologiaConservazioni(Base):
-    __tablename__ = 't_tipologiaconservazioni'
+    __tablename__ = 't_tipologiaconservazione'
 
-    ID = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     nome = Column(String)
 
 

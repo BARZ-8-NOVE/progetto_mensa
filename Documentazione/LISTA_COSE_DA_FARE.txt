@@ -1,0 +1,43 @@
+-creata nuova tabella t_alimenti_con_allergeni nelle colonne ho aggiunto  gli allergeni e la tipologia di alimento.
+
+
+
+di  conseguenza sono state create:
+
+
+
+-la tabella t_tipologiaalimenti con le tipologie degli alimenti e i loro metodi di conservazione.
+
+-e la tabella t_allergeni con la lista dei principali 14 allergeni 
+
+
+
+-aggiunto le colonne password e e_mail alla tabella t_operatori
+
+
+
+-eliminate tutte le tabelle non necessarie
+
+
+
+per collegarsi al db: 
+
+-installare python-dotenv usando il comando pip install python-dotenv
+
+-creare un file .env al di fuori della cartella git 
+
+-definire i punti di accesso del proprio DB locale all'interno del file .env 
+
+
+
+esempio:
+
+
+
+DB_HOST=127.0.0.1
+
+DB_USER=root
+
+DB_PASSWORD=password
+
+DB_NAME=cucina
