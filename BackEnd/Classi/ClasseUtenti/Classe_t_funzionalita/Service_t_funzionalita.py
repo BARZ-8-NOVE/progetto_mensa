@@ -24,6 +24,7 @@ class Service_t_funzionalita:
         return self.repository.get_funzionalita_all()
 
     def get_funzionalita_by_id(self, id:int):
+        self.__checkId(id)
         return self.repository.get_funzionalita_by_id(id)
     
     def create_funzionalita(self, nome:str, frmNome:str):

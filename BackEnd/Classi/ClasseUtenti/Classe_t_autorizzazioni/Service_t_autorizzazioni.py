@@ -24,6 +24,7 @@ class Service_t_autorizzazioni:
         return self.repository.get_autorizzazioni_all()
 
     def get_autorizzazioni_by_id(self, id:int):
+        self.__checkId(id)
         return self.repository.get_autorizzazione_by_id(id)
     
     def create_autorizzazione(self, nome:str, fkListaFunzionalita:str):

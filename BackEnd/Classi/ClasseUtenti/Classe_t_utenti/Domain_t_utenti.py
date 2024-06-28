@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Index, Date
+from sqlalchemy import Column, String, Integer, ForeignKey, Index, Date, UniqueConstraint
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
@@ -17,12 +17,12 @@ class TUtenti(Base):
     attivo = Column(TINYINT, nullable=True)
     inizio = Column(Date, nullable=True)
     email = Column(String, nullable=False)
-    password = Column(String, nullabla=False)
+    password = Column(String, nullable=False)
 
     tipoUtente = relationship('TTipiUtenti', foreign_keys=[fkTipoUtente])
 
     __table_args__ = (
-        Index('idx_t_utenti', 'fkTipoUtente'),
-        Index('idx_t_utenti', 'username'),
-        Index('idx_t_utenti', 'email')
+        Index('fkTipoUtente', 'fkTipoUtente'),
+        UniqueConstraint('username', 'username'),
+        UniqueConstraint('email', 'email')
     )

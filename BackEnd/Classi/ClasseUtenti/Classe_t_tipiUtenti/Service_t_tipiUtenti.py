@@ -25,6 +25,7 @@ class Service_t_tipiUtenti:
         return self.repository.get_tipiUtenti_all()
 
     def get_tipoUtente_by_id(self, id:int):
+        self.__checkId(id)
         return self.repository.get_tipoUtente_by_id(id)
     
     def create_tipoUtente(self, nomeTipoUtente:str, fkAutorizzazioni):

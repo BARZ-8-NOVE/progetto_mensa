@@ -9,7 +9,7 @@ class Repository_t_tipiUtente:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def exists_tipoUtente(self, id:int):
+    def exists_tipoUtente_by_id(self, id:int):
         try:
             result = self.session.query(TTipiUtenti).filter_by(id=id).first()
             if result:
@@ -61,7 +61,7 @@ class Repository_t_tipiUtente:
         
     def update_tipoUtente(self, id:int, nomeTipoUtente:str, fkAutorizzazioni):
         try:
-            tipoUtente = self.exists_tipoUtente(id)
+            tipoUtente = self.exists_tipoUtente_by_id(id)
         except Exception as e:
                 self.session.rollback()
                 self.session.close()
@@ -83,7 +83,7 @@ class Repository_t_tipiUtente:
 
     def delete_tipoUtente(self, id:int):
         try:
-            result = self.exists_tipoUtente(id)
+            result = self.exists_tipoUtente_by_id(id)
             if result:
                 self.session.delete(result)
                 self.session.commit()

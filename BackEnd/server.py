@@ -12,6 +12,7 @@ from Classi.ClasseUtenti.Classe_t_tipiUtenti.Controller_t_tipiUtenti import t_ti
 from Classi.ClasseAlimenti.Classe_t_allergeni.Controller_t_allergeni import t_allergeni_controller
 from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Controller_t_tipologiaalimenti import t_tipologiaalimenti_controller
 from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione.Controller_t_tipologiaconservazione import t_tipologiaconservazioni_controller
+from Classi.ClasseUtenti.Classe_t_utenti.Controller_t_utenti import t_utenti_controller
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -29,6 +30,7 @@ app.register_blueprint(t_preparazioni_controller, url_prefix='/preparazioni')
 app.register_blueprint(t_funzionalita_controller, url_prefix='/funzionalita')
 app.register_blueprint(t_autorizzazioni_controller, url_prefix='/autorizzazioni')
 app.register_blueprint(t_tipiUtenti_controller, url_prefix='/tipiUtenti')
+app.register_blueprint(t_utenti_controller, url_prefix='/utenti')
 
 if __name__ == '__main__':
     app.run(debug=True)

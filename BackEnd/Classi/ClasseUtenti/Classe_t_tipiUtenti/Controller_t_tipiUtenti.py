@@ -6,13 +6,13 @@ service_t_tipiUtenti = Service_t_tipiUtenti()
 
 @t_tipiUtenti_controller.route('/get_all', methods=['GET'])
 def get_tipiUtenti_all():
-    funzionalita = service_t_tipiUtenti.get_tipiUtenti_all()
-    return funzionalita
+    tipiUtenti = service_t_tipiUtenti.get_tipiUtenti_all()
+    return tipiUtenti
 
-@t_tipiUtenti_controller.route('/get_tipiUtenti/<int:id>', methods=['GET'])
+@t_tipiUtenti_controller.route('/get_tipoUtente/<int:id>', methods=['GET'])
 def get_tipoUtente_by_id(id):
-    funzionalita = service_t_tipiUtenti.get_tipoUtente_by_id(id)
-    return funzionalita
+    tipoUtente = service_t_tipiUtenti.get_tipoUtente_by_id(id)
+    return tipoUtente
 
 @t_tipiUtenti_controller.route('/create_tipoUtente', methods=['PUT'])
 def create_tipoUtente():
@@ -45,9 +45,9 @@ def update_tipoUtente():
 def delete_tipoUtente(id):
     try:
         id = int(id)
-        funzionalita = service_t_tipiUtenti.delete_tipoUtente(id)
+        tipoUtente = service_t_tipiUtenti.delete_tipoUtente(id)
     except ValueError as ve:
         return {'Error': str(ve)}, 403
     except Exception as e:
         return {'Error': str(e)}, 400
-    return funzionalita
+    return tipoUtente
