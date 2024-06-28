@@ -31,11 +31,11 @@ class Service_t_autorizzazioni:
         self.__checkFkListaFunzionalita(fkListaFunzionalita)
         return self.repository.create_autorizzazione(nome, fkListaFunzionalita)
     
-    def update_autorizzazione(self, id:int, nome:str, frmNome:str):
+    def update_autorizzazione(self, id:int, nome:str, fkListaFunzionalita:str):
         self.__checkId(id)
         self.__checkNome(nome)
-        self.__checkFkListaFunzionalita(frmNome)
-        return self.repository.update_autorizzazione(id, nome, frmNome)
+        self.__checkFkListaFunzionalita(fkListaFunzionalita)
+        return self.repository.update_autorizzazione(id, nome, fkListaFunzionalita)
     
     def delete_autorizzazione(self, id:int):
         self.__checkId(id)

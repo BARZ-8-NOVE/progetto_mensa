@@ -8,7 +8,7 @@ class Repository_t_autorizzazioni:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def exists_autorizzazione(self, id:int):
+    def exists_autorizzazione(self, id):
         try:
             result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
         except Exception as e:

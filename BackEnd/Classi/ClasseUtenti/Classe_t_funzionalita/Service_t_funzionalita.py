@@ -28,7 +28,7 @@ class Service_t_funzionalita:
     
     def create_funzionalita(self, nome:str, frmNome:str):
         self.__checkNome(nome)
-        self.__checkFrmNome
+        self.__checkFrmNome(frmNome)
         return self.repository.create_funzionalita(nome, frmNome)
     
     def update_funzionalita(self, id:int, nome:str, frmNome:str):
