@@ -11,7 +11,7 @@ def get_funzionalita_all():
         funzionalita = service_t_funzionalita.get_funzionalita_all()
         return funzionalita
     except Exception as e:
-                return {'Error': str(e)}, 400
+        return {'Error': str(e)}, 400
 
 @t_funzionalita_controller.route('/get_funzionalita/<int:id>', methods=['GET'])
 def get_funzionalita_by_id(id):
@@ -48,7 +48,7 @@ def update_funzionalita():
         frmNome = dati['frmNome']
         return service_t_funzionalita.update_funzionalita(id, nome, frmNome)
     except KeyError as e:
-        return {'Error': str(e)}, 405
+        return {'Error': str(e)}, 403
     except (ValueError, TypeError) as e:
         return {'Error': str(e)}, 422
     except Exception as e:

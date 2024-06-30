@@ -20,7 +20,7 @@ class Repository_t_funzionalita:
         try:
             results = self.session.query(TFunzionalita).all()
             self.session.close()
-            return UtilityGeneral.getClassDictionary(results)
+            return UtilityGeneral.getClassDictionaryOrList(results)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -31,7 +31,7 @@ class Repository_t_funzionalita:
             result = self.session.query(TFunzionalita).filter_by(id=id).first()
             if result:
                 self.session.close()
-                return UtilityGeneral.getClassDictionary(result)
+                return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
                 return {'Error':f'cannot find funzionalita for this id: {id}'}, 404
@@ -43,7 +43,7 @@ class Repository_t_funzionalita:
             result = TFunzionalita(nome=nome, frmNome = frmNome)
             self.session.add(result)
             self.session.commit()
-            return UtilityGeneral.getClassDictionary(result)
+            return UtilityGeneral.getClassDictionaryOrList(result)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -56,7 +56,7 @@ class Repository_t_funzionalita:
                 result.nome = nome
                 result.frmNome = frmNome
                 self.session.commit()
-                return UtilityGeneral.getClassDictionary(result)
+                return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.rollback()
                 self.session.close()

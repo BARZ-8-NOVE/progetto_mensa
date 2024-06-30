@@ -20,7 +20,7 @@ class Repository_t_autorizzazioni:
         try:
             results = self.session.query(TAutorizzazioni).all()
             self.session.close()
-            return UtilityGeneral.getClassDictionary(results)
+            return UtilityGeneral.getClassDictionaryOrList(results)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -31,7 +31,7 @@ class Repository_t_autorizzazioni:
             result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
             if result:
                 self.session.close()
-                return UtilityGeneral.getClassDictionary(result)
+                return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
                 return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
@@ -43,7 +43,7 @@ class Repository_t_autorizzazioni:
             result = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
             self.session.add(result)
             self.session.commit()
-            return UtilityGeneral.getClassDictionary(result)
+            return UtilityGeneral.getClassDictionaryOrList(result)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -56,7 +56,7 @@ class Repository_t_autorizzazioni:
                 result.nome = nome
                 result.fkListaFunzionalita = fkListaFunzionalita
                 self.session.commit()
-                return UtilityGeneral.getClassDictionary(result)
+                return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.rollback()
                 self.session.close()

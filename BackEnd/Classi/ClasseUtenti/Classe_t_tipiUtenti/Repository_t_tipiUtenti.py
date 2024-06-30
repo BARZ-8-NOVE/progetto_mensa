@@ -21,7 +21,7 @@ class Repository_t_tipiUtente:
         try:
             results = self.session.query(TTipiUtenti).all()
             self.session.close()
-            return UtilityGeneral.getClassDictionary(results)
+            return UtilityGeneral.getClassDictionaryOrList(results)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -32,7 +32,7 @@ class Repository_t_tipiUtente:
             result = self.session.query(TTipiUtenti).filter_by(id=id).first()
             if result:
                 self.session.close()
-                return UtilityGeneral.getClassDictionary(result)
+                return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.rollback()
                 self.session.close()
@@ -52,7 +52,7 @@ class Repository_t_tipiUtente:
             tipoUtente = TTipiUtenti(nomeTipoUtente=nomeTipoUtente, fkAutorizzazioni=fkAutorizzazioni)
             self.session.add(tipoUtente)
             self.session.commit()
-            return UtilityGeneral.getClassDictionary(tipoUtente), 200
+            return UtilityGeneral.getClassDictionaryOrList(tipoUtente), 200
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -72,7 +72,7 @@ class Repository_t_tipiUtente:
                 tipoUtente.nomeTipoUtente = nomeTipoUtente
                 tipoUtente.fkAutorizzazioni = fkAutorizzazioni
                 self.session.commit()
-                return UtilityGeneral.getClassDictionary(tipoUtente), 200
+                return UtilityGeneral.getClassDictionaryOrList(tipoUtente), 200
             else:
                 return {'Error':f'cannot find tipoUtente for this id: {id}'}, 404
         except Exception as e:

@@ -3,9 +3,10 @@ from Classi.ClasseUtenti.Classe_t_utenti.Domain_t_utenti import TUtenti
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Domain_t_tipiUtenti import TTipiUtenti
 from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
+from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 
 class UtilityGeneral:    
-
+    
     @staticmethod
     def safe_int_convertion(value, variableName):
         try:
@@ -16,7 +17,7 @@ class UtilityGeneral:
     @staticmethod
     def check_fields(dati, required_fields):
         if not all(field in dati for field in required_fields):
-            raise KeyError("Wrong key!")
+            raise KeyError(UtilityMessages.messageWrongKeys())
         
     @staticmethod
     def checkResult(result):
@@ -39,7 +40,7 @@ class UtilityGeneral:
         return current_date
     
     @staticmethod
-    def getClassDictionary(results):
+    def getClassDictionaryOrList(results):
         if isinstance(results, (TUtenti, list)):
             if isinstance(results, TUtenti):  
                 ritorno = {'id': results.id, 'username': results.username, 'nome': results.nome,
