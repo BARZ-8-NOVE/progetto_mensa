@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
+from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
 class Repository_t_funzionalita:
 
@@ -11,42 +12,38 @@ class Repository_t_funzionalita:
     def exists_funzionalita(self, id:int):
         try:
             result = self.session.query(TFunzionalita).filter_by(id=id).first()
+            return UtilityGeneral.checkResult(result)
         except Exception as e:
             return {'Error':str(e)}, 400
-        if result:
-            return result
-        else:
-            return False
 
     def get_funzionalita_all(self):
         try:
             results = self.session.query(TFunzionalita).all()
             self.session.close()
+            return UtilityGeneral.getClassDictionary(results)
         except Exception as e:
             self.session.rollback()
             self.session.close()
             return {'Error': str(e)}, 500
-        return [{'id': result.id, 'nome': result.nome, 'frmNome': result.frmNome} for result in results]
 
     def get_funzionalita_by_id(self, id:int):
         try:
             result = self.session.query(TFunzionalita).filter_by(id=id).first()
+            if result:
+                self.session.close()
+                return UtilityGeneral.getClassDictionary(result)
+            else:
+                self.session.close()
+                return {'Error':f'cannot find funzionalita for this id: {id}'}, 404
         except Exception as e:
             return {'Error':str(e)}, 400
-        if result:
-            self.session.close()
-            return {'id': result.id, 'nome': result.nome, 'frmNome': result.frmNome}
-        else:
-            self.session.close()
-            return {'Error':f'No match found for this id: {id}'}, 404
         
     def create_funzionalita(self, nome:str, frmNome:str):
         try:
-            funzionalita = TFunzionalita(nome=nome, frmNome = frmNome)
-            self.session.add(funzionalita)
+            result = TFunzionalita(nome=nome, frmNome = frmNome)
+            self.session.add(result)
             self.session.commit()
-            self.session.close()
-            return {'Funzionalita':'added!'}, 200
+            return UtilityGeneral.getClassDictionary(result)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -54,17 +51,16 @@ class Repository_t_funzionalita:
         
     def update_funzionalita(self, id:int, nome:str, frmNome:str):
         try:
-            result = self.exists_funzionalita(id)
+            result:TFunzionalita = self.exists_funzionalita(id)
             if result:
                 result.nome = nome
                 result.frmNome = frmNome
                 self.session.commit()
-                self.session.close()
-                return {'Funzionalita':f'updated funzionalita for this id: {id}, nome: {nome}, frmNome: {frmNome}'}, 200
+                return UtilityGeneral.getClassDictionary(result)
             else:
                 self.session.rollback()
                 self.session.close()
-                return {'Error':f'no match found for this id: {id}'}, 403
+                return {'Error':f'cannot find funzionalita for this id: {id}'}, 403
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -81,7 +77,7 @@ class Repository_t_funzionalita:
             else:
                 self.session.rollback()
                 self.session.close()
-                return {'Error':f'no match found for this id: {id}'}, 403
+                return {'Error':f'cannot find funzionalita for this id: {id}'}, 403
         except Exception as e:
             self.session.rollback()
             self.session.close()

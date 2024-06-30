@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
+from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
 class Repository_t_autorizzazioni:
 
@@ -11,46 +12,38 @@ class Repository_t_autorizzazioni:
     def exists_autorizzazione(self, id):
         try:
             result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
+            return UtilityGeneral.checkResult(result)
         except Exception as e:
             return {'Error':str(e)}, 400
-        if result:
-            return result
-        else:
-            return False
 
     def get_autorizzazioni_all(self):
         try:
             results = self.session.query(TAutorizzazioni).all()
             self.session.close()
+            return UtilityGeneral.getClassDictionary(results)
         except Exception as e:
             self.session.rollback()
             self.session.close()
             return {'Error': str(e)}, 500
-        return [{
-                    'id': result.id,
-                    'nome': result.nome, 
-                    'fkListaFunzionalita': result.fkListaFunzionalita
-                } for result in results]
 
     def get_autorizzazione_by_id(self, id:int):
         try:
             result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
+            if result:
+                self.session.close()
+                return UtilityGeneral.getClassDictionary(result)
+            else:
+                self.session.close()
+                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
         except Exception as e:
             return {'Error':str(e)}, 400
-        if result:
-            self.session.close()
-            return {'id': result.id, 'nome': result.nome, 'fkListaFunzionalita': result.fkListaFunzionalita}
-        else:
-            self.session.close()
-            return {'Error':f'No match found for this id: {id}'}, 404
         
     def create_autorizzazione(self, nome:str, fkListaFunzionalita:str):
         try:
-            autorizzazione = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
-            self.session.add(autorizzazione)
+            result = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
+            self.session.add(result)
             self.session.commit()
-            self.session.close()
-            return {'Autorizzazione':'added!'}, 200
+            return UtilityGeneral.getClassDictionary(result)
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -58,17 +51,16 @@ class Repository_t_autorizzazioni:
         
     def update_autorizzazione(self, id:int, nome:str, fkListaFunzionalita:str):
         try:
-            result = self.exists_autorizzazione(id)
+            result:TAutorizzazioni = self.exists_autorizzazione(id)
             if result:
                 result.nome = nome
                 result.fkListaFunzionalita = fkListaFunzionalita
                 self.session.commit()
-                self.session.close()
-                return {'Funzionalita':f'updated autorizzazione for this id: {id}, nome: {nome}, fkListaFunzionalita: {fkListaFunzionalita}'}, 200
+                return UtilityGeneral.getClassDictionary(result)
             else:
                 self.session.rollback()
                 self.session.close()
-                return {'Error':f'no match found for this id: {id}'}, 403
+                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
             self.session.close()
@@ -85,7 +77,7 @@ class Repository_t_autorizzazioni:
             else:
                 self.session.rollback()
                 self.session.close()
-                return {'Error':f'no match found for this id: {id}'}, 403
+                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
             self.session.close()

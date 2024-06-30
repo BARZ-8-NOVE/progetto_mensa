@@ -1,54 +1,68 @@
 from flask import Blueprint, request
 from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
+from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
 t_funzionalita_controller = Blueprint('funzionalita', __name__)
 service_t_funzionalita = Service_t_funzionalita()
 
 @t_funzionalita_controller.route('/get_all', methods=['GET'])
 def get_funzionalita_all():
-    funzionalita = service_t_funzionalita.get_funzionalita_all()
-    return funzionalita
+    try:
+        funzionalita = service_t_funzionalita.get_funzionalita_all()
+        return funzionalita
+    except Exception as e:
+                return {'Error': str(e)}, 400
 
 @t_funzionalita_controller.route('/get_funzionalita/<int:id>', methods=['GET'])
 def get_funzionalita_by_id(id):
-    funzionalita = service_t_funzionalita.get_funzionalita_by_id(id)
-    return funzionalita
+    try:
+        funzionalita = service_t_funzionalita.get_funzionalita_by_id(id)
+        return funzionalita
+    except Exception as e:
+            return {'Error': str(e)}, 400
 
 @t_funzionalita_controller.route('/create_funzionalita', methods=['PUT'])
 def create_funzionalita():
-    dati = request.json
-    if 'nome' not in dati or 'frmNome' not in dati:
-        return {'Error':'wrong keys!'}, 403
     try:
-        nome = str(dati['nome'])
-        frmNome = str(dati['frmNome'])
+        dati = request.json
+        required_fields = ['nome', 'frmNome']
+        UtilityGeneral.check_fields(dati, required_fields)
+        nome = dati['nome']
+        frmNome = dati['frmNome']
         return service_t_funzionalita.create_funzionalita(nome, frmNome)
+    except KeyError as e:
+        return {'Error': str(e)}, 405
+    except (ValueError, TypeError) as e:
+        return {'Error': str(e)}, 422
     except Exception as e:
-        return {'Error': str(e)}, 403
+        return {'Error': str(e)}, 400
     
 @t_funzionalita_controller.route('/update_funzionalita', methods=['POST'])
 def update_funzionalita():
-    dati = request.json
-    if 'nome' not in dati or 'frmNome' not in dati:
-        return {'Error':'wrong keys'}, 403
     try:
-        id = int(dati['id'])
-        nome = str(dati['nome'])
-        frmNome = str(dati['frmNome'])
+        dati = request.json
+        required_fields = ['id', 'nome', 'frmNome']
+        UtilityGeneral.check_fields(dati, required_fields)
+        id = UtilityGeneral.safe_int_convertion(dati['id'], 'id')
+        nome = dati['nome']
+        frmNome = dati['frmNome']
         return service_t_funzionalita.update_funzionalita(id, nome, frmNome)
-    except ValueError as ve:
-        return {'Error': str(ve)}, 403
+    except KeyError as e:
+        return {'Error': str(e)}, 405
+    except (ValueError, TypeError) as e:
+        return {'Error': str(e)}, 422
     except Exception as e:
         return {'Error': str(e)}, 400
     
 @t_funzionalita_controller.route('/delete_funzionalita/<int:id>', methods=['DELETE'])
 def delete_funzionalita(id):
     try:
-        id = int(id)
+        id = UtilityGeneral.safe_int_convertion(id, 'id')
         funzionalita = service_t_funzionalita.delete_funzionalita(id)
-    except ValueError as ve:
-        return {'Error': str(ve)}, 403
+        return funzionalita
+    except ValueError as e:
+        return {'Error': str(e)}, 422
     except Exception as e:
         return {'Error': str(e)}, 400
-    return funzionalita
+    
     
