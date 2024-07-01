@@ -12,7 +12,7 @@ class RepositoryAllergeni:
     def get_all(self):
         try:
             results = self.session.query(TAllergeni).all()
-            return [{'ID': result.id, 'nome': result.nome} for result in results]
+            return [{'id': result.id, 'nome': result.nome} for result in results]
         except Exception as e:
             logging.error(f"Error getting all allergeni: {e}")
             return {'Error': str(e)}, 500
@@ -21,7 +21,7 @@ class RepositoryAllergeni:
         try:
             result = self.session.query(TAllergeni).filter_by(id=id).first()
             if result:
-                return {'ID': result.id, 'nome': result.nome}
+                return {'id': result.id, 'nome': result.nome}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
@@ -61,8 +61,8 @@ class RepositoryAllergeni:
                 self.session.commit()
                 return {'allergene': 'deleted!'}, 200
             else:
-                return {'Error': f'No match found for this ID: {id}'}, 404
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error deleting allergene by ID {id}: {e}")
+            logging.error(f"Error deleting allergene by id {id}: {e}")
             return {'Error': str(e)}, 500

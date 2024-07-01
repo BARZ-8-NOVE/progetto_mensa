@@ -23,8 +23,12 @@ from Classi.ClassePreparazioni.Classe_t_Preparazioni.Controller_t_Preparazioni i
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Controller_t_tipiquantita import t_tipoquantita_controller
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Controller_t_preparazioniContenuti import t_preparazionicontenuti_controller
 
-
 from Classi.ClasseServizi.Controller_t_servizi import t_servizi_controller
+
+from Classi.ClassePiatti.Classe_t_piatti.Controller_t_piatti import t_piatti_controller
+from Classi.ClassePiatti.Classe_t_tipiPiatti.Controller_t_tipiPiatti import t_tipi_piatti_controller
+
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
@@ -47,6 +51,10 @@ app.register_blueprint(t_funzionalita_controller, url_prefix='/funzionalita')
 app.register_blueprint(t_autorizzazioni_controller, url_prefix='/autorizzazioni')
 app.register_blueprint(t_tipiUtenti_controller, url_prefix='/tipiUtenti')
 app.register_blueprint(t_utenti_controller, url_prefix='/utenti')
+
+app.register_blueprint(t_piatti_controller, url_prefix='/piatti')
+app.register_blueprint(t_tipi_piatti_controller, url_prefix='/tipipiatti')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
