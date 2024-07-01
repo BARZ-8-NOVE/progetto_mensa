@@ -19,11 +19,15 @@ class Service_t_tipiUtenti:
         UtilityTipiUtenti.checkNomeTipoUtente(nomeTipoUtente)
         return self.repository.create_tipoUtente(nomeTipoUtente, fkAutorizzazioni)
     
-    def update_tipoUtente(self, id:int, nomeTipoUtente:str, fkAutorizzazioni):
+    def update_tipoUtente_nomeTipoUtente(self, id:int, nomeTipoUtente:str):
         UtilityGeneral.checkId(id)
         UtilityTipiUtenti.checkNomeTipoUtente(nomeTipoUtente)
+        return self.repository.update_tipoUtente_nomeTipoUtente(id, nomeTipoUtente)
+    
+    def update_tipoUtente_fkAutorizzazioni(self, id:int, fkAutorizzazioni):
+        UtilityGeneral.checkId(id)
         UtilityTipiUtenti.checkFkAutorizzazioni(fkAutorizzazioni)
-        return self.repository.update_tipoUtente(id, nomeTipoUtente, fkAutorizzazioni)
+        return self.repository.update_tipoUtente_fkAutorizzazioni(id, fkAutorizzazioni)
     
     def delete_tipoUtente(self, id:int):
         UtilityGeneral.checkId(id)

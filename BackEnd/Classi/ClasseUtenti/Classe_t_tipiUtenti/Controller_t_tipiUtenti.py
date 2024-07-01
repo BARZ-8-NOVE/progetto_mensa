@@ -53,7 +53,9 @@ def update_tipoUtente():
         id = UtilityGeneral.safe_int_convertion(dati['id'], 'id')
         nomeTipoUtente = dati['nomeTipoUtente']
         fkAutorizzazioni = dati['fkAutorizzazioni']
-        return service_t_tipiUtenti.update_tipoUtente(id, nomeTipoUtente, fkAutorizzazioni), httpCodes.OK
+        service_t_tipiUtenti.update_tipoUtente_nomeTipoUtente(id, nomeTipoUtente)
+        service_t_tipiUtenti.update_tipoUtente_fkAutorizzazioni(id, fkAutorizzazioni)
+        return {'TipoUtente updated': f'id: {id}, nomeTipoUtente: {nomeTipoUtente}, fkAutorizzazioni: {fkAutorizzazioni}'}, httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except NotFound as e:
@@ -68,7 +70,11 @@ def delete_tipoUtente(id):
     try:
         id = UtilityGeneral.safe_int_convertion(id, 'id')
         result = service_t_tipiUtenti.delete_tipoUtente(id)
-        return result, httpCodes.OK
+        if not result:
+            return {'TipoUtente deleted': f'id: {id}'}
+        else:
+            return {'You cannot delete this tipoUtente because associated at some utenti':
+                UtilityGeneral.getClassDictionaryOrList(result)}, httpCodes.FORBIDDEN
     except ValueError as e:
         return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
     except NotFound as e:

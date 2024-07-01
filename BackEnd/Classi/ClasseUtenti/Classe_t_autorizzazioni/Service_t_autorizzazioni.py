@@ -19,12 +19,16 @@ class Service_t_autorizzazioni:
         UtilityAutorizzazioni.checkFkListaFunzionalita(fkListaFunzionalita)
         return self.repository.create_autorizzazione(nome, fkListaFunzionalita)
     
-    def update_autorizzazione(self, id:int, nome:str, fkListaFunzionalita:str):
-        UtilityGeneral.checkId(id)
-        UtilityAutorizzazioni.checkNome(nome)
-        UtilityAutorizzazioni.checkFkListaFunzionalita(fkListaFunzionalita)
-        return self.repository.update_autorizzazione(id, nome, fkListaFunzionalita)
-    
     def delete_autorizzazione(self, id:int):
         UtilityGeneral.checkId(id)
         return self.repository.delete_autorizzazione(id)
+    
+    def update_autorizzazione_nome(self, id:int, nome:str):
+        UtilityAutorizzazioni.checkNome(nome)
+        UtilityGeneral.checkId(id)
+        return self.repository.update_autorizzazione_nome(id, nome)
+    
+    def update_autorizzazione_fkListaFunzionalita(self, id:int, fkListaFunzionalita:str):
+        UtilityAutorizzazioni.checkFkListaFunzionalita(fkListaFunzionalita)
+        UtilityGeneral.checkId(id)
+        return self.repository.update_autorizzazione_fkListaFunzionalita(id, fkListaFunzionalita)

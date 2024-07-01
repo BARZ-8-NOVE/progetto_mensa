@@ -68,7 +68,18 @@ def update_utente():
         attivo = UtilityGeneral.safe_int_convertion(dati['attivo'], 'attivo')
         email = dati['email']
         password = dati['password']
-        return service_t_utenti.update_utente(id, username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, email, password), httpCodes.OK
+        service_t_utenti.update_utente_username(id, username)
+        service_t_utenti.update_utente_nome(id, nome)
+        service_t_utenti.update_utente_cognome(id, cognome)
+        service_t_utenti.update_utente_fkTipoUtente(id, fkTipoUtente)
+        service_t_utenti.update_utente_fkFunzCustom(id, fkFunzCustom)
+        service_t_utenti.update_utente_reparti(id, reparti)
+        service_t_utenti.update_utente_attivo(id, attivo)
+        service_t_utenti.update_utente_email(id, email)
+        service_t_utenti.update_utente_password(id, password)
+        return {'Utente updated': f'id: {id}, username: {username}, nome: {nome}, cognome: {cognome},
+                fkTipoUtente: {fkTipoUtente}, fkFunzCustom: {fkFunzCustom}, reparti: {reparti},
+                attivo: {attivo}, email: {email}, password: {password}'}, httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except ValueError as e:

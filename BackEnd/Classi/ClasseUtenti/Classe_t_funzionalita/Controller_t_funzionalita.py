@@ -53,7 +53,9 @@ def update_funzionalita():
         id = UtilityGeneral.safe_int_convertion(dati['id'], 'id')
         nome = dati['nome']
         frmNome = dati['frmNome']
-        return service_t_funzionalita.update_funzionalita(id, nome, frmNome)
+        service_t_funzionalita.update_funzionalita_nome(id, nome)
+        service_t_funzionalita.update_funzionalita_frmNome(id, frmNome)
+        return {'Funzionalita updated': f'id: {id}, nome: {nome}, frmNome: {frmNome}'}
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except NotFound as e:

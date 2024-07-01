@@ -19,11 +19,15 @@ class Service_t_funzionalita:
         UtilityFunzionalita.checkFrmNome(frmNome)
         return self.repository.create_funzionalita(nome, frmNome)
     
-    def update_funzionalita(self, id:int, nome:str, frmNome:str):
+    def update_funzionalita_nome(self, id:int, nome:str):
         UtilityGeneral.checkId(id)
         UtilityFunzionalita.checkNome(nome)
+        return self.repository.update_funzionalita_nome(id, nome)
+    
+    def update_funzionalita_frmNome(self, id:int, frmNome:str):
+        UtilityGeneral.checkId(id)
         UtilityFunzionalita.checkFrmNome(frmNome)
-        return self.repository.update_funzionalita(id, nome, frmNome)
+        return self.repository.update_funzionalita_frmNome(id, frmNome)
     
     def delete_funzionalita(self, id:int):
         UtilityGeneral.checkId(id)

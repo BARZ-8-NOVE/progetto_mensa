@@ -16,6 +16,13 @@ class Repository_t_tipiUtente:
         result = self.session.query(TTipiUtenti).filter_by(id=id).first()
         return result
     
+    def set_null_fkAutorizzazioni(self, fkAutorizzazioni):
+        results = self.session.query(TTipiUtenti).filter_by(fkAutorizzazioni=fkAutorizzazioni).all()
+        for result in results:
+            result.fkAutorizzazioni = None
+            self.session.commit()
+        return
+    
     def get_tipiUtenti_all(self):
         results = self.session.query(TTipiUtenti).all()
         self.session.close()
@@ -41,8 +48,16 @@ class Repository_t_tipiUtente:
         self.session.add(tipoUtente)
         self.session.commit()
         return UtilityGeneral.getClassDictionaryOrList(tipoUtente)
+    
+    def update_tipoUtente_nomeTipoUtente(self, id:int, nomeTipoUtente:str):
+        tipoUtente:TTipiUtenti = self.exists_tipoUtente_by_id(id)
+        if tipoUtente:
+            tipoUtente.nomeTipoUtente = nomeTipoUtente
+            self.session.commit()
+        else:
+            raise NotFound('TipoUtente', 'id', id)
         
-    def update_tipoUtente(self, id:int, nomeTipoUtente:str, fkAutorizzazioni):
+    def update_tipoUtente_fkAutorizzazioni(self, id:int, fkAutorizzazioni):
         tipoUtente:TTipiUtenti = self.exists_tipoUtente_by_id(id)
         if tipoUtente:
             if fkAutorizzazioni:
@@ -51,22 +66,26 @@ class Repository_t_tipiUtente:
                 if not result:
                     self.session.close()
                     raise NotFound('Autorizzazioni', 'fkAutorizzazioni', fkAutorizzazioni)
-            tipoUtente.nomeTipoUtente = nomeTipoUtente
             tipoUtente.fkAutorizzazioni = fkAutorizzazioni
             self.session.commit()
-            return UtilityGeneral.getClassDictionaryOrList(tipoUtente), 200
+            return
         else:
             raise NotFound('TipoUtente', 'id', id)
         
     def delete_tipoUtente(self, id:int):
         result = self.exists_tipoUtente_by_id(id)
         if result:
-            self.session.delete(result)
-            self.session.commit()
-            self.session.close()
-            return {'TipoUtente': UtilityMessages.deleteMessage('TipiUtente', 'id', id)}
+            from Classi.ClasseUtenti.Classe_t_utenti.Repository_t_utenti import Repository_t_utenti
+            utenti = Repository_t_utenti()
+            results = utenti.exist_utenti_by_tipoUtente(result.id)
+            if not results:
+                self.session.delete(result)
+                self.session.commit()
+                self.session.close()
+                return
+            else:
+                return results
         else:
-            self.session.rollback()
             self.session.close()
             raise NotFound('TipoUtente', 'id', id)
         

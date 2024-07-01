@@ -27,7 +27,7 @@ class Repository_t_autorizzazioni:
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
-                raise NotFound('Autorizzazione', 'id', id)
+                raise NotFound(UtilityMessages.notFoundErrorMessage('Autorizzazione', 'id', id))
         
     def create_autorizzazione(self, nome:str, fkListaFunzionalita:str):
         result = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
@@ -35,24 +35,36 @@ class Repository_t_autorizzazioni:
         self.session.commit()
         return UtilityGeneral.getClassDictionaryOrList(result)
         
-    def update_autorizzazione(self, id:int, nome:str, fkListaFunzionalita:str):
-        result:TAutorizzazioni = self.exists_autorizzazione(id)
-        if result:
-            result.nome = nome
-            result.fkListaFunzionalita = fkListaFunzionalita
-            self.session.commit()
-            return UtilityGeneral.getClassDictionaryOrList(result)
-        else:
-            self.session.close()
-            raise NotFound('Autorizzazione', 'id', id)
-        
     def delete_autorizzazione(self, id:int):
             result = self.exists_autorizzazione(id)
             if result:
+                from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repository_t_tipiUtente
+                tipiUtenti = Repository_t_tipiUtente()
+                tipiUtenti.set_null_fkAutorizzazioni(result.id)
                 self.session.delete(result)
                 self.session.commit()
                 self.session.close()
-                return {'Autorizzazione': UtilityMessages.deleteMessage('Autorizzazione', 'id', id)}
+                return
             else:
                 self.session.close()
-                raise NotFound('Autorizzazione', 'id', id)
+                raise NotFound(UtilityMessages.notFoundErrorMessage('Autorizzazione', 'id', id))
+            
+    def update_autorizzazione_nome(self, id:int, nome:str):
+        result:TAutorizzazioni = self.exists_autorizzazione(id)
+        if result:
+            result.nome = nome
+            self.session.commit()
+            return 
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Autorizzazione', 'id', id))
+        
+    def update_autorizzazione_fkListaFunzionalita(self, id:int, fkListaFunzionalita:str):
+        result:TAutorizzazioni = self.exists_autorizzazione(id)
+        if result:
+            result.fkListaFunzionalita = fkListaFunzionalita
+            self.session.commit()
+            return
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Autorizzazione', 'id', id))
