@@ -21,4 +21,5 @@ class TPreparazioni(Base):
     immagine = Column(String, nullable=True)  # varchar(MAX) viene trattato come una stringa di lunghezza variabile
 
     tipo_preparazione = relationship('TTipiPreparazioni')
+    
 

@@ -21,7 +21,7 @@ def get_funzionalita_by_id(id):
     except Exception as e:
             return {'Error': str(e)}, 400
 
-@t_funzionalita_controller.route('/create_funzionalita', methods=['PUT'])
+@t_funzionalita_controller.route('/create_funzionalita', methods=['POST'])
 def create_funzionalita():
     try:
         dati = request.json
@@ -37,7 +37,7 @@ def create_funzionalita():
     except Exception as e:
         return {'Error': str(e)}, 400
     
-@t_funzionalita_controller.route('/update_funzionalita', methods=['POST'])
+@t_funzionalita_controller.route('/update_funzionalita', methods=['PUT'])
 def update_funzionalita():
     try:
         dati = request.json

@@ -1,6 +1,6 @@
 CLasse DB scrittura ok, check ok
 
-ClasseServizi __scrittura OK, __check da fare: TUTTI, __check fatti: NESSUNO
+ClasseServizi __scrittura OK, __check da fare: OK , __check fatti: servizi (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
 ClasseAlimenti
 t_allergeni __scrittura OK, __check da fare: TUTTI, __check fatti: allergeni (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
@@ -9,10 +9,10 @@ t_tipologiaconservazione __scrittura OK, __check FATTI, __check fatti: tipologia
 t_alimenti __scrittura ok, check OK/ check FATTI: alimenti/ (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
 ClassePreparazioni
-t_tipiQuantita __scrittura OK, __check da fare: TUTTI, __check fatti: NESSUNO
-t_preparazioni __scrittura ok, check OK/ check FATTI: preparazioni (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
-t_preparazioniContenuti __scrittura OK, __check da fare: TUTTI, __check fatti: NESSUNO
-t_tipoPreparazioni __scrittura OK, __check da fare: TUTTI, __check fatti: NESSUNO
+t_tipiQuantita __scrittura OK, __check da fare: OK, __check fatti: tipoquantia (/get_all, /<int:id> , /create, /update/<int:id> /delete/<int:id>)
+t_preparazioni __scrittura ok, __check da fare: OK, __check fatti: preparazioni (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
+t_preparazioniContenuti __scrittura OK, __check da fare: OK, __check fatti: preparazionicontenuti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
+t_tipoPreparazioni __scrittura OK, __check da fare: OK, __check fatti: tipipreparazioni  (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
 ClassePiatti 
 t_tipiPiatti __scrittura OK, __check da fare: TUTTI, __check fatti: NESSUNO
@@ -35,3 +35,4 @@ ClasseUtenti
 t_funzionalita __confermare i controlli
 t_autorizzazioni __confermare i controlli
 t_tipiUtenti __confermare i controlli
+t_utenti __confermare i controlli

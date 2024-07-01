@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
 
-t_tipipreparazioni_controller = Blueprint('t_tipipreparazioni', __name__)
+t_tipipreparazioni_controller = Blueprint('tipipreparazioni', __name__)
 service_t_tipipreparazioni = Service_t_tipipreparazioni()
 
 @t_tipipreparazioni_controller.route('/get_all', methods=['GET'])
@@ -12,7 +12,7 @@ def get_all_tipipreparazioni():
 def get_tipipreparazioni_by_id(id):
     return service_t_tipipreparazioni.get_tipipreparazioni_by_id(id)
 
-@t_tipipreparazioni_controller.route('/create_tipipreparazioni', methods=['POST'])
+@t_tipipreparazioni_controller.route('/create', methods=['POST'])
 def create_tipipreparazioni():
     dati = request.json
     if 'descrizione' not in dati:
@@ -23,6 +23,12 @@ def create_tipipreparazioni():
     except Exception as e:
         return {'Error': str(e)}, 403
 
-@t_tipipreparazioni_controller.route('/delete_tipipreparazioni/<int:id>', methods=['DELETE'])
+@t_tipipreparazioni_controller.route('/update/<int:id>', methods=['PUT'])
+def update_tipipreparazioni(id):
+    dati = request.json
+    descrizione = dati.get('descrizione')
+    return service_t_tipipreparazioni.update_tipipreparazioni(id, descrizione)
+
+@t_tipipreparazioni_controller.route('/delete/<int:id>', methods=['DELETE'])
 def delete_tipipreparazioni(id):
     return service_t_tipipreparazioni.delete_tipipreparazioni(id)

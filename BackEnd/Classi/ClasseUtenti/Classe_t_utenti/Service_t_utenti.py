@@ -29,7 +29,7 @@ class Service_t_utenti:
         return self.repository.create_utente(username, nome, cognome, fkTipoUtente,
                     fkFunzCustom, reparti, attivo, inizio, email, password)
     
-    def update_utente(self, id:int, username:str, nome:str, cognome:str, fkTipoUtente:int,
+    def update_utente_searched_by_id(self, id:int, username:str, nome:str, cognome:str, fkTipoUtente:int,
                     fkFunzCustom:str, reparti:str, attivo:int, email:str, password:str):
         UtilityGeneral.checkId(id)
         UtilityUtenti.checkUsername(username)
@@ -40,7 +40,7 @@ class Service_t_utenti:
         UtilityUtenti.checkReparti(reparti)
         UtilityUtenti.checkEmail(email)
         UtilityUtenti.checkPassword(password)
-        return self.repository.update_utente(id, username, nome, cognome, fkTipoUtente,
+        return self.repository.update_utente_searched_by_id(id, username, nome, cognome, fkTipoUtente,
                     fkFunzCustom, reparti, attivo, email, password)
     
     def delete_utente(self, id:int):

@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 
-class TTipiPreparazioniContenuti(Base):
-    __tablename__ = 't_tipipreparazionicontenuti'
+class TPreparazioniContenuti(Base):
+    __tablename__ = 't_preparazionicontenuti'
 
     id = Column(Integer, primary_key=True)
     fkPreparazione = Column(Integer, nullable=False)

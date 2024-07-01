@@ -34,6 +34,19 @@ class Repository_t_tipipreparazioni:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        
+    def update_tipipreparazioni(self, id, descrizione):
+        try:
+            tipipreparazioni = self.session.query(TTipiPreparazioni).filter_by(id=id).first()
+            if tipipreparazioni:
+                tipipreparazioni.descrizione = descrizione
+                self.session.commit()
+                return {'tipipreparazioni': 'updated!'}, 200
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
 
     def delete_tipipreparazioni(self, id):
         try:
