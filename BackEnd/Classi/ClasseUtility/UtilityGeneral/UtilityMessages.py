@@ -5,9 +5,17 @@ class UtilityMessages:
         pass
 
     @staticmethod
-    def messageWrongKeys():
+    def wrongKeysErrorMessage():
         return 'Wrong keys!'
     
     @staticmethod
-    def existsStringError(search_name:str, parameter_name:str, search_parameter):
-        return f'{search_name} already exists with {parameter_name}: {search_parameter}!'
+    def existsErrorMessage(resource_name:str, parameter_name:str, search_parameter):
+        return f'{resource_name} already exists with {parameter_name}: {search_parameter}!'
+    
+    @staticmethod
+    def deleteMessage(resource_name:str, parameter_name:str, search_parameter):
+        return f'Deleted {resource_name} for this {parameter_name}: {search_parameter}'
+    
+    @staticmethod
+    def notFoundErrorMessage(resource_name:str, parameter_name:str, search_parameter):
+        return f'{resource_name} not found for this {parameter_name}: {search_parameter}'

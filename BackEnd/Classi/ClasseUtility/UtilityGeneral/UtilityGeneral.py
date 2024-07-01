@@ -17,7 +17,7 @@ class UtilityGeneral:
     @staticmethod
     def check_fields(dati, required_fields):
         if not all(field in dati for field in required_fields):
-            raise KeyError(UtilityMessages.messageWrongKeys())
+            raise KeyError(UtilityMessages.wrongKeysErrorMessage())
         
     @staticmethod
     def checkResult(result):

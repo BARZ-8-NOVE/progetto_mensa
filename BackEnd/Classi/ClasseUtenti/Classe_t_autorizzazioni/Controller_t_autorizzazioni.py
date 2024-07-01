@@ -21,7 +21,7 @@ def get_autorizzazione_by_id(id):
     except Exception as e:
         return {'Error': str(e)}, 400
 
-@t_autorizzazioni_controller.route('/create_autorizzazione', methods=['PUT'])
+@t_autorizzazioni_controller.route('/create_autorizzazione', methods=['POST'])
 def create_autorizzazione():
     try:
         dati = request.json
@@ -37,7 +37,7 @@ def create_autorizzazione():
     except Exception as e:
         return {'Error': str(e)}, 400
     
-@t_autorizzazioni_controller.route('/update_autorizzazione', methods=['POST'])
+@t_autorizzazioni_controller.route('/update_autorizzazione', methods=['PUT'])
 def update_autorizzazione():
     try:
         dati = request.json

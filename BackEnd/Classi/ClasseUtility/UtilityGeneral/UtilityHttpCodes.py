@@ -16,6 +16,7 @@ class HttpCodes:
     __NOT_FOUND = 404
     __METHOD_NOT_ALLOWED = 405
     __REQUEST_TIMEOUT = 408
+    __CONFLICT = 409
     __UNPROCESSABLE_ENTITY = 422
     #500
     __INTERNAL_SERVER_ERROR = 500
@@ -86,6 +87,13 @@ class HttpCodes:
         :return: 408
         """
         return self.__REQUEST_TIMEOUT
+    @property
+    def CONFLICT(self):
+        """
+        :description: The request cannot be completed because it conflicts with the current state on the server
+        :return: 409
+        """
+        return self.__CONFLICT
     @property
     def UNPROCESSABLE_ENTITY(self):
         """

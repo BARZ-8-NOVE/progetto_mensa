@@ -18,7 +18,7 @@ def get_tipoUtente_by_id(id):
     tipoUtente = service_t_tipiUtenti.get_tipoUtente_by_id(id)
     return tipoUtente
 
-@t_tipiUtenti_controller.route('/create_tipoUtente', methods=['PUT'])
+@t_tipiUtenti_controller.route('/create_tipoUtente', methods=['POST'])
 def create_tipoUtente():
     try:
         dati = request.json
@@ -34,7 +34,7 @@ def create_tipoUtente():
     except Exception as e:
         return {'Error': str(e)}, 400
     
-@t_tipiUtenti_controller.route('/update_tipoUtente', methods=['POST'])
+@t_tipiUtenti_controller.route('/update_tipoUtente', methods=['PUT'])
 def update_tipoUtente():
     try:
         dati = request.json
