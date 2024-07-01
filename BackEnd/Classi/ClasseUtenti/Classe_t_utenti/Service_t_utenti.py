@@ -26,8 +26,7 @@ class Service_t_utenti:
         inizio = UtilityGeneral.current_date()
         UtilityUtenti.checkEmail(email)
         UtilityUtenti.checkPassword(password)
-        return self.repository.create_utente(username, nome, cognome, fkTipoUtente,
-                    fkFunzCustom, reparti, attivo, inizio, email, password)
+        return self.repository.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, inizio, email, password)
     
     def update_utente(self, id:int, username:str, nome:str, cognome:str, fkTipoUtente:int,
                     fkFunzCustom:str, reparti:str, attivo:int, email:str, password:str):
@@ -40,8 +39,7 @@ class Service_t_utenti:
         UtilityUtenti.checkReparti(reparti)
         UtilityUtenti.checkEmail(email)
         UtilityUtenti.checkPassword(password)
-        return self.repository.update_utente(id, username, nome, cognome, fkTipoUtente,
-                    fkFunzCustom, reparti, attivo, email, password)
+        return self.repository.update_utente(id, username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, email, password)
     
     def delete_utente(self, id:int):
         UtilityGeneral.checkId(id)

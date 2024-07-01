@@ -12,7 +12,7 @@ httpCodes = HttpCodes()
 def get_tipiUtenti_all():
     try:
         tipiUtenti = service_t_tipiUtenti.get_tipiUtenti_all()
-        return tipiUtenti
+        return tipiUtenti, httpCodes.OK
     except Exception as e:
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
 
@@ -20,7 +20,7 @@ def get_tipiUtenti_all():
 def get_tipoUtente_by_id(id):
     try:
         tipoUtente = service_t_tipiUtenti.get_tipoUtente_by_id(id)
-        return tipoUtente
+        return tipoUtente, httpCodes.OK
     except NotFound as e:
         return {'Error': str(e)}, httpCodes.NOT_FOUND
     except Exception as e:
@@ -34,7 +34,7 @@ def create_tipoUtente():
         UtilityGeneral.check_fields(dati, required_fields)
         nomeTipoUtente = dati['nomeTipoUtente']
         fkAutorizzazioni = dati['fkAutorizzazioni']
-        return service_t_tipiUtenti.create_tipoUtente(nomeTipoUtente, fkAutorizzazioni)
+        return service_t_tipiUtenti.create_tipoUtente(nomeTipoUtente, fkAutorizzazioni), httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except NotFound as e:
@@ -53,7 +53,7 @@ def update_tipoUtente():
         id = UtilityGeneral.safe_int_convertion(dati['id'], 'id')
         nomeTipoUtente = dati['nomeTipoUtente']
         fkAutorizzazioni = dati['fkAutorizzazioni']
-        return service_t_tipiUtenti.update_tipoUtente(id, nomeTipoUtente, fkAutorizzazioni)
+        return service_t_tipiUtenti.update_tipoUtente(id, nomeTipoUtente, fkAutorizzazioni), httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except NotFound as e:
@@ -68,7 +68,7 @@ def delete_tipoUtente(id):
     try:
         id = UtilityGeneral.safe_int_convertion(id, 'id')
         result = service_t_tipiUtenti.delete_tipoUtente(id)
-        return result
+        return result, httpCodes.OK
     except ValueError as e:
         return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
     except NotFound as e:

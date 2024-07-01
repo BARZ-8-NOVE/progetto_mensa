@@ -20,13 +20,6 @@ class UtilityGeneral:
             raise KeyError(UtilityMessages.wrongKeysErrorMessage())
         
     @staticmethod
-    def checkResult(result):
-        if result:
-            return result
-        else:
-            return False
-        
-    @staticmethod
     def checkId(id):
         if id is None:
             raise TypeError("id cannot be None!")

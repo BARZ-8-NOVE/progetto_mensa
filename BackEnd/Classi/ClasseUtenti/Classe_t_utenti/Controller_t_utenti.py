@@ -40,8 +40,7 @@ def create_utente():
         reparti = dati['reparti']
         email = dati['email']
         password = dati['password']
-        return service_t_utenti.create_utente(username, nome, cognome,
-                                            fkTipoUtente, fkFunzCustom, reparti, email, password)
+        return service_t_utenti.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, email, password), httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except (ValueError, TypeError) as e:
@@ -69,8 +68,7 @@ def update_utente():
         attivo = UtilityGeneral.safe_int_convertion(dati['attivo'], 'attivo')
         email = dati['email']
         password = dati['password']
-        return service_t_utenti.update_utente(id, username, nome, cognome, fkTipoUtente,
-                                            fkFunzCustom, reparti, attivo, email, password)
+        return service_t_utenti.update_utente(id, username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, email, password), httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except ValueError as e:
@@ -87,7 +85,7 @@ def delete_utente(id):
     try:
         id = UtilityGeneral.safe_int_convertion(id, 'id')
         result = service_t_utenti.delete_utente(id)
-        return result
+        return result, httpCodes.OK
     except NotFound as e:
         return {'Error': str(e)}, httpCodes.NOT_FOUND
     except ValueError as e:

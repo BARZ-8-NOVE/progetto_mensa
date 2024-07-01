@@ -2,6 +2,8 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
+from werkzeug.exceptions import NotFound
 
 class Repository_t_funzionalita:
 
@@ -10,47 +12,31 @@ class Repository_t_funzionalita:
         self.session = Session()
 
     def exists_funzionalita(self, id:int):
-        try:
-            result = self.session.query(TFunzionalita).filter_by(id=id).first()
-            return UtilityGeneral.checkResult(result)
-        except Exception as e:
-            return {'Error':str(e)}, 400
+        result = self.session.query(TFunzionalita).filter_by(id=id).first()
+        return result
+        
 
     def get_funzionalita_all(self):
-        try:
-            results = self.session.query(TFunzionalita).all()
-            self.session.close()
-            return UtilityGeneral.getClassDictionaryOrList(results)
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}, 500
+        results = self.session.query(TFunzionalita).all()
+        self.session.close()
+        return UtilityGeneral.getClassDictionaryOrList(results)
 
     def get_funzionalita_by_id(self, id:int):
-        try:
-            result = self.session.query(TFunzionalita).filter_by(id=id).first()
-            if result:
-                self.session.close()
-                return UtilityGeneral.getClassDictionaryOrList(result)
-            else:
-                self.session.close()
-                return {'Error':f'cannot find funzionalita for this id: {id}'}, 404
-        except Exception as e:
-            return {'Error':str(e)}, 400
+        result = self.session.query(TFunzionalita).filter_by(id=id).first()
+        if result:
+            self.session.close()
+            return UtilityGeneral.getClassDictionaryOrList(result)
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Funzionalita', 'id', id))
         
     def create_funzionalita(self, nome:str, frmNome:str):
-        try:
-            result = TFunzionalita(nome=nome, frmNome = frmNome)
-            self.session.add(result)
-            self.session.commit()
-            return UtilityGeneral.getClassDictionaryOrList(result)
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}
+        result = TFunzionalita(nome=nome, frmNome = frmNome)
+        self.session.add(result)
+        self.session.commit()
+        return UtilityGeneral.getClassDictionaryOrList(result)
         
     def update_funzionalita(self, id:int, nome:str, frmNome:str):
-        try:
             result:TFunzionalita = self.exists_funzionalita(id)
             if result:
                 result.nome = nome
@@ -58,29 +44,16 @@ class Repository_t_funzionalita:
                 self.session.commit()
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
-                self.session.rollback()
                 self.session.close()
-                return {'Error':f'cannot find funzionalita for this id: {id}'}, 403
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}, 500
+                raise NotFound(UtilityMessages.notFoundErrorMessage('Funzionalita', 'id', id))
         
     def delete_funzionalita(self, id:int):
-        try:
-            result = self.exists_funzionalita(id)
-            if result:
-                self.session.delete(result)
-                self.session.commit()
-                self.session.close()
-                return {'Funzionalita':f'deleted funzionalita for this id: {id}'}
-            else:
-                self.session.rollback()
-                self.session.close()
-                return {'Error':f'cannot find funzionalita for this id: {id}'}, 403
-        except Exception as e:
-            self.session.rollback()
+        result = self.exists_funzionalita(id)
+        if result:
+            self.session.delete(result)
+            self.session.commit()
             self.session.close()
-            return {'Error': str(e)}, 500
-
-    
+            return {'Funzionalita':UtilityMessages.deleteMessage('Funzionalita', 'id', id)}
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Funzionalita', 'id', id))

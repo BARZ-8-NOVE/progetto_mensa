@@ -2,6 +2,8 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
+from werkzeug.exceptions import NotFound
 
 class Repository_t_autorizzazioni:
 
@@ -14,68 +16,43 @@ class Repository_t_autorizzazioni:
         return result
 
     def get_autorizzazioni_all(self):
-        try:
-            results = self.session.query(TAutorizzazioni).all()
-            self.session.close()
-            return UtilityGeneral.getClassDictionaryOrList(results)
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}, 500
+        results = self.session.query(TAutorizzazioni).all()
+        self.session.close()
+        return UtilityGeneral.getClassDictionaryOrList(results)
 
     def get_autorizzazione_by_id(self, id:int):
-        try:
             result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
             if result:
                 self.session.close()
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
-                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
-        except Exception as e:
-            return {'Error':str(e)}, 400
+                raise NotFound('Autorizzazione', 'id', id)
         
     def create_autorizzazione(self, nome:str, fkListaFunzionalita:str):
-        try:
-            result = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
-            self.session.add(result)
-            self.session.commit()
-            return UtilityGeneral.getClassDictionaryOrList(result)
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}
+        result = TAutorizzazioni(nome=nome, fkListaFunzionalita=fkListaFunzionalita)
+        self.session.add(result)
+        self.session.commit()
+        return UtilityGeneral.getClassDictionaryOrList(result)
         
     def update_autorizzazione(self, id:int, nome:str, fkListaFunzionalita:str):
-        try:
-            result:TAutorizzazioni = self.exists_autorizzazione(id)
-            if result:
-                result.nome = nome
-                result.fkListaFunzionalita = fkListaFunzionalita
-                self.session.commit()
-                return UtilityGeneral.getClassDictionaryOrList(result)
-            else:
-                self.session.rollback()
-                self.session.close()
-                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
-        except Exception as e:
-            self.session.rollback()
+        result:TAutorizzazioni = self.exists_autorizzazione(id)
+        if result:
+            result.nome = nome
+            result.fkListaFunzionalita = fkListaFunzionalita
+            self.session.commit()
+            return UtilityGeneral.getClassDictionaryOrList(result)
+        else:
             self.session.close()
-            return {'Error': str(e)}, 500
+            raise NotFound('Autorizzazione', 'id', id)
         
     def delete_autorizzazione(self, id:int):
-        try:
             result = self.exists_autorizzazione(id)
             if result:
                 self.session.delete(result)
                 self.session.commit()
                 self.session.close()
-                return {'Autorizzazione':f'deleted autorizzazione for this id: {id}'}
+                return {'Autorizzazione': UtilityMessages.deleteMessage('Autorizzazione', 'id', id)}
             else:
-                self.session.rollback()
                 self.session.close()
-                return {'Error':f'cannot find autorizzazione for this id: {id}'}, 404
-        except Exception as e:
-            self.session.rollback()
-            self.session.close()
-            return {'Error': str(e)}, 500
+                raise NotFound('Autorizzazione', 'id', id)
