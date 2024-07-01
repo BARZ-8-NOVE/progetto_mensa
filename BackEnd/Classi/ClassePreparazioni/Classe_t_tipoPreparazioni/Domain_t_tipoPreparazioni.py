@@ -6,5 +6,3 @@ class TTipiPreparazioni(Base):
 
     id = Column(Integer, primary_key=True)
     descrizione = Column(String(255), nullable=False)
-
-

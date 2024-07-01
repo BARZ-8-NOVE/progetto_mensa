@@ -14,5 +14,8 @@ class Service_t_tipipreparazioni:
     def create_tipipreparazioni(self, descrizione):
         return self.repository.create_tipipreparazioni(descrizione)
 
+    def update_tipipreparazioni(self, id, descrizione):
+        return self.repository.update_tipipreparazioni(id, descrizione)
+
     def delete_tipipreparazioni(self, id):
         return self.repository.delete_tipipreparazioni(id)

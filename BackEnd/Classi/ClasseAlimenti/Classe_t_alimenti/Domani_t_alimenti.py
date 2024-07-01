@@ -7,7 +7,7 @@ from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Domani_t_tipologiaalimenti
 class TAlimenti(Base):
     __tablename__ = 't_alimenti_con_allergeni'
 
-    ID = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     Alimento = Column(String, nullable=False)
     Energia_Kcal = Column(Float)
     Energia_KJ = Column(Float)
@@ -21,3 +21,4 @@ class TAlimenti(Base):
     # Definizioni delle relazioni
 
     tipologia_alimento = relationship("TTipologiaAlimenti", foreign_keys=[fkTipologiaAlimento])
+    
