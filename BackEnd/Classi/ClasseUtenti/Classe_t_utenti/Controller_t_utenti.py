@@ -54,7 +54,7 @@ def create_utente():
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/update_utente', methods=['PUT'])
-def update_utente_searched_by_id():
+def update_utente():
     try:
         dati = request.json
         required_fields = ['id', 'username', 'nome', 'cognome', 'fkTipoUtente', 'fkFunzCustom', 'reparti', 'attivo', 'email', 'password']
@@ -69,7 +69,7 @@ def update_utente_searched_by_id():
         attivo = UtilityGeneral.safe_int_convertion(dati['attivo'], 'attivo')
         email = dati['email']
         password = dati['password']
-        return service_t_utenti.update_utente_searched_by_id(id, username, nome, cognome, fkTipoUtente,
+        return service_t_utenti.update_utente(id, username, nome, cognome, fkTipoUtente,
                                             fkFunzCustom, reparti, attivo, email, password)
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST

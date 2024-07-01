@@ -10,11 +10,8 @@ class Repository_t_autorizzazioni:
         self.session = Session()
 
     def exists_autorizzazione(self, id):
-        try:
-            result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
-            return UtilityGeneral.checkResult(result)
-        except Exception as e:
-            return {'Error':str(e)}, 400
+        result = self.session.query(TAutorizzazioni).filter_by(id=id).first()
+        return result
 
     def get_autorizzazioni_all(self):
         try:

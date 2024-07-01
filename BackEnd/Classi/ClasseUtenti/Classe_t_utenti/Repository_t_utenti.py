@@ -14,15 +14,23 @@ class Repository_t_utenti:
 
     def exists_utente_by_id(self, id:int):
         result = self.session.query(TUtenti).filter_by(id=id).first()
-        return UtilityGeneral.checkResult(result)
+        return result
         
     def exists_utente_by_username(self, username:str):
         result = self.session.query(TUtenti).filter_by(username=username).first()
-        return UtilityGeneral.checkResult(result)
+        return result
         
     def exists_utente_by_email(self, email:str):
         result = self.session.query(TUtenti).filter_by(email=email).first()
-        return UtilityGeneral.checkResult(result)
+        return result
+    
+    def exists_utente_by_email_with_different_id(self, email:str, id:int):
+        result = self.session.query(TUtenti).filter(TUtenti.email==email, TUtenti.id!=id).first()
+        return result
+    
+    def exists_utente_by_username_with_different_id(self, username:str, id:int):
+        result = self.session.query(TUtenti).filter(TUtenti.username==username, TUtenti.id!=id).first()
+        return result
     
     def get_utenti_all(self):
         results = self.session.query(TUtenti).all()
@@ -60,16 +68,16 @@ class Repository_t_utenti:
         self.session.commit()
         return UtilityGeneral.getClassDictionaryOrList(utente)
         
-    def update_utente_searched_by_id(self, id:int, username:str, nome:str, cognome:str, fkTipoUtente:int,
+    def update_utente(self, id:int, username:str, nome:str, cognome:str, fkTipoUtente:int,
                     fkFunzCustom:str, reparti:str, attivo, email:str, password:str):
         utente:TUtenti = self.exists_utente_by_id(id)
         if utente:
-            resultExistsEmail = self.exists_utente_by_email(email)
-            if resultExistsEmail:
+            result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, id)
+            if result_exists_utente_by_email_with_different_id:
                 self.session.close()
                 raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
-            resultExistsUsername = self.exists_utente_by_username(username)
-            if resultExistsUsername:
+            result_exists_utente_by_username_with_different_id = self.exists_utente_by_username_with_different_id(username, id)
+            if result_exists_utente_by_username_with_different_id:
                 self.session.close()    
                 raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'username', username))            
             tipoUtente = Repository_t_tipiUtente()

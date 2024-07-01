@@ -1,9 +1,12 @@
 from flask import Blueprint, request
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Service_t_tipiUtenti import Service_t_tipiUtenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
+from werkzeug.exceptions import NotFound
 
 t_tipiUtenti_controller = Blueprint('tipiUtenti', __name__)
 service_t_tipiUtenti = Service_t_tipiUtenti()
+httpCodes = HttpCodes()
 
 @t_tipiUtenti_controller.route('/get_all', methods=['GET'])
 def get_tipiUtenti_all():
@@ -11,12 +14,17 @@ def get_tipiUtenti_all():
         tipiUtenti = service_t_tipiUtenti.get_tipiUtenti_all()
         return tipiUtenti
     except Exception as e:
-        return {'Error': str(e)}, 400
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
 
 @t_tipiUtenti_controller.route('/get_tipoUtente/<int:id>', methods=['GET'])
 def get_tipoUtente_by_id(id):
-    tipoUtente = service_t_tipiUtenti.get_tipoUtente_by_id(id)
-    return tipoUtente
+    try:
+        tipoUtente = service_t_tipiUtenti.get_tipoUtente_by_id(id)
+        return tipoUtente
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
+    except Exception as e:
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
 
 @t_tipiUtenti_controller.route('/create_tipoUtente', methods=['POST'])
 def create_tipoUtente():
@@ -28,11 +36,13 @@ def create_tipoUtente():
         fkAutorizzazioni = dati['fkAutorizzazioni']
         return service_t_tipiUtenti.create_tipoUtente(nomeTipoUtente, fkAutorizzazioni)
     except KeyError as e:
-        return {'Error': str(e)}, 405
+        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
     except (ValueError, TypeError) as e:
-        return {'Error': str(e)}, 422
+        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
     except Exception as e:
-        return {'Error': str(e)}, 400
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_tipiUtenti_controller.route('/update_tipoUtente', methods=['PUT'])
 def update_tipoUtente():
@@ -45,20 +55,24 @@ def update_tipoUtente():
         fkAutorizzazioni = dati['fkAutorizzazioni']
         return service_t_tipiUtenti.update_tipoUtente(id, nomeTipoUtente, fkAutorizzazioni)
     except KeyError as e:
-        return {'Error': str(e)}, 405
+        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
     except (ValueError, TypeError) as e:
-        return {'Error': str(e)}, 422
+        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
     except Exception as e:
-        return {'Error': str(e)}, 400
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_tipiUtenti_controller.route('/delete_tipoUtente/<int:id>', methods=['DELETE'])
 def delete_tipoUtente(id):
     try:
         id = UtilityGeneral.safe_int_convertion(id, 'id')
-        tipoUtente = service_t_tipiUtenti.delete_tipoUtente(id)
-        return tipoUtente
-    except ValueError as ve:
-        return {'Error': str(ve)}, 403
+        result = service_t_tipiUtenti.delete_tipoUtente(id)
+        return result
+    except ValueError as e:
+        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
     except Exception as e:
-        return {'Error': str(e)}, 400
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
