@@ -56,7 +56,7 @@ class RepositoryTipiPiatti:
 
     def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento):
         try:
-            tipo_piatto = TTipiPiatti(
+            tipipiatto = TTipiPiatti(
                 descrizione=descrizione,
                 descrizionePlurale=descrizionePlurale,
                 inMenu=inMenu,
@@ -66,35 +66,33 @@ class RepositoryTipiPiatti:
                 dataInserimento=dataInserimento,
                 utenteInserimento=utenteInserimento
             )
-            self.session.add(tipo_piatto)
+            self.session.add(tipipiatto)
             self.session.commit()
-            return {'tipo_piatto': 'added!'}, 200
+            return {'tipipiatto': 'added!'}, 200
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error creating tipo piatto: {e}")
             return {'Error': str(e)}, 500
 
     def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
         try:
-            tipo_piatto = self.session.query(TTipiPiatti).filter_by(id=id).first()
-            if tipo_piatto:
-                tipo_piatto.descrizione = descrizione
-                tipo_piatto.descrizionePlurale = descrizionePlurale
-                tipo_piatto.inMenu = inMenu
-                tipo_piatto.ordinatore = ordinatore
-                tipo_piatto.color = color
-                tipo_piatto.backgroundColor = backgroundColor
-                tipo_piatto.dataInserimento = dataInserimento
-                tipo_piatto.utenteInserimento = utenteInserimento
-                tipo_piatto.dataCancellazione = dataCancellazione
-                tipo_piatto.utenteCancellazione = utenteCancellazione
+            tipipiatto = self.session.query(TTipiPiatti).filter_by(id=id).first()
+            if tipipiatto:
+                tipipiatto.descrizione = descrizione
+                tipipiatto.descrizionePlurale = descrizionePlurale
+                tipipiatto.inMenu = inMenu
+                tipipiatto.ordinatore = ordinatore
+                tipipiatto.color = color
+                tipipiatto.backgroundColor = backgroundColor
+                tipipiatto.dataInserimento = dataInserimento
+                tipipiatto.utenteInserimento = utenteInserimento
+                tipipiatto.dataCancellazione = dataCancellazione
+                tipipiatto.utenteCancellazione = utenteCancellazione
                 self.session.commit()
-                return {'tipo_piatto': 'updated!'}, 200
+                return {'tipipiatto': 'updated!'}, 200
             else:
-                return {'Error': f'No match found for this ID: {id}'}, 404
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error updating tipo piatto with ID {id}: {e}")
             return {'Error': str(e)}, 500
 
     def delete(self, id, utenteCancellazione):

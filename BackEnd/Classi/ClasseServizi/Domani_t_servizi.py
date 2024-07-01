@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 
 class TServizi(Base):
@@ -9,3 +10,5 @@ class TServizi(Base):
     ordinatore = Column(Integer)
     inMenu = Column(Boolean)
 
+    # Definizione della relazione inversa
+    piatti = relationship("TPiatti", back_populates="servizio")

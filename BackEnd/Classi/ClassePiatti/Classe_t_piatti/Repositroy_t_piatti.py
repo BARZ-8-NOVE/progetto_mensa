@@ -19,7 +19,7 @@ class RepositoryPiatti:
     def get_all(self):
         try:
             results = self.session.query(TPiatti).filter(TPiatti.dataCancellazione == None).all()
-            return [{'ID': result.id, 'fkTipoPiatto': result.fkTipoPiatto, 'fkServizio': result.fkServizio, 'codice': result.codice, 'titolo': result.titolo, 'descrizione': result.descrizione, 'inMenu': result.inMenu, 'ordinatore': result.ordinatore, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
+            return [{'id': result.id, 'fkTipoPiatto': result.fkTipoPiatto, 'fkServizio': result.fkServizio, 'codice': result.codice, 'titolo': result.titolo, 'descrizione': result.descrizione, 'inMenu': result.inMenu, 'ordinatore': result.ordinatore, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
             logging.error(f"Error getting all piatti: {e}")
             return {'Error': str(e)}, 500
@@ -28,7 +28,7 @@ class RepositoryPiatti:
         try:
             result = self.session.query(TPiatti).filter_by(id=id, dataCancellazione=None).first()
             if result:
-                return {'ID': result.id, 'fkTipoPiatto': result.fkTipoPiatto, 'fkServizio': result.fkServizio, 'codice': result.codice, 'titolo': result.titolo, 'descrizione': result.descrizione, 'inMenu': result.inMenu, 'ordinatore': result.ordinatore, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
+                return {'id': result.id, 'fkTipoPiatto': result.fkTipoPiatto, 'fkServizio': result.fkServizio, 'codice': result.codice, 'titolo': result.titolo, 'descrizione': result.descrizione, 'inMenu': result.inMenu, 'ordinatore': result.ordinatore, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
@@ -79,8 +79,8 @@ class RepositoryPiatti:
                 self.session.commit()
                 return {'piatto': 'soft deleted!'}, 200
             else:
-                return {'Error': f'No match found for this ID: {id}'}, 404
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error deleting piatto by ID {id}: {e}")
+            logging.error(f"Error deleting piatto by id {id}: {e}")
             return {'Error': str(e)}, 500

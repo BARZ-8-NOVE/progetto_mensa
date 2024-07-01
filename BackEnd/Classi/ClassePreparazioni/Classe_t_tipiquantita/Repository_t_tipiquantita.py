@@ -34,6 +34,22 @@ class Repository_t_tipoquantita:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        
+    def update_tipoquantita(self, id, tipo, peso_valore_in_grammi=None, peso_valore_in_Kg=None):
+        try:
+            tipoquantita = self.session.query(TTipoQuantita).filter_by(id=id).first()
+            if tipoquantita:
+                tipoquantita.tipo = tipo
+                tipoquantita.peso_valore_in_grammi = peso_valore_in_grammi
+                tipoquantita.peso_valore_in_Kg = peso_valore_in_Kg
+
+                self.session.commit()
+                return {'tipoquantita': 'updated!'}, 200
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
 
     def delete_tipoquantita(self, id):
         try:

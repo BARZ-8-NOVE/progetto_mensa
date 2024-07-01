@@ -12,7 +12,7 @@ class RepositoryAlimenti:
     def get_all(self):
         try:
             results = self.session.query(TAlimenti).all()
-            return [{'ID': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
+            return [{'id': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
         except Exception as e:
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
@@ -21,7 +21,7 @@ class RepositoryAlimenti:
         try:
             result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
-                return {'ID': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
+                return {'id': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
