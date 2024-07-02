@@ -32,6 +32,7 @@ from Classi.ClasseMenu.Classe_t_tipiMenu.Controller_t_tipiMenu import t_tipimenu
 from Classi.ClasseMenu.Classe_t_menuServizi.Controller_t_menuServizi import t_menu_servizi_controller
 from Classi.ClasseMenu.Classe_t_menu.Controller_t_menu import t_menu_controller
 
+from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
@@ -62,6 +63,7 @@ app.register_blueprint(t_tipimenu_controller, url_prefix='/tipimenu')
 app.register_blueprint(t_menu_servizi_controller, url_prefix='/menuservizi')
 app.register_blueprint(t_menu_controller, url_prefix='/menu')
 
+app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 
 
 if __name__ == '__main__':

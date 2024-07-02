@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+from Classi.ClasseDB.db_connection import Base
+from sqlalchemy.sql import func
 
-Base = declarative_base()
 
 class TReparti(Base):
     __tablename__ = 't_reparti'
@@ -10,13 +10,13 @@ class TReparti(Base):
     codiceAreas = Column(String(10), nullable=True)
     descrizione = Column(String(100), nullable=True)
     sezione = Column(String(50), nullable=True)
-    ordinatore = Column(int, nullable=False)
+    ordinatore = Column(Integer, nullable=False)
     padiglione = Column(String(50), nullable=True)
     piano = Column(String(50), nullable=True)
     lato = Column(String(50), nullable=True)
     inizio = Column(DateTime, nullable=True)
     fine = Column(DateTime, nullable=True)
-    dataInserimento = Column(DateTime, nullable=True)
+    dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
