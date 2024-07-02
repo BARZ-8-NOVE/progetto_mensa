@@ -5,6 +5,7 @@ from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repo
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from werkzeug.exceptions import Conflict, NotFound, Forbidden
+from werkzeug.security import check_password_hash
 
 class Repository_t_utenti:
     
@@ -184,16 +185,17 @@ class Repository_t_utenti:
     def do_login(self, username:str, password:str):
         result = self.exists_utente_by_username(username)
         if result:
-            if result.password == password:
+            hashed_password = result.password
+            if hashed_password and check_password_hash(hashed_password, password):
                 if result.attivo == 0:
                     self.update_utente_attivo(result.id, 1)
                     return UtilityGeneral.getClassDictionaryOrList(result)
                 else:
                     self.session.close()
-                    raise Forbidden(f'Utente {username} is already logged in!')
+                    raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'in'))
             else:
                 self.session.close()
-                raise Forbidden(f'The password is incorrect for this username: {username}!')
+                raise Forbidden(UtilityMessages.forbiddenPasswordIncorrectError(username))
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
@@ -206,7 +208,7 @@ class Repository_t_utenti:
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
-                raise Forbidden(f'Utente {username} already logged out!')
+                raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'out'))
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))

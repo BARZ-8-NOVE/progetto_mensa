@@ -4,6 +4,7 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden
 
+
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
 httpCodes = HttpCodes()
@@ -80,7 +81,7 @@ def update_utente():
         return {
             'Utente updated': f'id: {id}, username: {username}, nome: {nome}, cognome: {cognome}, '
                               f'fkTipoUtente: {fkTipoUtente}, fkFunzCustom: {fkFunzCustom}, reparti: {reparti}, '
-                              f'attivo: {attivo}, email: {email}, password: {password}'
+                              f'attivo: {attivo}, email: {email}'
         }, httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST

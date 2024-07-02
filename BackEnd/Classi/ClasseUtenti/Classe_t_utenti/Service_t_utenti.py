@@ -1,6 +1,7 @@
 from Classi.ClasseUtenti.Classe_t_utenti.Repository_t_utenti import Repository_t_utenti
 from Classi.ClasseUtility.UtilityUtenti.UtilityUtenti import UtilityUtenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from werkzeug.security import generate_password_hash
 
 class Service_t_utenti:
 
@@ -26,7 +27,8 @@ class Service_t_utenti:
         inizio = UtilityGeneral.current_date()
         UtilityUtenti.checkEmail(email)
         UtilityUtenti.checkPassword(password)
-        return self.repository.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, inizio, email, password)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        return self.repository.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, inizio, email, hashed_password)
     
     def update_utente_username(self, id:int, username:str):
         UtilityGeneral.checkId(id)

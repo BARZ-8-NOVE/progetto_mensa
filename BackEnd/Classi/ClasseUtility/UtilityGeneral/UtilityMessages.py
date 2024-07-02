@@ -43,3 +43,23 @@ class UtilityMessages:
         :return: a message of resource not found
         """
         return f'{resource_name} not found for this {parameter_name}: {search_parameter}'
+    
+    @staticmethod
+    def forbiddenPasswordIncorrectError(username:str):
+        """
+        :description: Static method that concatenate a string passing 1 parameter.
+        Used when the password is incorrect for that username
+        :args: username:str
+        :return: a message of password incorrect
+        """
+        return f'The password is incorrect for this username: {username}'
+    
+    @staticmethod
+    def forbiddenUtenteAlreadyLoggedInError(username:str, in_or_out:str):
+        """
+        :description: Static method that concatenate a string passing 2 parameters.
+        Used when the utente is already logged in or already logged out for that username
+        :args: username:str
+        :return: a message of utente already logged in or already logged out
+        """
+        return f'Utente: {username} is already logged {in_or_out}!'

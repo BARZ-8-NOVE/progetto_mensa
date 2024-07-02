@@ -76,7 +76,7 @@ class UtilityGeneral:
                         'cognome': results.cognome, 'fkTipoUtente': results.fkTipoUtente,
                         'fkFunzCustom': results.fkFunzCustom, 'reparti': results.reparti,
                         'attivo': results.attivo, 'inizio': results.inizio,
-                        'email': results.email, 'password': results.password}
+                        'email': results.email}
             elif all(isinstance(item, TUtenti) for item in results):
                 ritorno = []
                 for result in results:
