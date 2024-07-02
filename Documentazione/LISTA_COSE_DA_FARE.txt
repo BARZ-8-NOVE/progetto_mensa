@@ -22,7 +22,7 @@ ClasseReparti __scrittura: OK, __check da fare: OK, __check fatti: reparti (/get
 
 
 ClasseOrdini
-t_ordini __scrittura: da fare
+t_ordini __scrittura: OK, __check da fare: OK, __check fatti: ordini (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_ordinipiatti __scrittura: da fare
 
 ClasseMenu
