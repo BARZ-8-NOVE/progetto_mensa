@@ -34,6 +34,8 @@ from Classi.ClasseMenu.Classe_t_menu.Controller_t_menu import t_menu_controller
 
 from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 
+from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_controller
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -64,6 +66,8 @@ app.register_blueprint(t_menu_servizi_controller, url_prefix='/menuservizi')
 app.register_blueprint(t_menu_controller, url_prefix='/menu')
 
 app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
+
+app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
 
 
 if __name__ == '__main__':

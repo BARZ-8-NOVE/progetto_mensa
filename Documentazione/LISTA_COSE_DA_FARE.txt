@@ -18,8 +18,8 @@ ClassePiatti
 t_tipiPiatti __scrittura OK, __check da fare: TUTTI, __check fatti: tipipiatti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_piatti __scrittura OK, __check da fare: TUTTI, __check fatti: piatti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
-ClasseReparti __scrittura: da fare
-t_reparti __scrittura: da fare
+ClasseReparti __scrittura: OK, __check da fare: OK, __check fatti: reparti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
+
 
 ClasseOrdini
 t_ordini __scrittura: da fare

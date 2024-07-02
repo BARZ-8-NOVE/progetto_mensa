@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from Classi.ClasseDB.db_connection import Base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 
@@ -20,3 +21,5 @@ class TReparti(Base):
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
+
+    odrini = relationship("TOrdini", back_populates="reparto")
