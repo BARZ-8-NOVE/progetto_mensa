@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import ServiceMenuServizi
 
-t_menu_servizi_controller = Blueprint('menu_servizi', __name__)
+t_menu_servizi_controller = Blueprint('menuservizi', __name__)
 service_menu_servizi = ServiceMenuServizi()
 
 @t_menu_servizi_controller.route('/get_all', methods=['GET'])
