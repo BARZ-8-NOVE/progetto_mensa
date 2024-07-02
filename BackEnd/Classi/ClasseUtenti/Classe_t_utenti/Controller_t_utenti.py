@@ -77,9 +77,11 @@ def update_utente():
         service_t_utenti.update_utente_attivo(id, attivo)
         service_t_utenti.update_utente_email(id, email)
         service_t_utenti.update_utente_password(id, password)
-        return {'Utente updated': f'id: {id}, username: {username}, nome: {nome}, cognome: {cognome},
-                fkTipoUtente: {fkTipoUtente}, fkFunzCustom: {fkFunzCustom}, reparti: {reparti},
-                attivo: {attivo}, email: {email}, password: {password}'}, httpCodes.OK
+        return {
+            'Utente updated': f'id: {id}, username: {username}, nome: {nome}, cognome: {cognome}, '
+                              f'fkTipoUtente: {fkTipoUtente}, fkFunzCustom: {fkFunzCustom}, reparti: {reparti}, '
+                              f'attivo: {attivo}, email: {email}, password: {password}'
+        }, httpCodes.OK
     except KeyError as e:
         return {'Error': str(e)}, httpCodes.BAD_REQUEST
     except ValueError as e:
@@ -90,6 +92,7 @@ def update_utente():
         return {'Error': str(e)}, httpCodes.CONFLICT
     except Exception as e:
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+
     
 @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
 def delete_utente(id):
