@@ -5,10 +5,22 @@ from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 
-class UtilityGeneral:    
+class UtilityGeneral:   
+    """Class for the utility general""" 
     
+    # Empty Constructor
+    def __init__(self) -> None:
+        pass
+
+    # Static methods
     @staticmethod
     def safe_int_convertion(value, variableName):
+        """
+        :description: Static method that try to convert the variable value into an integer.
+        If it cannot convert the value into an integer the function will raise a ValueError
+        :args: value, variableName
+        :return: int(value) | raise ValueError
+        """
         try:
             return int(value)
         except (ValueError, TypeError):
@@ -16,24 +28,48 @@ class UtilityGeneral:
 
     @staticmethod
     def check_fields(dati, required_fields):
+        """
+        :description: Static method that checks if all required_fields are in dati, 
+        if not the function will raise a KeyError
+        :args: dati, required_fields
+        :return: None | raise KeyError
+        """
         if not all(field in dati for field in required_fields):
             raise KeyError(UtilityMessages.wrongKeysErrorMessage())
         
     @staticmethod
     def checkId(id):
+        """
+        :description: Static method that checks if id is None, it will raise a TypeError,
+        and checks if id is less or equal of 0 if will raise a ValueError
+        or will return None if not of the above conditions are true
+        :args: id
+        :return: None | raise TypeError | raise ValueError
+        """
         if id is None:
             raise TypeError("id cannot be None!")
-        if (id < 0) or (id == 0):
+        if id <= 0:
             raise ValueError("id cannot be None, 0, or less than 0!")
         
     @staticmethod
     def current_date():
+        """
+        :description: Static method that return the current date when it's called.
+        The format is (%Y-%m-%d)
+        :return: current_date
+        """
         now = datetime.now()
         current_date = now.strftime("%Y-%m-%d")
         return current_date
     
     @staticmethod
     def getClassDictionaryOrList(results):
+        """
+        :description: Static method that checks result if isinstance of a list or of a class and return only a dictionary
+        if is instance of a class or a list of dictionaries if is instance of a list
+        :args: result[dict(str:any) | list(dict(str:any))]
+        :return: dict(str:any) | list(dict(str:any))
+        """
         if isinstance(results, (TUtenti, list)):
             if isinstance(results, TUtenti):  
                 ritorno = {'id': results.id, 'username': results.username, 'nome': results.nome,

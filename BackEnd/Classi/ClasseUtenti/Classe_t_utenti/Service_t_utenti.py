@@ -76,3 +76,12 @@ class Service_t_utenti:
     def delete_utente(self, id:int):
         UtilityGeneral.checkId(id)
         return self.repository.delete_utente(id)
+    
+    def do_login(self, username:str, password:str):
+        UtilityUtenti.checkUsername(username)
+        UtilityUtenti.checkPassword(password)
+        return self.repository.do_login(username, password)
+    
+    def do_logout(self, username:str):
+        UtilityUtenti.checkUsername(username)
+        return self.repository.do_logout(username)

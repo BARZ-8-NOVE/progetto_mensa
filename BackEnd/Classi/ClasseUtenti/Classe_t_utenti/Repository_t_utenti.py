@@ -4,13 +4,17 @@ from Classi.ClasseUtenti.Classe_t_utenti.Domain_t_utenti import TUtenti
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repository_t_tipiUtente
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
-from werkzeug.exceptions import Conflict, NotFound
+from werkzeug.exceptions import Conflict, NotFound, Forbidden
 
 class Repository_t_utenti:
     
     def __init__(self) -> None:
         Session = sessionmaker(bind=engine)
         self.session = Session()
+
+    def exists_utente_by_username(self, username:str):
+        result = self.session.query(TUtenti).filter_by(username=username)
+        return result
 
     def exists_utente_by_id(self, id:int):
         result = self.session.query(TUtenti).filter_by(id=id).first()
@@ -34,10 +38,7 @@ class Repository_t_utenti:
     
     def exist_utenti_by_tipoUtente(self, fkTipoUtente):
         results = self.session.query(TUtenti).filter_by(fkTipoUtente=fkTipoUtente).all()
-        if results:
-            return results
-        else:
-            return False
+        return results
     
     def get_utenti_all(self):
         results = self.session.query(TUtenti).all()
@@ -179,3 +180,33 @@ class Repository_t_utenti:
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        
+    def do_login(self, username:str, password:str):
+        result = self.exists_utente_by_username(username)
+        if result:
+            if result.password == password:
+                if result.attivo == 0:
+                    self.update_utente_attivo(result.id, 1)
+                    return UtilityGeneral.getClassDictionaryOrList(result)
+                else:
+                    self.session.close()
+                    raise Forbidden(f'Utente {username} is already logged in!')
+            else:
+                self.session.close()
+                raise Forbidden(f'The password is incorrect for this username: {username}!')
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+        
+    def do_logout(self, username:str):
+        result = self.exists_utente_by_username(username)
+        if result:
+            if result.attivo == 1:
+                self.update_utente_attivo(result.id, 0)
+                return UtilityGeneral.getClassDictionaryOrList(result)
+            else:
+                self.session.close()
+                raise Forbidden(f'Utente {username} already logged out!')
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))

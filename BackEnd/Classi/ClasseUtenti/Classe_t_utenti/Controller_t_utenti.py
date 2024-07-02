@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from werkzeug.exceptions import Conflict, NotFound
+from werkzeug.exceptions import Conflict, NotFound, Forbidden
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
@@ -107,3 +107,41 @@ def delete_utente(id):
     except Exception as e:
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
+@t_utenti_controller.route('/do_login', methods=['POST'])
+def do_login():
+    try:
+        dati = request.json
+        required_fields = ['username', 'password']
+        UtilityGeneral.check_fields(dati, required_fields)
+        username = dati['username']
+        password = dati['password']
+        return service_t_utenti.do_login(username, password), httpCodes.OK
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
+    except KeyError as e:
+        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+    except ValueError as e:
+        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+    except Forbidden as e:
+        return {'Error': str(e)}, httpCodes.FORBIDDEN
+    except Exception as e:
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+    
+@t_utenti_controller.route('/do_logout', methods=['POST'])
+def do_logout():
+    try:
+        dati = request.json
+        required_fields = ['username']
+        UtilityGeneral.check_fields(dati, required_fields)
+        username = dati['username']
+        return service_t_utenti.do_logout(username), httpCodes.OK
+    except NotFound as e:
+        return {'Error': str(e)}, httpCodes.NOT_FOUND
+    except KeyError as e:
+        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+    except ValueError as e:
+        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+    except Forbidden as e:
+        return {'Error': str(e)}, httpCodes.FORBIDDEN
+    except Exception as e:
+        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
