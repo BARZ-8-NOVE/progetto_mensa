@@ -20,16 +20,14 @@ t_piatti __scrittura OK, __check da fare: TUTTI, __check fatti: piatti (/get_all
 
 ClasseReparti __scrittura: OK, __check da fare: OK, __check fatti: reparti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
-
 ClasseOrdini
 t_ordini __scrittura: OK, __check da fare: OK, __check fatti: ordini (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
-t_ordinipiatti __scrittura: da fare
+t_ordinipiatti __scrittura: OK, __check da fare: OK, __check fatti: ordinipiatti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
 ClasseMenu
 t_tipiMenu __scrittura OK, __check da fare: OK, __check fatti: tipimenu (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_menu __scrittura OK, __check da fare: OK, __check fatti: menu (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_menuServizio __scrittura OK, __check da fare: OK, __check fatti: menuservizi (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
-
 
 ClasseUtenti
 t_funzionalita __confermare i controlli

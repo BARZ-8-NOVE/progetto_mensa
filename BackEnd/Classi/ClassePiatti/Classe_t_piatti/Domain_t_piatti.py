@@ -24,3 +24,4 @@ class TPiatti(Base):
     # Definizione delle relazioni
     tipo_piatto = relationship("TTipiPiatti", back_populates="piatti")
     servizio = relationship("TServizi", back_populates="piatti")
+    ordini_piatti = relationship("TOrdiniPiatti", back_populates="piatti")

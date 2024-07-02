@@ -21,5 +21,6 @@ class TOrdini(Base):
     utenteCancellazione = Column(String(20), nullable=True)
 
     # Definisci le relazioni dopo che le classi dipendenti sono state definite
-    reparto = relationship("TReparti", back_populates="odrini")
-    servizio = relationship("TServizi", back_populates="odrini")
+    reparto = relationship("TReparti", back_populates="ordini")
+    servizio = relationship("TServizi", back_populates="ordini")
+    ordini_piatti = relationship('TOrdiniPiatti', back_populates="ordini")

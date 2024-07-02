@@ -12,5 +12,5 @@ class TOrdiniPiatti(Base):
     quantita = Column(Integer)
     note = Column(String(255))
 
-    ordine_scheda = relationship("TOrdiniSchede", back_populates="ordini_piatti")
-    piatto = relationship("TPiatti", back_populates="ordini_piatti")
+    ordini = relationship("TOrdini", back_populates="ordini_piatti")
+    piatti = relationship("TPiatti", back_populates="ordini_piatti")

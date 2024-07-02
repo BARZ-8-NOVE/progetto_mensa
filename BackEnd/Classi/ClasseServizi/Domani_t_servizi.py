@@ -13,4 +13,4 @@ class TServizi(Base):
     # Definizione della relazione inversa
     piatti = relationship("TPiatti", back_populates="servizio")
     menu_servizi = relationship("TMenuServizi", back_populates="servizio")
-    odrini = relationship("TOrdini", back_populates="servizio")
+    ordini = relationship("TOrdini", back_populates="servizio")
