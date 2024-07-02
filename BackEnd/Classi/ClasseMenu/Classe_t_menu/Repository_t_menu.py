@@ -2,7 +2,7 @@ import logging
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseMenu.Classe_t_menu.Domain_t_menu import TMenu
-import datetime
+from datetime import datetime 
 
 class RepositoryMenu:
 
@@ -63,7 +63,7 @@ class RepositoryMenu:
             logging.error(f"Error creating menu: {e}")
             return {'Error': str(e)}, 500
 
-    def update(self, id, data, fkTipoMenu, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
+    def update(self, id, data, fkTipoMenu, dataInserimento, utenteInserimento):
         try:
             menu = self.session.query(TMenu).filter_by(id=id).first()
             if menu:
@@ -71,8 +71,6 @@ class RepositoryMenu:
                 menu.fkTipoMenu = fkTipoMenu
                 menu.dataInserimento = dataInserimento
                 menu.utenteInserimento = utenteInserimento
-                menu.dataCancellazione = dataCancellazione
-                menu.utenteCancellazione = utenteCancellazione
                 self.session.commit()
                 return {'menu': 'updated!'}, 200
             else:

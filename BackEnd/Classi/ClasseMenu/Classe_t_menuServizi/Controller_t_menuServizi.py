@@ -25,7 +25,7 @@ def create():
         fkServizio = int(dati['fkServizio'])
         note = dati['note']
         dataInserimento = dati['dataInserimento']
-        utenteInserimento = dati['utenteInserimento'].strip()
+        utenteInserimento = str(dati['utenteInserimento'])
 
         return jsonify(service_menu_servizi.create(fkMenu, fkServizio, note, dataInserimento, utenteInserimento))
 
@@ -39,8 +39,7 @@ def update(id):
     dati = request.json
     required_fields = [
         'fkMenu', 'fkServizio', 'note', 
-        'dataInserimento', 'utenteInserimento', 
-        'dataCancellazione', 'utenteCancellazione'
+        'dataInserimento', 'utenteInserimento'
     ]
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
@@ -49,11 +48,8 @@ def update(id):
         fkServizio = int(dati['fkServizio'])
         note = dati['note']
         dataInserimento = dati['dataInserimento']
-        utenteInserimento = dati['utenteInserimento'].strip()
-        dataCancellazione = dati['dataCancellazione']
-        utenteCancellazione = dati['utenteCancellazione'].strip()
-
-        return jsonify(service_menu_servizi.update(id, fkMenu, fkServizio, note, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione))
+        utenteInserimento = str(dati['utenteInserimento'])
+        return jsonify(service_menu_servizi.update(id, fkMenu, fkServizio, note, dataInserimento, utenteInserimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403
@@ -63,9 +59,8 @@ def update(id):
 @t_menu_servizi_controller.route('/delete/<int:id>', methods=['DELETE'])
 def delete(id):
     dati = request.json
-    required_fields = ['utenteCancellazione']
-    if not all(field in dati for field in required_fields):
-        return jsonify({'Error': 'wrong keys!'}), 403
+    if 'utenteCancellazione' not in dati or dati['utenteCancellazione'] is None:
+        return jsonify({'Error': 'utenteCancellazione key missing!'}), 403
     try:
         utenteCancellazione = dati['utenteCancellazione'].strip()
         return jsonify(service_menu_servizi.delete(id, utenteCancellazione))

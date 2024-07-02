@@ -24,7 +24,7 @@ def create():
         data = dati['data']
         fkTipoMenu = int(dati['fkTipoMenu'])
         dataInserimento = dati['dataInserimento']
-        utenteInserimento = dati['utenteInserimento'].strip()
+        utenteInserimento = str(dati['utenteInserimento'])
 
         return jsonify(service_menu.create(data, fkTipoMenu, dataInserimento, utenteInserimento))
 
@@ -36,18 +36,16 @@ def create():
 @t_menu_controller.route('/update/<int:id>', methods=['PUT'])
 def update(id):
     dati = request.json
-    required_fields = ['data', 'fkTipoMenu', 'dataInserimento', 'utenteInserimento', 'dataCancellazione', 'utenteCancellazione']
+    required_fields = ['data', 'fkTipoMenu', 'dataInserimento', 'utenteInserimento']
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
     try:
         data = dati['data']
         fkTipoMenu = int(dati['fkTipoMenu'])
         dataInserimento = dati['dataInserimento']
-        utenteInserimento = dati['utenteInserimento'].strip()
-        dataCancellazione = dati.get('dataCancellazione')
-        utenteCancellazione = dati.get('utenteCancellazione', '').strip()
+        utenteInserimento = str(dati['utenteInserimento'])
 
-        return jsonify(service_menu.update(id, data, fkTipoMenu, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione))
+        return jsonify(service_menu.update(id, data, fkTipoMenu, dataInserimento, utenteInserimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403
@@ -57,10 +55,10 @@ def update(id):
 @t_menu_controller.route('/delete/<int:id>', methods=['DELETE'])
 def delete(id):
     dati = request.json
-    if 'utenteCancellazione' not in dati:
-        return jsonify({'Error': 'utenteCancellazione is required!'}), 403
+    if 'utenteCancellazione' not in dati or dati['utenteCancellazione'] is None:
+        return jsonify({'Error': 'utenteCancellazione key missing!'}), 403
     try:
         utenteCancellazione = dati['utenteCancellazione'].strip()
-        return jsonify(service_menu.delete(id, utenteCancellazione))
+        return jsonify(service_menu .delete(id, utenteCancellazione))
     except Exception as e:
         return jsonify({'Error': str(e)}), 500
