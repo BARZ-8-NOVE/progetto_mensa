@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from Classi.ClasseMenu.Classe_t_tipiMenu.Service_t_tipiMenu import ServiceTipiMenu
 
 t_tipimenu_controller = Blueprint('tipimenu', __name__)
@@ -6,17 +6,26 @@ service_t_tipimenu = ServiceTipiMenu()
 
 @t_tipimenu_controller.route('/get_all', methods=['GET'])
 def get_tipi_menu_all():
-    return service_t_tipimenu.get_tipi_menu_all()
+    try:
+        result = service_t_tipimenu.get_all()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'Error': str(e)}), 500
 
 @t_tipimenu_controller.route('/<int:id>', methods=['GET'])
 def get_tipi_menu_by_id(id):
-    return service_t_tipimenu.get_tipi_menu_by_id(id)
-
-@t_tipimenu_controller.route('/create_tipi_menu', methods=['POST'])
+    try:
+        result = service_t_tipimenu.get_by_id(id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'Error': str(e)}), 500
+    
+@t_tipimenu_controller.route('/create', methods=['POST'])
 def create_tipi_menu():
     dati = request.json
-    if 'descrizione' not in dati or 'color' not in dati or 'backgroundColor' not in dati or 'ordinatore' not in dati or 'dataInserimento' not in dati or 'utenteInserimento' not in dati:
-        return {'Error': 'wrong keys!'}, 403
+    required_keys = ['descrizione', 'color', 'backgroundColor', 'ordinatore', 'dataInserimento', 'utenteInserimento']
+    if not all(key in dati for key in required_keys):
+        return jsonify({'Error': 'wrong keys!'}), 403
     try:
         descrizione = str(dati['descrizione'])
         color = str(dati['color'])
@@ -24,18 +33,36 @@ def create_tipi_menu():
         ordinatore = int(dati['ordinatore'])
         dataInserimento = dati['dataInserimento']
         utenteInserimento = str(dati['utenteInserimento'])
-        return service_t_tipimenu.create_tipi_menu(descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento)
+        result = service_t_tipimenu.create(descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento)
+        return jsonify(result)
     except Exception as e:
-        return {'Error': str(e)}, 403
+        return jsonify({'Error': str(e)}), 500
 
-@t_tipimenu_controller.route('/delete_tipi_menu/<int:id>', methods=['PATCH'])
-def delete_tipi_menu(id):
+@t_tipimenu_controller.route('/update/<int:id>', methods=['PUT'])
+def update_tipi_menu(id):
     dati = request.json
-    if 'dataCancellazione' not in dati or 'utenteCancellazione' not in dati:
-        return {'Error': 'wrong keys!'}, 403
+    required_keys = ['descrizione', 'color', 'backgroundColor', 'ordinatore', 'dataInserimento', 'utenteInserimento']
+    if not all(key in dati for key in required_keys):
+        return jsonify({'Error': 'wrong keys!'}), 403
     try:
-        dataCancellazione = dati['dataCancellazione']
-        utenteCancellazione = str(dati['utenteCancellazione'])
-        return service_t_tipimenu.delete_tipi_menu(id, dataCancellazione, utenteCancellazione)
+        descrizione = str(dati['descrizione'])
+        color = str(dati['color'])
+        backgroundColor = str(dati['backgroundColor'])
+        ordinatore = int(dati['ordinatore'])
+        dataInserimento = dati['dataInserimento']
+        utenteInserimento = str(dati['utenteInserimento'])
+        result = service_t_tipimenu.update(id, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento)
+        return jsonify(result)
     except Exception as e:
-        return {'Error': str(e)}, 403
+        return jsonify({'Error': str(e)}), 500
+
+@t_tipimenu_controller.route('/delete/<int:id>', methods=['DELETE'])
+def delete(id):
+    dati = request.json
+    if 'utenteCancellazione' not in dati or dati['utenteCancellazione'] is None:
+        return jsonify({'Error': 'utenteCancellazione key missing!'}), 403
+    try:
+        utenteCancellazione = dati['utenteCancellazione'].strip()
+        return jsonify(service_t_tipimenu.delete(id, utenteCancellazione))
+    except Exception as e:
+        return jsonify({'Error': str(e)}), 500
