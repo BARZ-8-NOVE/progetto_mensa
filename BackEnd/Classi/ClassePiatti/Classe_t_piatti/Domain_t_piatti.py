@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
+from sqlalchemy.sql import func
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Domani_t_tipiPiatti import TTipiPiatti
 from Classi.ClasseServizi.Domani_t_servizi import TServizi
 
@@ -15,7 +16,7 @@ class TPiatti(Base):
     descrizione = Column(String(100), nullable=True)
     inMenu = Column(Boolean, nullable=False, default=False)
     ordinatore = Column(Integer, nullable=False, default=0)
-    dataInserimento = Column(DateTime, nullable=True)
+    dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)

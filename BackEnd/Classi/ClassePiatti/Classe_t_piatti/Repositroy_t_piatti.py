@@ -35,15 +35,24 @@ class RepositoryPiatti:
             logging.error(f"Error getting piatto by ID {id}: {e}")
             return {'Error': str(e)}, 400
 
-    def create(self, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
+    def create(self, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento):
         try:
-            piatto = TPiatti(fkTipoPiatto=fkTipoPiatto, fkServizio=fkServizio, codice=codice, titolo=titolo, descrizione=descrizione, inMenu=inMenu, ordinatore=ordinatore, dataInserimento=dataInserimento, utenteInserimento=utenteInserimento, dataCancellazione=dataCancellazione, utenteCancellazione=utenteCancellazione)
+            piatto = TPiatti(
+                fkTipoPiatto=fkTipoPiatto, 
+                fkServizio=fkServizio, 
+                codice=codice, 
+                titolo=titolo, 
+                descrizione=descrizione, 
+                inMenu=inMenu, 
+                ordinatore=ordinatore, 
+                dataInserimento=dataInserimento, 
+                utenteInserimento=utenteInserimento
+            )
             self.session.add(piatto)
             self.session.commit()
             return {'piatto': 'added!'}, 200
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error creating piatto: {e}")
             return {'Error': str(e)}, 500
 
     def update(self, id, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
@@ -82,5 +91,4 @@ class RepositoryPiatti:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error deleting piatto by id {id}: {e}")
             return {'Error': str(e)}, 500

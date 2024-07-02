@@ -2,7 +2,7 @@ import logging
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Domani_t_tipiPiatti import TTipiPiatti
-import datetime
+from datetime import datetime
 class RepositoryTipiPiatti:
 
     def __init__(self) -> None:
@@ -102,10 +102,9 @@ class RepositoryTipiPiatti:
                 tipo_piatto.dataCancellazione = datetime.now()
                 tipo_piatto.utenteCancellazione = utenteCancellazione
                 self.session.commit()
-                return {'tipo_piatto': 'deleted!'}, 200
+                return {'tipo_piatto': 'soft deleted!'}, 200
             else:
-                return {'Error': f'No match found for this ID: {id}'}, 404
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             self.session.rollback()
-            logging.error(f"Error deleting tipo piatto by ID {id}: {e}")
             return {'Error': str(e)}, 500
