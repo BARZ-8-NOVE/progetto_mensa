@@ -4,8 +4,11 @@ from Classi.ClasseUtenti.Classe_t_utenti.Domain_t_utenti import TUtenti
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repository_t_tipiUtente
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
-from werkzeug.exceptions import Conflict, NotFound, Forbidden
+from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from werkzeug.security import check_password_hash
+import jwt
+from datetime import datetime, timedelta
+import uuid
 
 class Repository_t_utenti:
     
@@ -70,7 +73,7 @@ class Repository_t_utenti:
         if not resultTipoUtente:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
-        utente = TUtenti(username=username, nome=nome, cognome=cognome, fkTipoUtente=fkTipoUtente,
+        utente = TUtenti(public_id=str(uuid.uuid4()), username=username, nome=nome, cognome=cognome, fkTipoUtente=fkTipoUtente,
                         fkFunzCustom=fkFunzCustom, reparti=reparti, attivo=attivo, inizio=inizio,
                         email=email, password=password)
         self.session.add(utente)
@@ -188,8 +191,13 @@ class Repository_t_utenti:
             hashed_password = result.password
             if hashed_password and check_password_hash(hashed_password, password):
                 if result.attivo == 0:
+                    from server import app
+                    token = jwt.encode({
+                        'public_id': result.public_id,
+                        'exp' : datetime.now() + timedelta(minutes = 30)
+                    }, app.config['SECRET_KEY'])
                     self.update_utente_attivo(result.id, 1)
-                    return UtilityGeneral.getClassDictionaryOrList(result)
+                    return token
                 else:
                     self.session.close()
                     raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'in'))
@@ -212,3 +220,9 @@ class Repository_t_utenti:
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+        
+    def current_user(self, public_id):
+        current_user = self.session.query(TUtenti).filter_by(public_id=public_id).first()
+        if not current_user:
+            raise Unauthorized('Token is invalid!')
+        return current_user

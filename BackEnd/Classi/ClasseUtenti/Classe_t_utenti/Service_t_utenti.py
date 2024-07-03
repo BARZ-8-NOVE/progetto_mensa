@@ -87,3 +87,6 @@ class Service_t_utenti:
     def do_logout(self, username:str):
         UtilityUtenti.checkUsername(username)
         return self.repository.do_logout(username)
+    
+    def current_user(self, public_id):
+        return self.repository.current_user(public_id)

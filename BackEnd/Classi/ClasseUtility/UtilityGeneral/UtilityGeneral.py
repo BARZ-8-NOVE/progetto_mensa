@@ -38,7 +38,7 @@ class UtilityGeneral:
             raise KeyError(UtilityMessages.wrongKeysErrorMessage())
         
     @staticmethod
-    def checkId(id):
+    def checkId(id:int):
         """
         :description: Static method that checks if id is None, it will raise a TypeError,
         and checks if id is less or equal of 0 if will raise a ValueError

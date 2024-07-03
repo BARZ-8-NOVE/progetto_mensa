@@ -8,7 +8,8 @@ class TUtenti(Base):
     __tablename__ = 't_utenti'
 
     id = Column(Integer, autoincrement=True, primary_key=True)
-    username = Column(String, nullable=False)
+    public_id = Column(String, nullable=True, unique=True)
+    username = Column(String, nullable=False, unique=True)
     nome = Column(String, nullable=False)
     cognome = Column(String, nullable=False)
     fkTipoUtente = Column(Integer, ForeignKey('t_tipiUtenti.id'), nullable=False)
@@ -16,7 +17,7 @@ class TUtenti(Base):
     reparti = Column(String, nullable=True)
     attivo = Column(TINYINT, nullable=True)
     inizio = Column(Date, nullable=True)
-    email = Column(String, nullable=False)
+    email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
 
     tipoUtente = relationship('TTipiUtenti', foreign_keys=[fkTipoUtente])
@@ -24,5 +25,6 @@ class TUtenti(Base):
     __table_args__ = (
         Index('fkTipoUtente', 'fkTipoUtente'),
         UniqueConstraint('username', 'username'),
-        UniqueConstraint('email', 'email')
+        UniqueConstraint('email', 'email'),
+        UniqueConstraint('public_id', 'public_id')
     )

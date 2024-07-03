@@ -41,6 +41,7 @@ from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your secret key'
 
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')

@@ -1,31 +1,56 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from werkzeug.exceptions import Conflict, NotFound, Forbidden
-
+from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
+import jwt
+from functools import wraps
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
 httpCodes = HttpCodes()
 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        from server import app
+        try:
+            token = None
+            if 'x-access-token' in request.headers:
+                token = request.headers['x-access-token']
+            if not token:
+                raise Unauthorized('Token is missing!')
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = service_t_utenti.current_user(data['public_id'])
+            return f(current_user, *args, **kwargs)
+        except Unauthorized as e:
+            return jsonify({'Error': str(e)}), httpCodes.UNAUTHORIZED
+        except KeyError as e:
+            return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
+        except Exception as e:
+            return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+    return decorated
+
 @t_utenti_controller.route('/get_all', methods=['GET'])
-def get_utenti_all():
+@token_required
+def get_utenti_all(current_user):
     try:
         utenti = service_t_utenti.get_utenti_all()
-        return utenti, httpCodes.OK
+        return jsonify(utenti), httpCodes.OK
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
-@t_utenti_controller.route('/get_utente/<int:id>', methods=['GET'])
-def get_utente_by_id(id):
+@t_utenti_controller.route('/get_utente', methods=['GET'])
+@token_required
+def get_utente_by_id(current_user):
     try:
+        id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
         utente = service_t_utenti.get_utente_by_id(id)
-        return utente, httpCodes.OK
+        return jsonify(utente), httpCodes.OK
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
 @t_utenti_controller.route('/create_utente', methods=['POST'])
 def create_utente():
@@ -54,7 +79,8 @@ def create_utente():
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/update_utente', methods=['PUT'])
-def update_utente():
+@token_required
+def update_utente(current_user):
     try:
         dati = request.json
         required_fields = ['id', 'username', 'nome', 'cognome', 'fkTipoUtente', 'fkFunzCustom', 'reparti', 'attivo', 'email', 'password']
@@ -96,7 +122,8 @@ def update_utente():
 
     
 @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
-def delete_utente(id):
+@token_required
+def delete_utente(id, current_user):
     try:
         id = UtilityGeneral.safe_int_convertion(id, 'id')
         result = service_t_utenti.delete_utente(id)
@@ -116,7 +143,7 @@ def do_login():
         UtilityGeneral.check_fields(dati, required_fields)
         username = dati['username']
         password = dati['password']
-        return service_t_utenti.do_login(username, password), httpCodes.OK
+        return jsonify(service_t_utenti.do_login(username, password)), httpCodes.OK
     except NotFound as e:
         return {'Error': str(e)}, httpCodes.NOT_FOUND
     except KeyError as e:
@@ -129,7 +156,8 @@ def do_login():
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/do_logout', methods=['POST'])
-def do_logout():
+@token_required
+def do_logout(current_user):
     try:
         dati = request.json
         required_fields = ['username']
