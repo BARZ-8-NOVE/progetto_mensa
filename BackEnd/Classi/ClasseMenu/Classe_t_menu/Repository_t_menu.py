@@ -12,7 +12,7 @@ class RepositoryMenu:
 
     def get_all(self):
         try:
-            results = self.session.query(TMenu).all()
+            results = self.session.query(TMenu).filter(TMenu.dataCancellazione.is_(None)).all()
             return [
                 {
                     'id': result.id,

@@ -11,7 +11,7 @@ class RepositoryTipiPiatti:
 
     def get_all(self):
         try:
-            results = self.session.query(TTipiPiatti).all()
+            results = self.session.query(TTipiPiatti).filter(TTipiPiatti.dataCancellazione.is_(None)).all()
             return [
                 {
                     'id': result.id,

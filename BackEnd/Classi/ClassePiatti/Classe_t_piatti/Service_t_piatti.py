@@ -11,15 +11,15 @@ class ServicePiatti:
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
     
-    def create(self, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento):
+    def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento):
         if not dataInserimento:
             dataInserimento = datetime.now()
-        return self.repository.create(fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento)
+        return self.repository.create(fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento)
 
-    def update(self, id, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
+    def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
         if not dataInserimento:
             dataInserimento = datetime.now()
-        return self.repository.update(id, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione)
+        return self.repository.update(id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione)
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)

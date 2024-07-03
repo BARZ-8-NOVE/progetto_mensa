@@ -10,7 +10,7 @@ class RepositoryTipiMenu:
 
     def get_all(self):
         try:
-            results = self.session.query(TTipiMenu).all()
+            results = self.session.query(TTipiMenu).filter(TTipiMenu.dataCancellazione.is_(None)).all()
         except Exception as e:
             return {'Error': str(e)}, 500
         return [{'id': result.id, 'descrizione': result.descrizione, 'color': result.color,

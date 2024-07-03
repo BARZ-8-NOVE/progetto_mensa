@@ -18,12 +18,11 @@ def get_by_id(id):
 @t_piatti_controller.route('/create', methods=['POST'])
 def create():
     dati = request.json
-    required_fields = ['fkTipoPiatto', 'fkServizio', 'codice', 'titolo', 'descrizione', 'inMenu', 'ordinatore', 'utenteInserimento']
+    required_fields = ['fkTipoPiatto', 'codice', 'titolo', 'descrizione', 'inMenu', 'ordinatore', 'utenteInserimento']
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
     try:
         fkTipoPiatto = int(dati['fkTipoPiatto'])
-        fkServizio = int(dati['fkServizio'])
         codice = dati['codice'].strip()
         titolo = dati['titolo'].strip()
         descrizione = dati['descrizione'].strip() if dati.get('descrizione') else None
@@ -32,7 +31,7 @@ def create():
         dataInserimento = dati.get('dataInserimento', datetime.now())
         utenteInserimento = dati['utenteInserimento'].strip()
 
-        return jsonify(service_piatti.create(fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento))
+        return jsonify(service_piatti.create(fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403
@@ -42,7 +41,7 @@ def create():
 @t_piatti_controller.route('/update/<int:id>', methods=['PUT'])
 def update(id):
     dati = request.json
-    required_fields = ['fkTipoPiatto', 'fkServizio', 'codice', 'titolo', 'inMenu', 'ordinatore', 'dataInserimento', 'utenteInserimento']
+    required_fields = ['fkTipoPiatto', 'codice', 'titolo', 'inMenu', 'ordinatore', 'dataInserimento', 'utenteInserimento']
     
     for field in required_fields:
         if field not in dati or dati[field] is None:
@@ -50,7 +49,6 @@ def update(id):
     
     try:
         fkTipoPiatto = int(dati['fkTipoPiatto'])
-        fkServizio = int(dati['fkServizio'])
         codice = dati['codice'].strip()
         titolo = dati['titolo'].strip()
         descrizione = dati['descrizione'].strip() if dati.get('descrizione') else None
@@ -61,7 +59,7 @@ def update(id):
         dataCancellazione = dati.get('dataCancellazione')  # Assumi che sia una stringa già nel formato corretto
         utenteCancellazione = dati.get('utenteCancellazione', '').strip() if dati.get('utenteCancellazione') else None
 
-        return jsonify(service_piatti.update(id, fkTipoPiatto, fkServizio, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione))
+        return jsonify(service_piatti.update(id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403

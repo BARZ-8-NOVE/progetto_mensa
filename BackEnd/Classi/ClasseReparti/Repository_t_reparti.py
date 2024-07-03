@@ -10,7 +10,7 @@ class RepositoryReparti:
 
     def get_all(self):
         try:
-            results = self.session.query(TReparti).all()
+            results = self.session.query(TReparti).filter(TReparti.dataCancellazione.is_(None)).all()
             return [{'id': result.id, 'codiceAreas': result.codiceAreas, 'descrizione': result.descrizione,
                      'sezione': result.sezione, 'ordinatore': result.ordinatore, 'padiglione': result.padiglione,
                      'piano': result.piano, 'lato': result.lato, 'inizio': result.inizio, 'fine': result.fine,

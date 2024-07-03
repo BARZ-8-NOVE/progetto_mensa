@@ -11,7 +11,7 @@ class Repository_t_preparazionicontenuti:
 
     def get_all_preparazioni_contenuti(self):
         try:
-            results = self.session.query(TPreparazioniContenuti).all()
+            results = self.session.query(TPreparazioniContenuti).filter(TPreparazioniContenuti.dataCancellazione.is_(None)).all()
             return [{
                 'id': result.id,
                 'fkPreparazione': result.fkPreparazione,

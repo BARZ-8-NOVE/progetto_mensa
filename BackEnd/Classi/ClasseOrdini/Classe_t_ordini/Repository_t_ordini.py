@@ -10,7 +10,7 @@ class RepositoryOrdini:
 
     def get_all(self):
         try:
-            results = self.session.query(TOrdini).all()
+            results = self.session.query(TOrdini).filter(TOrdini.dataCancellazione.is_(None)).all()
         except Exception as e:
             return {'Error': str(e)}, 500
         return [{'id': result.id, 'fkReparto': result.fkReparto, 'data': result.data, 
