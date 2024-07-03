@@ -2,8 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.sql import func
-from Classi.ClassePiatti.Classe_t_tipiPiatti.Domani_t_tipiPiatti import TTipiPiatti
-from Classi.ClasseServizi.Domani_t_servizi import TServizi
+
 
 class TPiatti(Base):
     __tablename__ = 't_piatti'
@@ -22,4 +21,3 @@ class TPiatti(Base):
 
     # Definizione delle relazioni
     tipo_piatto = relationship("TTipiPiatti", back_populates="piatti")
-    ordini_piatti = relationship("TOrdiniPiatti", back_populates="piatti")
