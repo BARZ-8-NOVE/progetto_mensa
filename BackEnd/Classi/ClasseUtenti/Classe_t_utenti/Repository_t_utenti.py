@@ -197,7 +197,9 @@ class Repository_t_utenti:
                         'exp' : datetime.now() + timedelta(minutes = 30)
                     }, app.config['SECRET_KEY'])
                     self.update_utente_attivo(result.id, 1)
-                    return token
+                    return {'token': token, 'username': username, 'reparti': result.reparti,
+                        'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
+                        'fkTipoUtente': result.fkTipoUtente}
                 else:
                     self.session.close()
                     raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'in'))
@@ -224,5 +226,5 @@ class Repository_t_utenti:
     def current_user(self, public_id):
         current_user = self.session.query(TUtenti).filter_by(public_id=public_id).first()
         if not current_user:
-            raise Unauthorized('Token is invalid!')
+            raise Unauthorized(UtilityMessages.unauthorizedErrorToken('invalid'))
         return current_user

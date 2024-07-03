@@ -4,6 +4,7 @@ from Classi.ClasseUtenti.Classe_t_tipiUtenti.Domain_t_tipiUtenti import TTipiUte
 from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import TAutorizzazioni
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
+from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 
 class UtilityGeneral:   
     """Class for the utility general""" 
@@ -25,6 +26,11 @@ class UtilityGeneral:
             return int(value)
         except (ValueError, TypeError):
             raise ValueError(f"Conversion error to Integer of {variableName}")
+        
+    @staticmethod
+    def check_token_header(required_field, header):
+        if required_field not in header:    
+            raise Unauthorized(UtilityMessages.unauthorizedErrorToken('missing in headers'))
 
     @staticmethod
     def check_fields(dati, required_fields):
