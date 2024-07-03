@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 import jwt
@@ -15,11 +16,9 @@ def token_required(f):
     def decorated(*args, **kwargs):
         from server import app
         try:
-            token = None
-            if 'x-access-token' in request.headers:
-                token = request.headers['x-access-token']
-            if not token:
-                raise Unauthorized('Token is missing!')
+            required_field = 'x-access-token'
+            UtilityGeneral.check_token_header(required_field, request.headers)
+            token = request.headers['x-access-token']
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = service_t_utenti.current_user(data['public_id'])
             return f(current_user, *args, **kwargs)
@@ -120,12 +119,11 @@ def update_utente(current_user):
     except Exception as e:
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
 
-    
 @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
 @token_required
-def delete_utente(id, current_user):
+def delete_utente(current_user):
     try:
-        id = UtilityGeneral.safe_int_convertion(id, 'id')
+        id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
         result = service_t_utenti.delete_utente(id)
         return result, httpCodes.OK
     except NotFound as e:
@@ -156,8 +154,7 @@ def do_login():
         return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/do_logout', methods=['POST'])
-@token_required
-def do_logout(current_user):
+def do_logout():
     try:
         dati = request.json
         required_fields = ['username']

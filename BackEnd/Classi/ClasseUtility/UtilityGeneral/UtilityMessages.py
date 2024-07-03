@@ -63,3 +63,13 @@ class UtilityMessages:
         :return: a message of utente already logged in or already logged out
         """
         return f'Utente: {username} is already logged {in_or_out}!'
+    
+    @staticmethod
+    def unauthorizedErrorToken(description:str):
+        """
+        :description: Static method that concatenate a string passing 1 parameter.
+        Used when there is an error with a token
+        :args: description:str
+        :return: a message: Token is {description}
+        """
+        return f'Token is {description}'
