@@ -8,5 +8,3 @@ import pandas as pd
 csv_file = 'DBMS/file_dati_statici/t_preparazuonicontenuti.csv'
 df = pd.read_csv(csv_file)
 
-
-

@@ -2,13 +2,13 @@ from flask import Flask, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from Classi.ClasseDB.config import DATABASE_URI
+from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseDB.db_connection import get_db, Base, engine
 
-from Classi.initialize_db.initialize_db import initialize_database
+#from Classi.initialize_db.initialize_db import initialize_database
 
 # Inizializzare il database
-initialize_database()
+#initialize_database()
 
 # Importare i controller
 from Classi.ClasseUtenti.Classe_t_funzionalita.Controller_t_funzionalita import t_funzionalita_controller
@@ -45,7 +45,7 @@ from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your secret key'
+app.config['SECRET_KEY'] = SECRET_KEY
 
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')
