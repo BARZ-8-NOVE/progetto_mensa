@@ -1,0 +1,16 @@
+id,nome,fktipologiaConservazione
+1,"prodotto secco",1
+2,"prodotti lavorati freschi",2
+3,"prodotti lavorati congelati",3
+4,fraina,1
+5,uova,2
+6,formaggi,2
+7,carne,2
+8,"carne congelata",3
+9,frutta,2
+10,"frutta congelata",3
+11,verdura,2
+12,"verdura congelata",3
+13,"pesce fresco",2
+14,"pesce congelato",3
+15,salumi,2
