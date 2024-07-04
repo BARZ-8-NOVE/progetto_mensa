@@ -1,0 +1,13 @@
+id,tipo,peso_valore_in_grammi,peso_valore_in_Kg
+1,grammi,1.000,0.001
+2,etti,100.000,0.100
+3,kg,1000.000,1.000
+4,litri,1000.000,1.000
+5,centilitri,100.000,0.100
+6,millilitri,1.000,0.001
+7,numero,NULL,NULL
+9,oncia,28.349,0.028
+10,libbra,453.592,0.454
+11,pinta,473.176,0.473
+12,quart,946.353,0.946
+13,gallone,3785.410,3.785
