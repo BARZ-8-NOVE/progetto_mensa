@@ -1,0 +1,8 @@
+id,descrizione,descrizionePlurale,inMenu,ordinatore,color,backgroundColor,dataInserimento,utenteInserimento,dataCancellazione,utenteCancellazione
+1,Primo,Primi,1,10,#000000,#ffff05,"2021-02-15 14:20:46.113000",g.saffioti,NULL,NULL
+2,Secondo,Secondi,1,20,#000000,#f5d89f,"2021-02-15 14:20:51.463000",g.saffioti,NULL,NULL
+3,Contorno,Contorni,1,30,#000000,#d7f5c9,"2021-02-15 14:20:56.033000",g.saffioti,NULL,NULL
+4,Dessert,Dessert,1,40,#000000,#f5e2e9,"2023-12-01 09:33:58.797000",s.diberti,NULL,NULL
+5,Coperto,Coperti,0,50,#000000,#ebe8e8,"2021-02-12 11:56:33.013000",g.saffioti,NULL,NULL
+6,Spuntino,Spuntini,0,60,#000000,#e5ffe0,"2021-02-12 11:57:04.903000",g.saffioti,NULL,NULL
+

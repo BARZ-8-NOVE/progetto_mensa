@@ -7,7 +7,7 @@ class TPreparazioniContenuti(Base):
 
     id = Column(Integer, primary_key=True)
     fkPreparazione = Column(Integer, nullable=False)
-    fkAlimento = Column(Integer, nullable=False)
+    fkAlimento = Column(Integer, nullable=True)
     quantita = Column(Float, nullable=False)
     fkTipoQuantita = Column(Integer, ForeignKey('t_tipoquantita.id'), nullable=False)
     note = Column(String(255), nullable=True)

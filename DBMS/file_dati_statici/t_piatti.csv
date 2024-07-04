@@ -1,0 +1,37 @@
+id,fkTipoPiatto,codice,titolo,descrizione,inMenu,ordinatore,dataInserimento,utenteInserimento,dataCancellazione,utenteCancellazione
+1,1,1,Semolino,NULL,1,10,"2023-10-17 15:36:53.943000",s.diberti,NULL,NULL
+2,1,2,Minestrina,NULL,1,20,NULL,NULL,NULL,NULL
+3,1,3,"Primo asciutto al sugo",NULL,1,30,"2021-01-20 11:28:04.877000",g.saffioti,NULL,NULL
+4,1,4,"Pasta in bianco",NULL,1,86,"2024-02-12 16:01:14.113000",s.diberti,NULL,NULL
+5,2,5,Formaggio,NULL,1,30,NULL,NULL,NULL,NULL
+6,2,6,Lesso,NULL,1,40,NULL,NULL,NULL,NULL
+7,2,7,Tritata,NULL,1,90,NULL,NULL,NULL,NULL
+8,2,8,"Secondo del giorno",NULL,1,100,"2024-02-15 17:10:02.257000",s.diberti,NULL,NULL
+9,2,9,Affettato,NULL,1,50,"2024-02-15 17:21:36.387000",s.diberti,NULL,NULL
+10,3,10,Pure',NULL,1,60,NULL,NULL,NULL,NULL
+11,3,11,"Verdura cotta",NULL,1,110,NULL,NULL,NULL,NULL
+12,3,12,"Verdura cruda",NULL,1,120,NULL,NULL,NULL,NULL
+13,4,F,Frutta,NULL,1,150,NULL,NULL,NULL,NULL
+14,4,FC,"Frutta cotta",NULL,1,160,NULL,NULL,NULL,NULL
+15,5,P,Pane,NULL,1,170,NULL,NULL,NULL,NULL
+16,5,G,Grissini,NULL,1,180,NULL,NULL,NULL,NULL
+17,3,13,"Patata lessa",NULL,1,190,NULL,NULL,NULL,NULL
+18,3,14,"Zucchine, Carote",NULL,1,200,"2024-02-15 17:23:42.107000",s.diberti,NULL,NULL
+19,4,BD,Budino,NULL,1,130,"2021-02-07 21:12:11.943000",g.saffioti,NULL,NULL
+20,4,Y,Yogurt,NULL,1,140,"2021-02-07 21:21:46.927000",g.saffioti,NULL,NULL
+21,1,BR,Brodo,NULL,0,200,"2021-02-07 21:10:17.287000",g.saffioti,NULL,NULL
+45,1,3c,"Primo piatto Cremoso",NULL,1,35,"2023-12-01 11:04:32.593000",s.diberti,NULL,NULL
+47,3,11c,"Contorno pronto cremoso",NULL,1,115,"2023-12-01 11:04:53.840000",s.diberti,NULL,NULL
+48,2,8c,"Secondo piatto pronto cremoso",NULL,1,105,"2023-12-01 11:04:44.223000",s.diberti,NULL,NULL
+58,5,GSg,"Grissini senza glutine",NULL,0,186,"2024-02-15 17:25:48.307000",s.diberti,NULL,NULL
+60,2,T,"Tonno in scatola",NULL,1,45,"2021-01-20 13:31:28.003000",g.saffioti,NULL,NULL
+65,1,3,Minestrone/Passato,NULL,1,32,"2021-01-21 19:09:03.103000",g.saffioti,NULL,NULL
+66,1,RB,"Riso in bianco",NULL,1,50,"2021-01-25 10:42:24.277000",g.saffioti,NULL,NULL
+72,3,11Bc,"Contorno del giorno ben cotto",NULL,1,112,"2024-03-08 11:38:44.610000",s.diberti,NULL,NULL
+73,1,3Bc,"Primo piatto del giorno ben cotto",,1,34,"2024-02-15 17:12:05.563000",s.diberti,NULL,NULL
+75,2,8Bc,"Secondo del giorno ben cotto",NULL,1,108,"2024-02-15 17:11:16.437000",s.diberti,NULL,NULL
+78,2,8V,"Legumi del giorno",NULL,1,101,"2023-11-15 10:11:20.380000",s.diberti,NULL,NULL
+81,1,4Bc,"Pasta in bianco ben cotta",NULL,1,96,"2024-02-15 17:37:07.423000",s.diberti,NULL,NULL
+83,2,8F,"Carne/Pesce ai ferri",NULL,0,95,"2023-11-20 15:40:09.270000",s.diberti,NULL,NULL
+85,2,M,"Moz no Latt",NULL,1,32,"2024-04-26 16:10:34.197000",s.diberti,NULL,NULL
+87,4,D,Dessert,NULL,1,165,"2024-02-15 17:23:01.710000",s.diberti,NULL,NULL

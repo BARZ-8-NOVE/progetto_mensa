@@ -12,7 +12,7 @@ class RepositoryAlimenti:
     def get_all(self):
         try:
             results = self.session.query(TAlimenti).all()
-            return [{'id': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
+            return [{'id': result.id, 'Alimento': result.alimento, 'Energia_Kcal': result.energia_Kcal, 'Energia_KJ': result.energia_KJ, 'Prot_Tot_Gr': result.prot_tot_gr, 'Glucidi_Tot': result.glucidi_tot, 'Lipidi_Tot': result.lipidi_tot, 'Saturi_Tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
         except Exception as e:
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
@@ -21,7 +21,7 @@ class RepositoryAlimenti:
         try:
             result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
-                return {'id': result.id, 'Alimento': result.Alimento, 'Energia_Kcal': result.Energia_Kcal, 'Energia_KJ': result.Energia_KJ, 'Prot_Tot_Gr': result.Prot_Tot_Gr, 'Glucidi_Tot': result.Glucidi_Tot, 'Lipidi_Tot': result.Lipidi_Tot, 'Saturi_Tot': result.Saturi_Tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
+                return {'id': result.id, 'Alimento': result.alimento, 'Energia_Kcal': result.energia_Kcal, 'Energia_KJ': result.energia_KJ, 'Prot_Tot_Gr': result.prot_tot_gr, 'Glucidi_Tot': result.glucidi_tot, 'Lipidi_Tot': result.lipidi_tot, 'Saturi_Tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
@@ -43,13 +43,13 @@ class RepositoryAlimenti:
         try:
             alimento = self.session.query(TAlimenti).filter_by(id=id).first()
             if alimento:
-                alimento.Alimento = Alimento
-                alimento.Energia_Kcal = Energia_Kcal
-                alimento.Energia_KJ = Energia_KJ
-                alimento.Prot_Tot_Gr = Prot_Tot_Gr
-                alimento.Glucidi_Tot = Glucidi_Tot
-                alimento.Lipidi_Tot = Lipidi_Tot
-                alimento.Saturi_Tot = Saturi_Tot
+                alimento.alimento = Alimento
+                alimento.energia_Kcal = Energia_Kcal
+                alimento.energia_KJ = Energia_KJ
+                alimento.prot_tot_gr = Prot_Tot_Gr
+                alimento.glucidi_tot = Glucidi_Tot
+                alimento.lipidi_tot = Lipidi_Tot
+                alimento.saturi_tot = Saturi_Tot
                 alimento.fkAllergene = fkAllergene
                 alimento.fkTipologiaAlimento = fkTipologiaAlimento
                 self.session.commit()

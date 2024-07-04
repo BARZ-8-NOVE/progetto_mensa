@@ -28,7 +28,7 @@ def create():
         Glucidi_Tot = float(dati['Glucidi_Tot'])
         Lipidi_Tot = float(dati['Lipidi_Tot'])
         Saturi_Tot = float(dati['Saturi_Tot'])
-        fkAllergene = int(dati['fkAllergene'])
+        fkAllergene = dati['fkAllergene'].strip()
         fkTipologiaAlimento = int(dati['fkTipologiaAlimento'])
 
         return jsonify(service_alimenti.create(Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento))
@@ -52,7 +52,7 @@ def update(id):
         Glucidi_Tot = float(dati['Glucidi_Tot'])
         Lipidi_Tot = float(dati['Lipidi_Tot'])
         Saturi_Tot = float(dati['Saturi_Tot'])
-        fkAllergene = int(dati['fkAllergene'])
+        fkAllergene = dati['fkAllergene'].strip()
         fkTipologiaAlimento = int(dati['fkTipologiaAlimento'])
 
         return jsonify(service_alimenti.update(id, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento))

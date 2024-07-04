@@ -1,0 +1,9 @@
+id,descrizione,color,backgroundColor,ordinatore,dataInserimento,utenteInserimento,dataCancellazione,utenteCancellazione
+1,"Vitto comune",#000000,#ffffff,10,NULL,NULL,NULL,NULL
+2,"Arancione - Disfagia",#000000,#f08138,20,NULL,NULL,NULL,NULL
+3,"Viola - Celiachia",#000000,#8d7cc2,30,NULL,NULL,NULL,NULL
+4,"Rosso - Iposodica",#000000,#ff0000,40,NULL,NULL,NULL,NULL
+5,"Blu - Ridotto lattosio e fibra",#000000,#2f25e8,50,NULL,NULL,NULL,NULL
+6,"Giallo - Vegetariana",#000000,#f7f708,60,NULL,NULL,NULL,NULL
+7,"Verde - Disfagia II Solido morbida",#ffffff,#7be661,70,NULL,NULL,NULL,NULL
+8,prova1,#000000,#ffffff,10,"2024-07-02 12:57:53",prova,"2024-07-02 14:18:53",prova

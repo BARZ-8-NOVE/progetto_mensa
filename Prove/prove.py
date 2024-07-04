@@ -1,13 +1,12 @@
-# from Classi.ClasseAlimenti.Classe_t_allergeni import TAllergeni
-# from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti import TTipologiaAlimenti
-# from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione import TTipologiaConservazioni
-# from Classi.ClasseMenu.Classe_t_menu import TMenu
-# from Classi.ClasseMenu.Classe_t_tipiMenu import TTipiMenu
-# from Classi.ClasseOrdini.Classe_t_ordini import TOrdini
-# from Classi.ClasseOrdini.Classe_t_ordiniPiatti import TOrdiniPiatti
-# from Classi.ClassePiatti.Classe_t_piatti import TPiatti
-# from Classi.ClassePiatti.Classe_t_tipiPiatti import TTipiPiatti
-# from Classi.ClassePreparazioni.Classe_t_preparazioni import TPreparazioni
-# from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni import TTipiPreparazioni
-# from Classi.ClasseServizi.Classe_t_servizi import TServizi
-# from Classi.ClasseUtenti.Classe_t_utenti import TUtenti
+import os
+import pandas as pd
+
+
+
+
+# Leggi il file CSV delle tipologie di alimento
+csv_file = 'DBMS/file_dati_statici/t_preparazuonicontenuti.csv'
+df = pd.read_csv(csv_file)
+
+
+

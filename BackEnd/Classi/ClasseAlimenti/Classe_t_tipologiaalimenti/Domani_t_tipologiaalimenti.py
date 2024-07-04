@@ -6,8 +6,9 @@ from ..Classe_t_tipologiaconservazione.Domani_t_tipologiaconservazione import TT
 class TTipologiaAlimenti(Base):
     __tablename__ = 't_tipologiaalimenti'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    nome = Column(String)
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(255), nullable=False) 
+    
     fktipologiaConservazione = Column(Integer, ForeignKey('t_tipologiaconservazione.id'))
 
 

@@ -1,7 +1,7 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey,text
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
-from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Domain_t_tipoPreparazioni import TTipiPreparazioni
+
 
 class TPreparazioni(Base):
     __tablename__ = 't_preparazioni'
@@ -18,7 +18,7 @@ class TPreparazioni(Base):
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
-    immagine = Column(String, nullable=True)  # varchar(MAX) viene trattato come una stringa di lunghezza variabile
+    immagine = Column(String(4000), nullable=True)  # varchar(MAX) viene trattato come una stringa di lunghezza variabile
 
     tipo_preparazione = relationship('TTipiPreparazioni')
     
