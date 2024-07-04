@@ -42,7 +42,7 @@ def initialize_database():
         populate_from_csv_with_ids(session, TAllergeni, 'DBMS/file_dati_statici/t_allergeni.csv')
         populate_from_csv_with_ids(session, TTipologiaConservazioni, 'DBMS/file_dati_statici/t_tipologiaconservazione.csv')        
         populate_from_csv_with_ids(session, TTipologiaAlimenti, 'DBMS/file_dati_statici/t_tipologiaalimenti.csv')        
-        populate_from_csv_with_ids(session, TAlimenti, 'DBMS/file_dati_statici/t_alimenti_con_allergeni.csv')
+        populate_from_csv_with_ids(session, TAlimenti, 'DBMS/file_dati_statici/t_tabella_alimenti_con_allergeni.csv')
         populate_from_csv_with_ids(session, TTipoQuantita, 'DBMS/file_dati_statici/t_tipoquantita.csv')
         populate_from_csv_with_ids(session, TTipiPreparazioni, 'DBMS/file_dati_statici/t_tipipreparazioni.csv')
         populate_from_csv_with_ids(session, TPreparazioni, 'DBMS/file_dati_statici/t_preparazioni.csv')
