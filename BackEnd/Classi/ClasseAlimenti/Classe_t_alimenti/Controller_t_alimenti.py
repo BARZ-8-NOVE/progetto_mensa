@@ -17,21 +17,21 @@ def get_by_id(id):
 @t_alimenti_controller.route('/create', methods=['POST'])
 def create():
     dati = request.json
-    required_fields = ['Alimento', 'Energia_Kcal', 'Energia_KJ', 'Prot_Tot_Gr', 'Glucidi_Tot', 'Lipidi_Tot', 'Saturi_Tot', 'fkAllergene', 'fkTipologiaAlimento']
+    required_fields = ['alimento', 'energia_Kcal', 'energia_KJ', 'prot_tot_gr', 'glucidi_tot', 'lipidi_tot', 'saturi_tot', 'fkAllergene', 'fkTipologiaAlimento']
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
     try:
-        Alimento = dati['Alimento'].strip()
-        Energia_Kcal = float(dati['Energia_Kcal'])
-        Energia_KJ = float(dati['Energia_KJ'])
-        Prot_Tot_Gr = float(dati['Prot_Tot_Gr'])
-        Glucidi_Tot = float(dati['Glucidi_Tot'])
-        Lipidi_Tot = float(dati['Lipidi_Tot'])
-        Saturi_Tot = float(dati['Saturi_Tot'])
+        alimento = dati['alimento'].strip()
+        energia_Kcal = float(dati['energia_Kcal'])
+        energia_KJ = float(dati['energia_KJ'])
+        prot_tot_gr = float(dati['prot_tot_gr'])
+        glucidi_tot = float(dati['glucidi_tot'])
+        lipidi_tot = float(dati['lipidi_tot'])
+        saturi_tot = float(dati['saturi_tot'])
         fkAllergene = dati['fkAllergene'].strip()
         fkTipologiaAlimento = int(dati['fkTipologiaAlimento'])
 
-        return jsonify(service_alimenti.create(Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento))
+        return jsonify(service_alimenti.create(alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403
@@ -41,21 +41,22 @@ def create():
 @t_alimenti_controller.route('/update/<int:id>', methods=['PUT'])
 def update(id):
     dati = request.json
-    required_fields = ['Alimento', 'Energia_Kcal', 'Energia_KJ', 'Prot_Tot_Gr', 'Glucidi_Tot', 'Lipidi_Tot', 'Saturi_Tot', 'fkAllergene', 'fkTipologiaAlimento']
+    required_fields = ['alimento', 'energia_Kcal', 'energia_KJ', 'prot_tot_gr', 'glucidi_tot', 'lipidi_tot', 'saturi_tot', 'fkAllergene', 'fkTipologiaAlimento']
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
     try:
-        Alimento = dati['Alimento'].strip()
-        Energia_Kcal = float(dati['Energia_Kcal'])
-        Energia_KJ = float(dati['Energia_KJ'])
-        Prot_Tot_Gr = float(dati['Prot_Tot_Gr'])
-        Glucidi_Tot = float(dati['Glucidi_Tot'])
-        Lipidi_Tot = float(dati['Lipidi_Tot'])
-        Saturi_Tot = float(dati['Saturi_Tot'])
+        alimento = dati['alimento'].strip()
+        energia_Kcal = float(dati['energia_Kcal'])
+        energia_KJ = float(dati['energia_KJ'])
+        prot_tot_gr = float(dati['prot_tot_gr'])
+        glucidi_tot = float(dati['glucidi_tot'])
+        lipidi_tot = float(dati['lipidi_tot'])
+        saturi_tot = float(dati['saturi_tot'])
         fkAllergene = dati['fkAllergene'].strip()
         fkTipologiaAlimento = int(dati['fkTipologiaAlimento'])
 
-        return jsonify(service_alimenti.update(id, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento))
+
+        return jsonify(service_alimenti.update(id, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403
