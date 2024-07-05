@@ -5,10 +5,10 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.config import DATABASE_URI
 from Classi.ClasseDB.db_connection import get_db, Base, engine
 
-from Classi.initialize_db.initialize_db import initialize_database
+# from Classi.initialize_db.initialize_db import initialize_database
 
-# Inizializzare il database
-initialize_database()
+# # Inizializzare il database
+# initialize_database()
 
 # Importare i controller
 from Classi.ClasseUtenti.Classe_t_funzionalita.Controller_t_funzionalita import t_funzionalita_controller

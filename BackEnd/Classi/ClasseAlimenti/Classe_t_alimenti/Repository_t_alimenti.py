@@ -12,7 +12,7 @@ class RepositoryAlimenti:
     def get_all(self):
         try:
             results = self.session.query(TAlimenti).all()
-            return [{'id': result.id, 'Alimento': result.alimento, 'Energia_Kcal': result.energia_Kcal, 'Energia_KJ': result.energia_KJ, 'Prot_Tot_Gr': result.prot_tot_gr, 'Glucidi_Tot': result.glucidi_tot, 'Lipidi_Tot': result.lipidi_tot, 'Saturi_Tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
+            return [{'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
         except Exception as e:
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
@@ -21,16 +21,16 @@ class RepositoryAlimenti:
         try:
             result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
-                return {'id': result.id, 'Alimento': result.alimento, 'Energia_Kcal': result.energia_Kcal, 'Energia_KJ': result.energia_KJ, 'Prot_Tot_Gr': result.prot_tot_gr, 'Glucidi_Tot': result.glucidi_tot, 'Lipidi_Tot': result.lipidi_tot, 'Saturi_Tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
+                return {'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
             logging.error(f"Error getting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 400
         
-    def create(self, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento):
+    def create(self, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento):
         try:
-            alimento = TAlimenti(Alimento=Alimento, Energia_Kcal=Energia_Kcal, Energia_KJ=Energia_KJ, Prot_Tot_Gr=Prot_Tot_Gr, Glucidi_Tot=Glucidi_Tot, Lipidi_Tot=Lipidi_Tot, Saturi_Tot=Saturi_Tot, fkAllergene=fkAllergene, fkTipologiaAlimento=fkTipologiaAlimento)
+            alimento = TAlimenti(alimento=alimento, energia_Kcal=energia_Kcal, energia_KJ=energia_KJ, prot_tot_gr=prot_tot_gr, glucidi_tot=glucidi_tot, lipidi_tot=lipidi_tot, saturi_tot=saturi_tot, fkAllergene=fkAllergene, fkTipologiaAlimento=fkTipologiaAlimento)
             self.session.add(alimento)
             self.session.commit()
             return {'alimento': 'added!'}, 200

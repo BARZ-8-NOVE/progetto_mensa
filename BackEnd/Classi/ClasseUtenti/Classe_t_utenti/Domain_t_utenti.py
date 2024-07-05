@@ -21,6 +21,7 @@ class TUtenti(Base):
     password = Column(String, nullable=False)
 
     tipoUtente = relationship('TTipiUtenti', foreign_keys=[fkTipoUtente])
+    # utente_log = relationship('TUserActivityLog', back_populates= 'utente')
 
     __table_args__ = (
         Index('fkTipoUtente', 'fkTipoUtente'),

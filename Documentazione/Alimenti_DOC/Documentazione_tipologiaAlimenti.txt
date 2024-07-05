@@ -1,0 +1,171 @@
+
+Blueprint('/tipologiaalimenti')
+
+1. Ottieni tutti le tipologie alimento
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaalimenti/get_all
+Descrizione: Restituisce una lista di tutti le tipologie alimento.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+    {
+        "fktipologiaConservazione": 1,
+        "id": 1,
+        "nome": "prodotto secco"
+    },
+    {
+        "fktipologiaConservazione": 2,
+        "id": 2,
+        "nome": "prodotti lavorati freschi"
+    },
+    {
+        "fktipologiaConservazione": 3,
+        "id": 3,
+        "nome": "prodotti lavorati congelati"
+    },
+    {
+        "fktipologiaConservazione": 1,
+        "id": 4,
+        "nome": "fraina"
+    },
+    {
+        "fktipologiaConservazione": 2,
+        "id": 5,
+        "nome": "uova"
+    },...
+
+]
+
+-------------------------------------------------------------
+
+2. Ottieni tipologia alimentoper ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaalimenti/1
+Descrizione: Restituisce i dettagli di una tipologia alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia alimento.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+    {
+        "id": 1,
+        "nome": "glutine"
+    }
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "tipologia alimento not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea una nuova tipologia alimento
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaalimenti/create
+Metodo: POST
+Descrizione: Crea un nuovo tipologia alimento con i dati forniti.
+Corpo della richiesta:
+json
+
+{
+    "fktipologiaConservazione": 1,
+    "nome": "prodotto prova"
+},
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaalimenti': 'added!'}, 200
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna una tipologia alimento per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaalimenti/update/1
+Metodo: PUT
+Descrizione: Aggiorna i dettagli di un tipologia alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia alimento.
+Corpo della richiesta:
+json
+
+{
+    "fktipologiaConservazione": 1,
+    "nome": "prodotto prova"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaalimento': 'updated!'}, 200
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli dell'errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina un tipologia alimento per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaalimenti/delete/1
+Metodo: DELETE
+Descrizione: Elimina un tipologia alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia alimento.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaalimento': 'deleted!'}, 200
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "tipologia alimentonot found"
+}
+
+--------------------------------------------------------------------------------
