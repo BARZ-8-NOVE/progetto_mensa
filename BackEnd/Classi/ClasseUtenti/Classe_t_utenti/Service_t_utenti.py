@@ -1,6 +1,7 @@
 from Classi.ClasseUtenti.Classe_t_utenti.Repository_t_utenti import Repository_t_utenti
 from Classi.ClasseUtility.UtilityUtenti.UtilityUtenti import UtilityUtenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
+from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repository_t_tipiUtente
 from werkzeug.security import generate_password_hash
 
 class Service_t_utenti:
@@ -15,11 +16,13 @@ class Service_t_utenti:
         UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_id(id)
     
-    def create_utente(self, username:str, nome:str, cognome:str, fkTipoUtente:int,
+    def create_utente(self, username:str, nome:str, cognome:str, nomeTipoUtente,
                     fkFunzCustom:str, reparti:str, email:str, password:str):
         UtilityUtenti.checkUsername(username)
         UtilityUtenti.checkNome(nome)
         UtilityUtenti.checkCognome(cognome)
+        tipoUtente = Repository_t_tipiUtente()
+        fkTipoUtente = tipoUtente.exists_tipoUtente_by_nomeTipoUtente(nomeTipoUtente)
         UtilityUtenti.checkFkTipoUtente(fkTipoUtente)
         UtilityUtenti.checkFkFunzCustom(fkFunzCustom)
         UtilityUtenti.checkReparti(reparti)

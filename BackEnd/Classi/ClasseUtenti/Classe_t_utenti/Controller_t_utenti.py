@@ -52,7 +52,7 @@ def get_utenti_all():
 
 @t_utenti_controller.route('/get_utente', methods=['GET'])
 @jwt_required()
-def get_utente_by_id(current_user):
+def get_utente_by_id():
     try:
         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
         utente = service_t_utenti.get_utente_by_id(id)
@@ -71,12 +71,12 @@ def create_utente():
         username = dati['username']
         nome = dati['nome']
         cognome = dati['cognome']
-        fkTipoUtente = UtilityGeneral.safe_int_convertion(dati['fkTipoUtente'], 'fkTipoUtente')
+        nomeTipoUtente = dati['fkTipoUtente'] #UtilityGeneral.safe_int_convertion(dati['fkTipoUtente'], 'fkTipoUtente')
         fkFunzCustom = dati['fkFunzCustom']
         reparti = dati['reparti']
         email = dati['email']
         password = dati['password']
-        return jsonify(service_t_utenti.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, email, password)), httpCodes.OK
+        return jsonify(service_t_utenti.create_utente(username, nome, cognome, nomeTipoUtente, fkFunzCustom, reparti, email, password)), httpCodes.OK
     except KeyError as e:
         return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
     except (ValueError, TypeError) as e:

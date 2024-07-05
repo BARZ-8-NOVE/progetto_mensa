@@ -59,7 +59,7 @@ class UtilityUtenti:
         :description: Static method to check if <utenti>fkTipoUtente is None the function will raise a TypeError 
         and to check if <utenti>fkTipoUtente is less or equal to 0
         the function will raise a ValueError or None if both of the above conditions are false
-        :args: <utenti>fkTipoUtente:str
+        :args: <utenti>fkTipoUtente
         :return: None | raise ValueError | raise TypeError
         """
         if fkTipoUtente is None:

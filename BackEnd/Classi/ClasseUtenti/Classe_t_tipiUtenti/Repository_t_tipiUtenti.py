@@ -16,6 +16,10 @@ class Repository_t_tipiUtente:
         result = self.session.query(TTipiUtenti).filter_by(id=id).first()
         return result
     
+    def exists_tipoUtente_by_nomeTipoUtente(self, nomeTipoUtente):
+        result = self.session.query(TTipiUtenti).filter_by(nomeTipoUtente=nomeTipoUtente).first()
+        return result.id
+    
     def set_null_fkAutorizzazioni(self, fkAutorizzazioni):
         results = self.session.query(TTipiUtenti).filter_by(fkAutorizzazioni=fkAutorizzazioni).all()
         for result in results:
