@@ -6,8 +6,8 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from werkzeug.security import check_password_hash
-import jwt
-from datetime import datetime, timedelta
+from flask import jsonify
+from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
 
 class Repository_t_utenti:
@@ -38,6 +38,10 @@ class Repository_t_utenti:
     
     def exists_utente_by_username_with_different_id(self, username:str, id:int):
         result = self.session.query(TUtenti).filter(TUtenti.username==username, TUtenti.id!=id).first()
+        return result
+    
+    def exists_utente_by_public_id(self, public_id):
+        result = self.session.query(TUtenti).filter_by(public_id=public_id).first()
         return result
     
     def exist_utenti_by_tipoUtente(self, fkTipoUtente):
@@ -191,13 +195,11 @@ class Repository_t_utenti:
             hashed_password = result.password
             if hashed_password and check_password_hash(hashed_password, password):
                 if result.attivo == 0:
-                    from server import app
-                    token = jwt.encode({
-                        'public_id': result.public_id,
-                        'exp' : datetime.now() + timedelta(minutes = 30)
-                    }, app.config['SECRET_KEY'])
                     self.update_utente_attivo(result.id, 1)
-                    return {'token': token, 'username': username, 'reparti': result.reparti,
+                    access_token = create_access_token(identity=result.public_id)
+                    response = jsonify(access_token=access_token)
+                    set_access_cookies(response=response, encoded_access_token=access_token)
+                    return {'token': access_token, 'username': username, 'reparti': result.reparti,
                         'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
                         'fkTipoUtente': result.fkTipoUtente}
                 else:
@@ -210,18 +212,18 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
         
-    def do_logout(self, username:str):
-        result = self.exists_utente_by_username(username)
+    def do_logout(self, current_utente_public_id:str):
+        result = self.exists_utente_by_public_id(current_utente_public_id)
         if result:
             if result.attivo == 1:
                 self.update_utente_attivo(result.id, 0)
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()
-                raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'out'))
+                raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(result.username, 'out'))
         else:
             self.session.close()
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', result.username))
         
     def current_user(self, public_id):
         current_user = self.session.query(TUtenti).filter_by(public_id=public_id).first()

@@ -84,9 +84,8 @@ class Service_t_utenti:
         UtilityUtenti.checkPassword(password)
         return self.repository.do_login(username, password)
     
-    def do_logout(self, username:str):
-        UtilityUtenti.checkUsername(username)
-        return self.repository.do_logout(username)
+    def do_logout(self, current_utente_public_id:str):
+        return self.repository.do_logout(current_utente_public_id)
     
     def current_user(self, public_id):
         return self.repository.current_user(public_id)

@@ -4,6 +4,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseDB.db_connection import get_db, Base, engine
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
+jwt = JWTManager(app)
 
 #from Classi.initialize_db.initialize_db import initialize_database
 
@@ -42,10 +51,8 @@ from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_con
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import t_ordini_piatti_controller
 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = SECRET_KEY
+
+
 
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')
@@ -78,5 +85,5 @@ app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
 app.register_blueprint(t_ordini_piatti_controller, url_prefix='/ordinipiatti')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+#if __name__ == '__main__':
+#    app.run(debug=True)

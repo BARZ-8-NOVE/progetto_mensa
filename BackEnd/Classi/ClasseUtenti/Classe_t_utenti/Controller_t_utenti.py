@@ -1,37 +1,38 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity, unset_jwt_cookies
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
-from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
-import jwt
-from functools import wraps
+from server import jwt
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
 httpCodes = HttpCodes()
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        from server import app
-        try:
-            required_field = 'x-access-token'
-            UtilityGeneral.check_token_header(required_field, request.headers)
-            token = request.headers['x-access-token']
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = service_t_utenti.current_user(data['public_id'])
-            return f(current_user, *args, **kwargs)
-        except Unauthorized as e:
+@jwt.expired_token_loader
+def my_expired_token_callback(jwt_header, jwt_payload):
+    try:
+        current_utente_public_id = jwt_payload['sub']
+        service_t_utenti.do_logout(current_utente_public_id)
+        response = jsonify({"Utente": "Logged out because the token has expired!"})
+        unset_jwt_cookies(response)
+        return response
+    except NotFound as e:
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
+    except KeyError as e:
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
+    except Unauthorized as e:
             return jsonify({'Error': str(e)}), httpCodes.UNAUTHORIZED
-        except KeyError as e:
-            return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
-        except Exception as e:
-            return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
-    return decorated
-
+    except ValueError as e:
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
+    except Forbidden as e:
+        return jsonify({'Error': str(e)}), httpCodes.FORBIDDEN
+    except Exception as e:
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+    
 @t_utenti_controller.route('/get_all', methods=['GET'])
-@token_required
+#@token_required
 def get_utenti_all(current_user):
     try:
         utenti = service_t_utenti.get_utenti_all()
@@ -40,7 +41,7 @@ def get_utenti_all(current_user):
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
 @t_utenti_controller.route('/get_utente', methods=['GET'])
-@token_required
+#@token_required
 def get_utente_by_id(current_user):
     try:
         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
@@ -65,21 +66,20 @@ def create_utente():
         reparti = dati['reparti']
         email = dati['email']
         password = dati['password']
-        return service_t_utenti.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, email, password), httpCodes.OK
+        return jsonify(service_t_utenti.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, email, password)), httpCodes.OK
     except KeyError as e:
-        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
     except (ValueError, TypeError) as e:
-        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
     except Conflict as e:
-        return {'Error': str(e)}, httpCodes.CONFLICT
+        return jsonify({'Error': str(e)}), httpCodes.CONFLICT
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/update_utente', methods=['PUT'])
-@token_required
-def update_utente(current_user):
+def update_utente():
     try:
         dati = request.json
         required_fields = ['id', 'username', 'nome', 'cognome', 'fkTipoUtente', 'fkFunzCustom', 'reparti', 'attivo', 'email', 'password']
@@ -103,35 +103,34 @@ def update_utente(current_user):
         service_t_utenti.update_utente_attivo(id, attivo)
         service_t_utenti.update_utente_email(id, email)
         service_t_utenti.update_utente_password(id, password)
-        return {
+        return jsonify({
             'Utente updated': f'id: {id}, username: {username}, nome: {nome}, cognome: {cognome}, '
                               f'fkTipoUtente: {fkTipoUtente}, fkFunzCustom: {fkFunzCustom}, reparti: {reparti}, '
                               f'attivo: {attivo}, email: {email}'
-        }, httpCodes.OK
+        }), httpCodes.OK
     except KeyError as e:
-        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
     except ValueError as e:
-        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except Conflict as e:
-        return {'Error': str(e)}, httpCodes.CONFLICT
+        return jsonify({'Error': str(e)}), httpCodes.CONFLICT
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
 @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
-@token_required
-def delete_utente(current_user):
+def delete_utente():
     try:
         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
         result = service_t_utenti.delete_utente(id)
-        return result, httpCodes.OK
+        return jsonify(result), httpCodes.OK
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except ValueError as e:
-        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/do_login', methods=['POST'])
 def do_login():
@@ -143,31 +142,30 @@ def do_login():
         password = dati['password']
         return jsonify(service_t_utenti.do_login(username, password)), httpCodes.OK
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except KeyError as e:
-        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
     except ValueError as e:
-        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
     except Forbidden as e:
-        return {'Error': str(e)}, httpCodes.FORBIDDEN
+        return jsonify({'Error': str(e)}), httpCodes.FORBIDDEN
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/do_logout', methods=['POST'])
+@jwt_required()
 def do_logout():
     try:
-        dati = request.json
-        required_fields = ['username']
-        UtilityGeneral.check_fields(dati, required_fields)
-        username = dati['username']
-        return service_t_utenti.do_logout(username), httpCodes.OK
+        current_utente_public_id = get_jwt_identity()
+        return jsonify(service_t_utenti.do_logout(current_utente_public_id)), httpCodes.OK
     except NotFound as e:
-        return {'Error': str(e)}, httpCodes.NOT_FOUND
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
     except KeyError as e:
-        return {'Error': str(e)}, httpCodes.BAD_REQUEST
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
     except ValueError as e:
-        return {'Error': str(e)}, httpCodes.UNPROCESSABLE_ENTITY
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
     except Forbidden as e:
-        return {'Error': str(e)}, httpCodes.FORBIDDEN
+        return jsonify({'Error': str(e)}), httpCodes.FORBIDDEN
     except Exception as e:
-        return {'Error': str(e)}, httpCodes.INTERNAL_SERVER_ERROR
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+    
