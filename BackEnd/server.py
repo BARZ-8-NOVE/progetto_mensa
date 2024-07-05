@@ -50,10 +50,6 @@ from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_controller
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import t_ordini_piatti_controller
 
-
-
-
-
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')
 app.register_blueprint(t_allergeni_controller, url_prefix='/allergeni')

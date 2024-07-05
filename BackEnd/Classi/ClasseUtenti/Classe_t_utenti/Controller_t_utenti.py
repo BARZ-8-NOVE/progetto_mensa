@@ -5,6 +5,7 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from server import jwt
+from datetime import datetime, timezone
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
@@ -31,9 +32,18 @@ def my_expired_token_callback(jwt_header, jwt_payload):
     except Exception as e:
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blocklist(jwt_header, jwt_payload):
+    token_expiry = datetime.fromtimestamp(jwt_payload['exp'], timezone.utc)
+    if token_expiry < datetime.now(timezone.utc):
+        current_utente_public_id = jwt_payload['sub']
+        service_t_utenti.do_logout(current_utente_public_id)
+        return True
+    return False
+    
 @t_utenti_controller.route('/get_all', methods=['GET'])
-#@token_required
-def get_utenti_all(current_user):
+@jwt_required()
+def get_utenti_all():
     try:
         utenti = service_t_utenti.get_utenti_all()
         return jsonify(utenti), httpCodes.OK
@@ -41,7 +51,7 @@ def get_utenti_all(current_user):
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
 @t_utenti_controller.route('/get_utente', methods=['GET'])
-#@token_required
+@jwt_required()
 def get_utente_by_id(current_user):
     try:
         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
@@ -120,6 +130,7 @@ def update_utente():
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
 @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_utente():
     try:
         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
