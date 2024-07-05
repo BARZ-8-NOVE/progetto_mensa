@@ -1,0 +1,201 @@
+
+Blueprint('/ordini')
+
+1. Ottieni tutti gli ordini
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/ordini/get_all
+Descrizione: Restituisce una lista di tutti gli ordini.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+  {
+    "cognome": "hh",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 1,
+    "letto": "3",
+    "nome": "hh",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },
+  {
+    "cognome": "rr",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 2,
+    "letto": "6",
+    "nome": "rr",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },...
+]
+
+---------------------------------------------------
+
+2. Ottieni ordine per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/ordini/1
+Descrizione: Restituisce i dettagli di un ordine specifico per ID.
+Parametri URL:
+id: (int) L'ID degli ordini.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+
+  {
+    "cognome": "hh",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 1,
+    "letto": "3",
+    "nome": "hh",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },
+  
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "ordine not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo ordine
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/ordini/create
+Descrizione: Crea un nuovo ordine con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "cognome": "prova",
+    "data": "2024-07-02",
+    "dataInserimento": "",
+    "fkReparto": 35,
+    "fkServizio": 1,
+    "letto": null,
+    "nome": "provino",
+    "utenteInserimento": "p.prova"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un ordine per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/ordini/update/1
+Descrizione: Aggiorna i dettagli di un ordine specifico per ID.
+Parametri URL:
+id: (int) L'ID degli ordini.
+Corpo della richiesta: json
+json
+ 
+{
+    "cognome": "prova",
+    "data": "2024-07-02",
+    "dataInserimento": "",
+    "fkReparto": 35,
+    "fkServizio": 1,
+    "letto": null,
+    "nome": "provino",
+    "utenteInserimento": "p.prova"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un ordine per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/ordini/delete/1
+Descrizione: Elimina un ordine specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID degli ordini.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "ordine not found"
+}
