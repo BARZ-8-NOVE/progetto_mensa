@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -15,7 +16,6 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 jwt = JWTManager(app)
 
 #from Classi.initialize_db.initialize_db import initialize_database
-
 # Inizializzare il database
 #initialize_database()
 

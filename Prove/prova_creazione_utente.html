@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrazione Utente</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .registration-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+        .registration-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .registration-container input[type="text"], .registration-container input[type="password"], .registration-container input[type="email"], .registration-container select {
+            width: 93%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .registration-container input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .registration-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="registration-container">
+        <h2>Registrazione Utente</h2>
+        <form id="registrationForm">
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="text" id="nome" name="nome" placeholder="Nome" required>
+            <input type="text" id="cognome" name="cognome" placeholder="Cognome" required>
+            <select id="fkTipoUtente" name="fkTipoUtente" required>
+                <option value="">Seleziona Tipo Utente</option>
+                <option value="1">Admin</option>
+                <option value="2">User</option>
+                <!-- Aggiungi altre opzioni se necessario -->
+            </select>
+            <input type="text" id="fkFunzCustom" name="fkFunzCustom" placeholder="Funzionalità Custom" required>
+            <input type="text" id="reparti" name="reparti" placeholder="Reparti" required>
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <input type="submit" value="Registrati">
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Previene il comportamento predefinito del form
+
+        const username = document.getElementById('username').value;
+        const nome = document.getElementById('nome').value;
+        const cognome = document.getElementById('cognome').value;
+        const fkTipoUtente = document.getElementById('fkTipoUtente').value;
+        const fkFunzCustom = document.getElementById('fkFunzCustom').value;
+        const reparti = document.getElementById('reparti').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        fetch('http://127.0.0.1:5000/utenti/create_utente', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                nome: nome,
+                cognome: cognome,
+                fkTipoUtente: fkTipoUtente,
+                fkFunzCustom: fkFunzCustom,
+                reparti: reparti,
+                email: email,
+                password: password
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Utente registrato con successo');
+                // Reindirizzamento alla pagina di login
+                window.location.href = 'secondaprova.html';
+            } else {
+                alert('Errore nella registrazione: ' + (data.message || 'Informazioni non valide'));
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            alert('Si è verificato un errore durante la registrazione');
+        });
+    });
+
+    </script>
+    
+</body>
+</html>
