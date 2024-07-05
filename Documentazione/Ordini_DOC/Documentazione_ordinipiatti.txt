@@ -1,0 +1,193 @@
+
+Blueprint('ordinipiatti')
+
+1. Ottieni tutti gli ordini piatti
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000ordinipiatti/get_all
+Descrizione: Restituisce una lista di tutti gli ordini piatti.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+  {
+    "cognome": "hh",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 1,
+    "letto": "3",
+    "nome": "hh",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },
+  {
+    "cognome": "rr",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 2,
+    "letto": "6",
+    "nome": "rr",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },...
+]
+
+---------------------------------------------------
+
+2. Ottieni ordine piatti per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000ordinipiatti/1
+Descrizione: Restituisce i dettagli di un ordine piatti specifico per ID.
+Parametri URL:
+id: (int) L'ID degli ordini piatti.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+
+  {
+    "cognome": "hh",
+    "data": "Wed, 07 Feb 2024 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkReparto": 34,
+    "fkServizio": 1,
+    "id": 1,
+    "letto": "3",
+    "nome": "hh",
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+  },
+  
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "ordine piatti not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo ordine piatti
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000ordinipiatti/create
+Descrizione: Crea un nuovo ordine piatti con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "fkOrdineScheda": 101910,
+    "fkPiatto":9,
+    "note": null,
+    "quantita": 1
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine piatti": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un ordine piatti per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000ordinipiatti/update/1
+Descrizione: Aggiorna i dettagli di un ordine piatti specifico per ID.
+Parametri URL:
+id: (int) L'ID degli ordini piatti.
+Corpo della richiesta: json
+json
+ 
+{
+    "fkOrdineScheda": 101910,
+    "fkPiatto":9,
+    "note": null,
+    "quantita": 1
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine piatti": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un ordine piatti per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000ordinipiatti/delete/1
+Descrizione: Elimina un ordine piatti specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID degli ordini piatti.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "ordine piatti": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "ordine piatti not found"
+}

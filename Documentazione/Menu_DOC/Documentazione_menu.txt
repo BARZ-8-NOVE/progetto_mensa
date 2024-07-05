@@ -1,0 +1,177 @@
+
+Blueprint('/menu')
+
+1. Ottieni tutti i menu
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/menu/get_all
+Descrizione: Restituisce una lista di tutti i menu.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "data": "Mon, 04 Jan 2021 00:00:00 GMT",
+        "dataCancellazione": null,
+        "dataInserimento": "Wed, 27 Jan 2021 17:36:01 GMT",
+        "fkTipoMenu": 4,
+        "id": 1,
+        "utenteCancellazione": null,
+        "utenteInserimento": "nome_utente"
+    },
+    {
+        "data": "Sat, 30 Jan 2021 00:00:00 GMT",
+        "dataCancellazione": null,
+        "dataInserimento": "Wed, 27 Jan 2021 21:15:05 GMT",
+        "fkTipoMenu": 4,
+        "id": 2,
+        "utenteCancellazione": null,
+        "utenteInserimento": "nome_utente"
+    }
+]
+
+---------------------------------------------------
+
+2. Ottieni menu per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/menu/1
+Descrizione: Restituisce i dettagli di un menu specifico per ID.
+Parametri URL:
+id: (int) L'ID del menu.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "data": "Mon, 04 Jan 2021 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": "Wed, 27 Jan 2021 17:36:01 GMT",
+    "fkTipoMenu": 4,
+    "id": 1,
+    "utenteCancellazione": null,
+    "utenteInserimento": "nome_utente"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "menu not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo menu
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/menu/create
+Descrizione: Crea un nuovo menu con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "data": "2024-07-01",
+    "fkTipoMenu": 1,
+    "utenteInserimento": "nome_utente",
+    "dataInserimento": ""
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un menu per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/menu/update/1
+Descrizione: Aggiorna i dettagli di un menu specifico per ID.
+Parametri URL:
+id: (int) L'ID del menu.
+Corpo della richiesta: json
+json
+ 
+{
+    "data": "2024-07-01",
+    "fkTipoMenu": 2,
+    "utenteInserimento": "nome_utente",
+    "dataInserimento": ""
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un menu per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/menu/delete/1
+Descrizione: Elimina un menu specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del menu.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "menu not found"
+}

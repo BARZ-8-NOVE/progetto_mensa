@@ -1,0 +1,157 @@
+
+Blueprint('/allergeni')
+
+1. Ottieni tutti gli allergeni
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/allergeni/get_all
+Descrizione: Restituisce una lista di tutti gli allergeni.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+ {
+        "id": 1,
+        "nome": "glutine"
+    },
+    {
+        "id": 2,
+        "nome": "crostacei"
+    },
+    {
+        "id": 3,
+        "nome": "uova"
+    },...
+
+]
+
+-------------------------------------------------------------
+
+2. Ottieni allergene per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/allergeni/1
+Descrizione: Restituisce i dettagli di un allergene specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'allergene.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+    {
+        "id": 1,
+        "nome": "glutine"
+    }
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "allergene not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea un nuovo allergeni
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+esempio chiamata completa: http://127.0.0.1:5000/allergeni/create
+Metodo: POST
+Descrizione: Crea un nuovo allergeni con i dati forniti.
+Corpo della richiesta:
+json
+
+{
+   "nome": "prova allergene1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'allergene': 'added!'}, 200
+
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna un allergeni per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/allergeni/update/1
+Metodo: PUT
+Descrizione: Aggiorna i dettagli di un allergeni specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'allergeni.
+Corpo della richiesta:
+json
+
+    {
+        "nome": "prova allergene1"
+    }
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'allergene': 'updated!'}, 200
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli dell'errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina un allergeni per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/allergeni/delete/1
+Metodo: DELETE
+Descrizione: Elimina un allergeni specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'allergene.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'allergene': 'deleted!'}, 200
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "allergene not found"
+}
+
+--------------------------------------------------------------------------------

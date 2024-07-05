@@ -1,0 +1,158 @@
+
+Blueprint('/tipologiaconservazioni')
+
+1. Ottieni tutti le tipologie di conservazione 
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaconservazioni/get_all
+Descrizione: Restituisce una lista di tutti le tipologie di conservazione .
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+
+    {
+        "id": 1,
+        "nome": "Dispensa"
+    },
+    {
+        "id": 2,
+        "nome": "prodotto fresco"
+    },
+    {
+        "id": 3,
+        "nome": "congelato"
+    }
+]
+
+
+
+-------------------------------------------------------------
+
+2. Ottieni tipologia alimentoper ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaconservazioni/1
+Descrizione: Restituisce i dettagli di una tipologia di conservazione  specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia di conservazione .
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+    {
+        "id": 1,
+        "nome": "Dispensa"
+    },
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "tipologia di conservazione  not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea una nuova tipologia di conservazione 
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaconservazioni/create
+Metodo: POST
+Descrizione: Crea un nuovo tipologia di conservazione con i dati forniti.
+Corpo della richiesta:
+json
+
+    {
+        "nome": "Dispensa"
+    },
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaalimenti': 'added!'}, 200
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna una tipologia di conservazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaconservazioni/update/1
+Metodo: PUT
+Descrizione: Aggiorna i dettagli di un tipologia di conservazione specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia di conservazione.
+Corpo della richiesta:
+json
+
+{
+        "nome": "Dispensa"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaconservazioni': 'updated!'}, 200
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli dell'errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina un tipologia di conservazione  per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+esempio chiamata completa: http://127.0.0.1:5000/tipologiaconservazioni/delete/1
+Metodo: DELETE
+Descrizione: Elimina un tipologia di conservazione  specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'tipologia di conservazione .
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{'tipologiaconservazioni': 'deleted!'}, 200
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "tipologia conservazione not found"
+}
+
+--------------------------------------------------------------------------------

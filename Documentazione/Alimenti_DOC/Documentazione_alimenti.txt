@@ -1,0 +1,198 @@
+
+Blueprint('/alimenti')
+
+1. Ottieni tutti gli alimenti
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/alimenti/get_all
+Descrizione: Restituisce una lista di tutti gli alimenti.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+  {
+    "id": 1,
+    "alimento": "Alimento1",
+    "energia_Kcal": 100.0,
+    "energia_KJ": 420.0,
+    "prot_tot_gr": 5.0,
+    "glucidi_tot": 20.0,
+    "lipidi_tot": 2.0,
+    "saturi_tot": 0.5,
+    "fkAllergene": "1",
+    "fkTipologiaAlimento": 1
+  },
+
+]
+
+-------------------------------------------------------------
+
+2. Ottieni alimento per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/alimenti/1
+Descrizione: Restituisce i dettagli di un alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'alimento.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "id": 1,
+  "alimento": "Alimento1",
+  "energia_Kcal": 100.0,
+  "energia_KJ": 420.0,
+  "prot_tot_gr": 5.0,
+  "glucidi_tot": 20.0,
+  "lipidi_tot": 2.0,
+  "saturi_tot": 0.5,
+  "fkAllergene": "1",
+  "fkTipologiaAlimento": 1
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "Alimento not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea un nuovo alimento
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+esempio chiamata completa: http://127.0.0.1:5000/alimenti/create
+Descrizione: Crea un nuovo alimento con i dati forniti.
+Corpo della richiesta:
+json
+
+{
+  "alimento": "Alimento1",
+  "energia_Kcal": 100.0,
+  "energia_KJ": 420.0,
+  "prot_tot_gr": 5.0,
+  "glucidi_tot": 20.0,
+  "lipidi_tot": 2.0,
+  "saturi_tot": 0.5,
+  "fkAllergene": "1",
+  "fkTipologiaAlimento": 1
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "id": 1,
+  "alimento": "Alimento1",
+  "energia_Kcal": 100.0,
+  "energia_KJ": 420.0,
+  "prot_tot_gr": 5.0,
+  "glucidi_tot": 20.0,
+  "lipidi_tot": 2.0,
+  "saturi_tot": 0.5,
+  "fkAllergene": "1",
+  "fkTipologiaAlimento": 1
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna un alimento per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+esempio chiamata completa: http://127.0.0.1:5000/alimenti/update/1
+Descrizione: Aggiorna i dettagli di un alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'alimento.
+Corpo della richiesta:
+json
+
+{
+  "alimento": "Alimento2",
+  "energia_Kcal": 100.0,
+  "energia_KJ": 420.0,
+  "prot_tot_gr": 5.0,
+  "glucidi_tot": 20.0,
+  "lipidi_tot": 2.0,
+  "saturi_tot": 0.5,
+  "fkAllergene": "1",
+  "fkTipologiaAlimento": 1
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "id": 1,
+  "alimento": "Alimento2",
+  "energia_Kcal": 100.0,
+  "energia_KJ": 420.0,
+  "prot_tot_gr": 5.0,
+  "glucidi_tot": 20.0,
+  "lipidi_tot": 2.0,
+  "saturi_tot": 0.5,
+  "fkAllergene": "1",
+  "fkTipologiaAlimento": 1
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli dell'errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina un alimento per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+esempio chiamata completa: http://127.0.0.1:5000/alimenti/delete/1
+Descrizione: Elimina un alimento specifico per ID.
+Parametri URL:
+id: (int) L'ID dell'alimento.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "message": "Alimento deleted successfully"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "Alimento not found"
+}
+
+--------------------------------------------------------------------------------

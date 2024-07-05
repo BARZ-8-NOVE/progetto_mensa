@@ -1,0 +1,184 @@
+
+Blueprint('/menuservizi')
+
+1. Ottieni tutti i menu servizi
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/menuservizi/get_all
+Descrizione: Restituisce una lista di tutti i menu servizi.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "fkMenu": 2,
+        "fkServizio": 1,
+        "id": 2,
+        "note": null,
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },
+    {
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "fkMenu": 2,
+        "fkServizio": 2,
+        "id": 3,
+        "note": null,
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },...
+
+]
+---------------------------------------------------
+
+2. Ottieni menu servizi per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/menuservizi/1
+Descrizione: Restituisce i dettagli di un menu servizi specifico per ID.
+Parametri URL:
+id: (int) L'ID del menu servizi.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkMenu": 2,
+    "fkServizio": 1,
+    "id": 2,
+    "note": null,
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "menu servizi not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo menu servizi
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/menuservizi/create
+Descrizione: Crea un nuovo menu servizi con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "dataInserimento": "",
+    "fkMenu": 4,
+    "fkServizio": 1,
+    "note": null,
+    "utenteInserimento": "utente1"
+
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu servizi": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un menu servizi per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/menuservizi/update/1
+Descrizione: Aggiorna i dettagli di un menu servizi specifico per ID.
+Parametri URL:
+id: (int) L'ID del menu servizi.
+Corpo della richiesta: json
+json
+ 
+{
+    "dataInserimento": "",
+    "fkMenu": 4,
+    "fkServizio": 1,
+    "note": null,
+    "utenteInserimento": "utente1"
+
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu servizi": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un menu servizi per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/menuservizi/delete/1
+Descrizione: Elimina un menu servizi specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del menu servizi.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu servizi": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "menu servizi not found"
+}
