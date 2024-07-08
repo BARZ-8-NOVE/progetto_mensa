@@ -4,83 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Cucina e Mensa Ospedaliera</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-        header h1 {
-            margin: 0;
-        }
-        header .user-info {
-            display: flex;
-            align-items: center;
-        }
-        header .user-info span {
-            margin-right: 10px;
-        }
-        header .user-info a {
-            text-decoration: none;
-            color: white;
-            background-color: #cdd8e4;
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-        nav {
-            margin: 20px;
-            background-color: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-        }
-        nav ul {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            gap: 20px;
-        }
-        nav ul li {
-            position: relative;
-        }
-        nav ul li a {
-            text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
-            padding: 5px 10px;
-            display: block;
-        }
-        .dropdown-content, .dropdown-subcontent {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-        .dropdown-content a, .dropdown-subcontent a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-        .dropdown-content a:hover, .dropdown-subcontent a:hover {
-            background-color: #f1f1f1;
-        }
-        .dropdown:hover .dropdown-content, .dropdown-content .dropdown:hover .dropdown-subcontent {
-            display: block;
-        }
-        .dropdown-subcontent {
-            left: 100%;
-            top: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="stili.css">
 </head>
 <body>
     <header>
@@ -93,7 +17,7 @@
     </header>
     <nav>
         <ul>
-            <li><a href="#">Home</a></li>
+            <li><a href="pagina_principale.html">Home</a></li>
             <li><a href="#">Ordini</a></li>
             <li class="dropdown">
                 <a href="#">Configurazione</a>
@@ -101,7 +25,7 @@
                     <div class="dropdown">
                         <a href="#">Alimenti</a>
                         <div class="dropdown-subcontent">
-                            <a href="#">Alimenti</a>
+                            <a href="alimenti.html">Alimenti</a>
                             <a href="#">Preparazioni</a>
                         </div>
                     </div>
@@ -141,46 +65,6 @@
         </ul>
     </nav>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const token = localStorage.getItem('jwt');
-
-            // Controlla se il token è presente per verificare se l'utente è loggato
-            if (!token) {
-                // Se il token non è presente, reindirizza alla pagina di login
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const username = localStorage.getItem('username');
-            if (username) {
-                document.getElementById('username').textContent = username;
-            }
-
-            document.getElementById('logout').addEventListener('click', function() {
-                fetch('http://127.0.0.1:5000/utenti/do_logout', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        // Rimuove il token e le informazioni utente da localStorage
-                        localStorage.removeItem('jwt');
-                        localStorage.removeItem('username');
-                        // Redirige alla pagina di login
-                        window.location.href = 'login.html';
-                    } else {
-                        throw new Error('Logout fallito');
-                    }
-                })
-                .catch(error => {
-                    console.error('Errore durante il logout:', error);
-                    alert('Si è verificato un errore durante il logout');
-                });
-            });
-        });
-    </script>
+    <script src="pagina_principale.js"></script>
 </body>
 </html>
