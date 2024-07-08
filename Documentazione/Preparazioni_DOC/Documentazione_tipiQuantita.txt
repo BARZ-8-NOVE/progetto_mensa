@@ -1,0 +1,183 @@
+
+Blueprint('/tipoquantita')
+
+1. Ottieni tutti i tipi quantita
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipoquantita/get_all
+Descrizione: Restituisce una lista di tutti i tipi quantita.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "id": 1,
+        "peso_valore_in_Kg": 0.001,
+        "peso_valore_in_grammi": 1.0,
+        "tipo": "grammi"
+    },
+    {
+        "id": 2,
+        "peso_valore_in_Kg": 0.1,
+        "peso_valore_in_grammi": 100.0,
+        "tipo": "etti"
+    },
+    {
+        "id": 3,
+        "peso_valore_in_Kg": 1.0,
+        "peso_valore_in_grammi": 1000.0,
+        "tipo": "kg"
+    },
+    {
+        "id": 4,
+        "peso_valore_in_Kg": 1.0,
+        "peso_valore_in_grammi": 1000.0,
+        "tipo": "litri"
+    },
+    {
+        "id": 5,
+        "peso_valore_in_Kg": 0.1,
+        "peso_valore_in_grammi": 100.0,
+        "tipo": "centilitri"
+    },...
+]
+
+---------------------------------------------------
+
+2. Ottieni un tipo quantita per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipoquantita/1
+Descrizione: Restituisce i dettagli di un tipi quantita specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipi quantita.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "id": 1,
+    "peso_valore_in_Kg": 0.001,
+    "peso_valore_in_grammi": 1.0,
+    "tipo": "grammi"
+}
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " tipiquantita not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo tipo quantita
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/tipoquantita/create
+Descrizione: Crea un nuovo tipo quantita con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "tipo": "once",
+    "peso_valore_in_Kg": 0.0283495,
+    "peso_valore_in_grammi": 28.3495
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " tipiquantita": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un tipo quantita per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/tipoquantita/update/1
+Descrizione: Aggiorna i dettagli di un tipo quantita specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipo quantita.
+Corpo della richiesta: json
+json
+ 
+{
+    "tipo": "once",
+    "peso_valore_in_Kg": 0.0283495,
+    "peso_valore_in_grammi": 28.3495
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " tipiquantita": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un tipo quantita per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/tipoquantita/delete/1
+Descrizione: Elimina un tipo quantita specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del  tipo della quantita.
+Corpo della richiesta: nessuno
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " tipoquantita": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " tipioquantita not found"
+}

@@ -1,0 +1,203 @@
+
+Blueprint('/piatti')
+
+1. Ottieni tutti i piatti
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/piatti/get_all
+Descrizione: Restituisce una lista di tutti i piati.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "codice": "1",
+        "dataCancellazione": null,
+        "dataInserimento": "Tue, 17 Oct 2023 15:36:53 GMT",
+        "descrizione": null,
+        "fkTipoPiatto": 1,
+        "id": 1,
+        "inMenu": true,
+        "ordinatore": 10,
+        "titolo": "Semolino",
+        "utenteCancellazione": null,
+        "utenteInserimento": "s.diberti"
+    },
+    {
+        "codice": "2",
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "descrizione": null,
+        "fkTipoPiatto": 1,
+        "id": 2,
+        "inMenu": true,
+        "ordinatore": 20,
+        "titolo": "Minestrina",
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },...
+]
+
+---------------------------------------------------
+
+2. Ottieni piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/piatti/1
+Descrizione: Restituisce i dettagli di un piatto specifico per ID.
+Parametri URL:
+id: (int) L'ID del piatto.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "codice": "1",
+    "dataCancellazione": null,
+    "dataInserimento": "Tue, 17 Oct 2023 15:36:53 GMT",
+    "descrizione": null,
+    "fkTipoPiatto": 1,
+    "id": 1,
+    "inMenu": true,
+    "ordinatore": 10,
+    "titolo": "Semolino",
+    "utenteCancellazione": null,
+    "utenteInserimento": "s.diberti"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "piatto not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo piatto
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/piatti/create
+Descrizione: Crea un nuovo piatto con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "codice": "1",
+    "dataCancellazione": null,
+    "descrizione": null,
+    "fkServizio": 1,
+    "fkTipoPiatto": 1,
+    "inMenu": true,
+    "ordinatore": 100,
+    "titolo": "prova",
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "piatto": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/piatti/update/1
+Descrizione: Aggiorna i dettagli di un piatto specifico per ID.
+Parametri URL:
+id: (int) L'ID del piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "codice": "1",
+    "dataCancellazione": null,
+    "descrizione": null,
+    "fkServizio": 1,
+    "fkTipoPiatto": 1,
+    "inMenu": true,
+    "ordinatore": 100,
+    "titolo": "prova",
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "menu": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/piatti/delete/1
+Descrizione: Elimina un piatto specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "piatto": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "piatto not found"
+}

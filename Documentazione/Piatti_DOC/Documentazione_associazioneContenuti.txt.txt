@@ -1,1 +1,187 @@
  
+Blueprint('/associazione')
+
+1. Ottieni tutte le associazione dei piatti con le preparazioni
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/associazione/get_all
+Descrizione: Restituisce una lista di tutte le associazione dei piatti con le preparazioni.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "fkPiatto": 1,
+        "fkPreparazione": 109,
+        "id": 1,
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },
+    {
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "fkPiatto": 2,
+        "fkPreparazione": 86,
+        "id": 5,
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },,...
+]
+
+---------------------------------------------------
+
+2. Ottieni l'associazione dei piatti con le preparazioni per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/associazione/1
+Descrizione: Restituisce l'associazione dei piatti con le preparazioni per ID.
+Parametri URL:
+id: (int) L'ID dell' associazione.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "codice": "1",
+    "dataCancellazione": null,
+    "dataInserimento": "Tue, 17 Oct 2023 15:36:53 GMT",
+    "descrizione": null,
+    "fkTipoPiatto": 1,
+    "id": 1,
+    "inMenu": true,
+    "ordinatore": 10,
+    "titolo": "Semolino",
+    "utenteCancellazione": null,
+    "utenteInserimento": "s.diberti"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "piatto not found"
+}
+
+---------------------------------------------------
+
+3. Crea una nuovaa associazione
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/associazione/create
+Descrizione: Crea una nuova associazione tra un piatto e una preparazione.
+Corpo della richiesta: json
+json
+ 
+{
+    "dataCancellazione": null,
+    "dataInserimento": "",
+    "fkPiatto": 1,
+    "fkPreparazione": 109,
+    "utenteCancellazione": null,
+    "utenteInserimento": "provino1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "piatto": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un' associazione per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/associazione/update/1
+Descrizione: Aggiorna i dettagli di un'associazione specifica per ID.
+Parametri URL:
+id: (int) L'ID del piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "dataCancellazione": null,
+    "dataInserimento": "",
+    "fkPiatto": 1,
+    "fkPreparazione": 109,
+    "utenteCancellazione": null,
+    "utenteInserimento": "provino1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "associazione": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un' associazione per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/associazione/delete/1
+Descrizione: Elimina un'  associazione specifica per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "associazione": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "associazione not found"
+}

@@ -85,16 +85,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Nasconde il form di login
-                    document.getElementById('loginContainer').style.display = 'none';
-                    // Mostra il messaggio di benvenuto
-                    document.getElementById('welcomeContainer').style.display = 'block';
-                    // Aggiorna il messaggio di benvenuto con i dati dell'utente
-                    document.getElementById('welcomeMessage').innerHTML = 
-                        `Ciao ${data.nome} ${data.cognome},<br>
-                        Username: ${data.username}<br>
-                        Email: ${data.email}<br>
-                        Reparti: ${data.reparti}`;
+                    window.location.href = 'prova_pagina_principale.html';
                 } else {
                     // Gestione degli errori
                     alert('Errore di login: ' + (data.message || 'Credenziali non valide'));

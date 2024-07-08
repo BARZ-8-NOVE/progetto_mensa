@@ -1,11 +1,11 @@
 
-Blueprint('/ tipimenu')
+Blueprint('/tipimenu')
 
 1. Ottieni tutti i  tipimenu
 Versione: 1.0 (Michele Baruzzi)
 URL: /get_all
 Metodo: GET
-Esempio chiamata completa: http://127.0.0.1:5000/ tipimenu/get_all
+Esempio chiamata completa: http://127.0.0.1:5000/tipimenu/get_all
 Descrizione: Restituisce una lista di tutti i tipi menu.
 Risposta di successo:
 Codice: 200 OK
@@ -43,7 +43,7 @@ json
 Versione: 1.0 (Michele Baruzzi)
 URL: /<int:id>
 Metodo: GET
-Esempio chiamata completa: http://127.0.0.1:5000/ tipimenu/1
+Esempio chiamata completa: http://127.0.0.1:5000/tipimenu/1
 Descrizione: Restituisce i dettagli di un tipi menu specifico per ID.
 Parametri URL:
 id: (int) L'ID del tipi menu.
@@ -78,7 +78,7 @@ json
 Versione: 1.0 (Michele Baruzzi)
 URL: /create
 Metodo: POST
-Esempio chiamata completa: http://127.0.0.1:5000/ tipimenu/create
+Esempio chiamata completa: http://127.0.0.1:5000/tipimenu/create
 Descrizione: Crea un nuovo  tipimenu con i dati forniti.
 Corpo della richiesta: json
 json
@@ -90,7 +90,8 @@ json
     "ordinatore": 10,
     "utenteInserimento": "operatore1",
     "dataInserimento": ""
-},
+}
+
 Risposta di successo:
 Codice: 200 OK
 Corpo: json
@@ -114,7 +115,7 @@ json
 Versione: 1.0 (Michele Baruzzi)
 URL: /update/<int:id>
 Metodo: PUT
-Esempio chiamata completa: http://127.0.0.1:5000/ tipimenu/update/1
+Esempio chiamata completa: http://127.0.0.1:5000/tipimenu/update/1
 Descrizione: Aggiorna i dettagli di un tipi menu specifico per ID.
 Parametri URL:
 id: (int) L'ID del  tipimenu.
@@ -128,7 +129,8 @@ json
     "ordinatore": 10,
     "dataInserimento": "",
     "utenteInserimento": "operatore1"
-},
+}
+
 Risposta di successo:
 Codice: 200 OK
 Corpo: json
@@ -159,7 +161,7 @@ json
 Versione: 1.0 (Michele Baruzzi)
 URL: /delete/<int:id>
 Metodo: DELETE
-Esempio chiamata completa: http://127.0.0.1:5000/ tipimenu/delete/1
+Esempio chiamata completa: http://127.0.0.1:5000/tipimenu/delete/1
 Descrizione: Elimina un  tipimenu specifico per ID mantenedo il record .
 Parametri URL:
 id: (int) L'ID del  tipimenu.

@@ -12,12 +12,15 @@ ClassePreparazioni
 t_tipiQuantita __scrittura OK, __check da fare: OK, __check fatti: tipoquantia (/get_all, /<int:id> , /create, /update/<int:id> /delete/<int:id>)
 t_preparazioni __scrittura ok, __check da fare: OK, __check fatti: preparazioni (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_preparazioniContenuti __scrittura OK, __check da fare: OK, __check fatti: preparazionicontenuti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
+**manca get_all_preparazioniContenuti_per_id_preparazione
 t_tipoPreparazioni __scrittura OK, __check da fare: OK, __check fatti: tipipreparazioni  (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 
 ClassePiatti 
 t_tipiPiatti __scrittura OK, __check da fare: TUTTI, __check fatti: tipipiatti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_piatti __scrittura OK, __check da fare: TUTTI, __check fatti: piatti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 t_associazionePiattiPreparazioni __scrittura OK, __check da fare: TUTTI, __check fatti: associazione (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
+**manca get_all_associazioni_per_preparazione forse no 
+**manca get_all_associazioni_per_piatto
 
 ClasseReparti __scrittura: OK, __check da fare: OK, __check fatti: reparti (/get_all, /<int:id> , /create, /update/<int:id>, /delete/<int:id>)
 

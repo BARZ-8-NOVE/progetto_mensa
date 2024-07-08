@@ -1,0 +1,172 @@
+
+Blueprint('/tipipreparazioni')
+
+1. Ottieni tutti i tipi delle preparazioni
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipipreparazioni/get_all
+Descrizione: Restituisce una lista di tutti i tipi delle preparazioni.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "descrizione": "Preparazione di base",
+        "id": 1
+    },
+    {
+        "descrizione": "Primo",
+        "id": 2
+    },
+    {
+        "descrizione": "Secondo",
+        "id": 3
+    },
+    {
+        "descrizione": "Contorno",
+        "id": 4
+    },
+    {
+        "descrizione": "Dessert",
+        "id": 5
+    }
+]
+---------------------------------------------------
+
+2. Ottieni il tipo della preparazione per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipipreparazioni/1
+Descrizione: Restituisce i dettagli di un tipo di preparazione specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipo di preparazione.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "data": "Mon, 04 Jan 2021 00:00:00 GMT",
+    "dataCancellazione": null,
+    "dataInserimento": "Wed, 27 Jan 2021 17:36:01 GMT",
+    "fkTipotipo di preparazione": 4,
+    "id": 1,
+    "utenteCancellazione": null,
+    "utenteInserimento": "nome_utente"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "tipo di preparazione not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo tipo di preparazione
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/tipipreparazioni/create
+Descrizione: Crea un nuovo tipo di preparazione con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "descrizione": "primo"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di preparazione": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un tipo di preparazione per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/tipipreparazioni/update/1
+Descrizione: Aggiorna i dettagli di un tipo di preparazione specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipo di preparazione.
+Corpo della richiesta: json
+json
+ 
+{
+    "descrizione": "primo"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di preparazione": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un tipo di preparazione per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/tipipreparazioni/delete/1
+Descrizione: Elimina un tipo di preparazione specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del tipo di preparazione.
+Corpo della richiesta: nessuno
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di preparazione": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "tipo di preparazione not found"
+}

@@ -1,0 +1,171 @@
+
+Blueprint('/servizi')
+
+1. Ottieni tutti i servizi
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/servizi/get_all
+Descrizione: Restituisce una lista di tutti i servizi.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+
+[
+    {
+        "descrizione": "Pranzo",
+        "id": 1,
+        "inMenu": 1,
+        "ordinatore": 10
+    },
+    {
+        "descrizione": "Cena",
+        "id": 2,
+        "inMenu": 1,
+        "ordinatore": 20
+    }
+]
+
+
+---------------------------------------------------
+
+2. Ottieni un servizo per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/servizi/1
+Descrizione: Restituisce i dettagli di un servizo specifico per ID.
+Parametri URL:
+id: (int) L'ID del servizo.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "descrizione": "Pranzo",
+    "id": 1,
+    "inMenu": 1,
+    "ordinatore": 10
+}
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " servizo not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo servizo
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/servizi/create
+Descrizione: Crea un nuovo servizo con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "descrizione" : "colazione",
+    "ordinatore" : "100",
+    "inMenu" : "false"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " servizo": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un servizo per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/servizi/update/1
+Descrizione: Aggiorna i dettagli di un servizo specifico per ID.
+Parametri URL:
+id: (int) L'ID del servizo.
+Corpo della richiesta: json
+json
+ 
+{
+    "descrizione" : "colazione",
+    "ordinatore" : "100",
+    "inMenu" : "false"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " servizo": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un servizo per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/servizi/delete/1
+Descrizione: Elimina un servizo specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del servizo
+Corpo della richiesta: json
+
+{
+    "utenteCancellazione": "utente1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " servizo": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " servizo not found"
+}

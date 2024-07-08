@@ -1,0 +1,206 @@
+
+Blueprint('/tipipiatti')
+
+1. Ottieni tutti i tipi piatti
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipipiatti/get_all
+Descrizione: Restituisce una lista di tutti i tipi piatti.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "backgroundColor": "#ffff05",
+        "color": "#000000",
+        "dataCancellazione": null,
+        "dataInserimento": "Mon, 15 Feb 2021 14:20:46 GMT",
+        "descrizione": "Primo",
+        "descrizionePlurale": "Primi",
+        "id": 1,
+        "inMenu": true,
+        "ordinatore": 10,
+        "utenteCancellazione": null,
+        "utenteInserimento": "g.saffioti"
+    },
+    {
+        "backgroundColor": "#f5d89f",
+        "color": "#000000",
+        "dataCancellazione": null,
+        "dataInserimento": "Mon, 15 Feb 2021 14:20:51 GMT",
+        "descrizione": "Secondo",
+        "descrizionePlurale": "Secondi",
+        "id": 2,
+        "inMenu": true,
+        "ordinatore": 20,
+        "utenteCancellazione": null,
+        "utenteInserimento": "g.saffioti"
+    },...
+
+]
+---------------------------------------------------
+
+2. Ottieni il tipo del piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/tipipiatti/1
+Descrizione: Restituisce i dettagli di un tipo di piatto specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipo di piatto.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "backgroundColor": "#ffff05",
+    "color": "#000000",
+    "dataCancellazione": null,
+    "dataInserimento": "Mon, 15 Feb 2021 14:20:46 GMT",
+    "descrizione": "Primo",
+    "descrizionePlurale": "Primi",
+    "id": 1,
+    "inMenu": true,
+    "ordinatore": 10,
+    "utenteCancellazione": null,
+    "utenteInserimento": "g.saffioti"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "tipipiatto not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo tipo di piatto
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/tipipiatti/create
+Descrizione: Crea un nuovo tipo di piatto con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "backgroundColor": "#ffff05",
+    "color": "#000000",
+    "dataCancellazione": null,
+    "dataInserimento": "",
+    "descrizione": "Prova",
+    "descrizionePlurale": "Prove",
+    "inMenu": true,
+    "ordinatore": 10,
+    "utenteCancellazione": null,
+   "utenteInserimento": "prova"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di piatto": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un tipo di piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/tipipiatti/update/1
+Descrizione: Aggiorna i dettagli di un tipo di piatto specifico per ID.
+Parametri URL:
+id: (int) L'ID del tipo di piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "backgroundColor": "#ffff05",
+    "color": "#000000",
+    "dataCancellazione": null,
+    "dataInserimento": "",
+    "descrizione": "Prova",
+    "descrizionePlurale": "Prove",
+    "inMenu": true,
+    "ordinatore": 10,
+    "utenteCancellazione": null,
+   "utenteInserimento": "prova"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di piatto": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un tipo di piatto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/tipipiatti/delete/1
+Descrizione: Elimina un tipo di piatto specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del tipo di piatto.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "tipo di piatto": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": "tipo di piatto not found"
+}

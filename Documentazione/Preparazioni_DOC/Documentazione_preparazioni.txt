@@ -1,0 +1,196 @@
+
+Blueprint('/preparazioni')
+
+1. Ottieni tutti le preparazioni
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/preparazioni/get_all
+Descrizione: Restituisce una lista di tutti le preparazioni.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+    {
+        "allergeni": "GLUTINE, LATTE",
+        "dataCancellazione": null,
+        "dataInserimento": "Wed, 22 Mar 2023 10:40:35 GMT",
+        "descrizione": "BESCIAMELLA",
+        "fine": null,
+        "fkTipoPreparazione": 1,
+        "id": 19,
+        "immagine": null,
+        "inizio": "Fri, 06 Jul 2018 00:00:00 GMT",
+        "isEstivo": true,
+        "isInvernale": true,
+        "utenteCancellazione": null,
+        "utenteInserimento": "s.diberti"
+    },
+    {
+        "allergeni": "UOVA, PESCE,",
+        "dataCancellazione": null,
+        "dataInserimento": "Wed, 08 Nov 2023 12:54:30 GMT",
+        "descrizione": "INSALATA RUSSA",
+        "fine": null,
+        "fkTipoPreparazione": 1,
+        "id": 20,
+        "immagine": null,
+        "inizio": "Fri, 06 Jul 2018 00:00:00 GMT",
+        "isEstivo": true,
+        "isInvernale": false,
+        "utenteCancellazione": null,
+        "utenteInserimento": "s.diberti"
+    },
+
+]
+
+-------------------------------------------------------------
+
+2. Ottieni le preparazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/preparazioni/20
+Descrizione: Restituisce i dettagli di una preparazione specifica per ID.
+Parametri URL:
+id: (int) L'ID della preparazione.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+    "allergeni": "UOVA, PESCE,",
+    "dataCancellazione": null,
+    "dataInserimento": "Wed, 08 Nov 2023 12:54:30 GMT",
+    "descrizione": "INSALATA RUSSA",
+    "fine": null,
+    "fkTipoPreparazione": 1,
+    "id": 20,
+    "immagine": null,
+    "inizio": "Fri, 06 Jul 2018 00:00:00 GMT",
+    "isEstivo": true,
+    "isInvernale": false,
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+}
+
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "preparazione not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea un nuovo preparazione
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+esempio chiamata completa: http://127.0.0.1:5000/preparazioni/create
+Descrizione: Crea una nuova preparazione con i dati forniti.
+Corpo della richiesta:
+json
+
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+    "dataCancellazione": null,
+    "fkAlimento": 574,
+    "fkPreparazione": 764,
+    "fkTipoQuantita": 1,
+    "note": "",
+    "quantita": 2.0,
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+}
+
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna una preparazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+esempio chiamata completa: http://127.0.0.1:5000/preparazioni/update/1
+Descrizione: Aggiorna i dettagli di una preparazione specifica per ID.
+Parametri URL:
+id: (int) L'ID della preparazione.
+Corpo della richiesta:
+json
+
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli della errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina una preparazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+esempio chiamata completa: http://127.0.0.1:5000/preparazioni/delete/1
+Descrizione: Elimina una preparazione specifica per ID.
+Parametri URL:
+id: (int) L'ID della preparazione.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "message": "preparazione deleted successfully"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "preparazione not found"
+}
+
+--------------------------------------------------------------------------------

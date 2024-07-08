@@ -1,0 +1,231 @@
+
+Blueprint('/reparti')
+
+1. Ottieni tutti i reparti
+Versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/reparti/get_all
+Descrizione: Restituisce una lista di tutti i reparti.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+[
+    {
+        "codiceAreas": "1PAD-1PDX",
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "descrizione": "DH C.R.E.S.M. - 2B",
+        "fine": null,
+        "id": 33,
+        "inizio": "Thu, 22 Feb 2024 00:00:00 GMT",
+        "lato": null,
+        "ordinatore": 10,
+        "padiglione": null,
+        "piano": null,
+        "sezione": "1PAD-1PDX",
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },
+    {
+        "codiceAreas": "1PAD-1PSX",
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "descrizione": "Medicina Interna - 2A",
+        "fine": null,
+        "id": 34,
+        "inizio": "Thu, 22 Feb 2024 00:00:00 GMT",
+        "lato": null,
+        "ordinatore": 10,
+        "padiglione": null,
+        "piano": null,
+        "sezione": "1PAD-1PSX",
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },
+    {
+        "codiceAreas": "1PAD-2PDX",
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "descrizione": "Degenza Neurologia /Med - 3B",
+        "fine": null,
+        "id": 35,
+        "inizio": "Thu, 22 Feb 2024 00:00:00 GMT",
+        "lato": null,
+        "ordinatore": 10,
+        "padiglione": null,
+        "piano": null,
+        "sezione": "1PAD-2PDX",
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },...
+]
+
+---------------------------------------------------
+
+2. Ottieni un reparto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+Esempio chiamata completa: http://127.0.0.1:5000/reparti/1
+Descrizione: Restituisce i dettagli di un reparto specifico per ID.
+Parametri URL:
+id: (int) L'ID del reparto.
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    "codiceAreas": "HO ",
+    "dataCancellazione": "Thu, 01 Feb 2024 15:28:30 GMT",
+    "dataInserimento": "Wed, 30 Dec 2020 00:00:00 GMT",
+    "descrizione": "Hospice",
+    "fine": null,
+    "id": 1,
+    "inizio": "Fri, 01 Jan 2021 00:00:00 GMT",
+    "lato": null,
+    "ordinatore": 10,
+    "padiglione": null,
+    "piano": null,
+    "sezione": "Hospice",
+    "utenteCancellazione": "adm.g.logozzo",
+    "utenteInserimento": "g.saffioti"
+}
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " reparto not found"
+}
+
+---------------------------------------------------
+
+3. Crea un nuovo reparto
+Versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+Esempio chiamata completa: http://127.0.0.1:5000/reparti/create
+Descrizione: Crea un nuovo reparto con i dati forniti.
+Corpo della richiesta: json
+json
+ 
+{
+    "codiceAreas": "prova",
+    "dataInserimento": "proviano",
+    "descrizione": "Area prova - 3p",
+    "fine": null,
+    "inizio": "2024-07-02",
+    "lato": null,
+    "ordinatore": 10,
+    "padiglione": null,
+    "piano": null,
+    "sezione": "prova"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " reparto": "added!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------
+
+4. Aggiorna un reparto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+Esempio chiamata completa: http://127.0.0.1:5000/reparti/update/1
+Descrizione: Aggiorna i dettagli di un reparto specifico per ID.
+Parametri URL:
+id: (int) L'ID del reparto.
+Corpo della richiesta: json
+json
+ 
+{
+    "codiceAreas": "prova",
+    "dataInserimento": "proviano",
+    "descrizione": "Area prova - 3p",
+    "fine": null,
+    "inizio": "2024-07-02",
+    "lato": null,
+    "ordinatore": 10,
+    "padiglione": null,
+    "piano": null,
+    "sezione": "prova"
+
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " reparto": "updated!"
+}
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo: json
+json
+ 
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo: json
+json
+ 
+{
+  "Error": "dettagli dell'errore"
+}
+
+---------------------------------------------------
+
+5. Elimina un reparto per ID
+Versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+Esempio chiamata completa: http://127.0.0.1:5000/reparti/delete/1
+Descrizione: Elimina un reparto specifico per ID mantenedo il record .
+Parametri URL:
+id: (int) L'ID del reparto
+Corpo della richiesta: json
+
+{
+    "utenteCancellazione": "utente1"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo: json
+json
+ 
+{
+    " reparto": "deleted!"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo: json
+json
+ 
+{
+  "Error": " reparto not found"
+}

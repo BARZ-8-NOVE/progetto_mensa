@@ -1,0 +1,207 @@
+
+Blueprint('/preparazionicontenuti')
+
+1. Ottieni tutti i contenuti delle preparazioni
+versione: 1.0 (Michele Baruzzi)
+URL: /get_all
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/preparazionicontenuti/get_all
+Descrizione: Restituisce una lista di tutti i contenuti delle preparazioni.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+[
+    {
+        "dataCancellazione": null,
+        "dataInserimento": "Thu, 16 Feb 2023 08:18:52 GMT",
+        "fkAlimento": 518,
+        "fkPreparazione": 20,
+        "fkTipoQuantita": 1,
+        "id": 1,
+        "note": "",
+        "quantita": 30.0,
+        "utenteCancellazione": null,
+        "utenteInserimento": "f.gallo"
+    },
+    {
+        "dataCancellazione": null,
+        "dataInserimento": null,
+        "fkAlimento": 146,
+        "fkPreparazione": 20,
+        "fkTipoQuantita": 1,
+        "id": 2,
+        "note": "",
+        "quantita": 30.0,
+        "utenteCancellazione": null,
+        "utenteInserimento": null
+    },
+    {
+        "dataCancellazione": null,
+        "dataInserimento": "Thu, 16 Feb 2023 08:18:48 GMT",
+        "fkAlimento": 545,
+        "fkPreparazione": 20,
+        "fkTipoQuantita": 1,
+        "id": 3,
+        "note": "",
+        "quantita": 30.0,
+        "utenteCancellazione": null,
+        "utenteInserimento": "f.gallo"
+    },
+]
+
+-------------------------------------------------------------
+
+2. Ottieni i contenuti delle preparazioni per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /<int:id>
+Metodo: GET
+esempio chiamata completa: http://127.0.0.1:5000/preparazionicontenuti/20
+Descrizione: Restituisce un contenuto specifico di una preparazione specifica per ID. #non va bene servirebbero tutti i contenuti di una sepcifica preparazione
+Parametri URL:
+id: (int) L'ID del contenuto della preparazione.
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+    "dataCancellazione": null,
+    "dataInserimento": null,
+    "fkAlimento": 188,
+    "fkPreparazione": 23,
+    "fkTipoQuantita": 1,
+    "id": 20,
+    "note": "",
+    "quantita": 15.0,
+    "utenteCancellazione": null,
+    "utenteInserimento": null
+}
+
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+{
+  "Error": "contenuto della preparazione not found"
+}
+
+-------------------------------------------------------------
+
+3. Crea un nuovo preparazione
+versione: 1.0 (Michele Baruzzi)
+URL: /create
+Metodo: POST
+esempio chiamata completa: http://127.0.0.1:5000/preparazionicontenuti/create
+Descrizione: Crea un nuovo contenuto di una preparazione con i dati forniti.
+Corpo della richiesta:
+json
+
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+    "dataCancellazione": null,
+    "fkAlimento": 574,
+    "fkPreparazione": 764,
+    "fkTipoQuantita": 1,
+    "note": "",
+    "quantita": 2.0,
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+}
+
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+
+---------------------------------------------------------------------------
+
+4. Aggiorna una preparazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /update/<int:id>
+Metodo: PUT
+esempio chiamata completa: http://127.0.0.1:5000/preparazionicontenuti/update/1
+Descrizione: Aggiorna i dettagli di una preparazione specifica per ID.
+Parametri URL:
+id: (int) L'ID della preparazione.
+Corpo della richiesta:
+json
+
+{
+    "dataCancellazione": null,
+    "fkAlimento": 555,
+    "fkPreparazione": 764,
+    "fkTipoQuantita": 1,
+    "note": "",
+    "quantita": 2.0,
+    "utenteCancellazione": null,
+    "utenteInserimento": "prova"
+}
+
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+
+Risposta di errore:
+Codice: 403 Forbidden
+Corpo:
+json
+
+{
+  "Error": "wrong keys!"
+}
+Codice: 500 Internal Server Error
+Corpo:
+json
+
+{
+  "Error": "dettagli della errore"
+}
+
+--------------------------------------------------------------------------
+
+5. Elimina una preparazione per ID
+versione: 1.0 (Michele Baruzzi)
+URL: /delete/<int:id>
+Metodo: DELETE
+esempio chiamata completa: http://127.0.0.1:5000/preparazionicontenuti/delete/1
+Descrizione: Elimina un contenuto di una preparazione specifica per ID.
+Parametri URL:
+id: (int) L'ID della preparazione.
+Corpo della richiesta: json
+json
+ 
+{
+    "utenteCancellazione": "operatore1"
+}
+Risposta di successo:
+Codice: 200 OK
+Corpo:
+json
+
+{
+  "message": "preparazione deleted successfully"
+}
+Risposta di errore:
+Codice: 404 Not Found
+Corpo:
+json
+
+{
+  "Error": "preparazione not found"
+}
+
+--------------------------------------------------------------------------------
