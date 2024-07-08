@@ -1,20 +1,24 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import ServiceMenu
 
 t_menu_controller = Blueprint('menu', __name__)
 service_menu = ServiceMenu()
 
 @t_menu_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all():
     menus = service_menu.get_all()
     return jsonify(menus)
 
 @t_menu_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_by_id(id):
     menu = service_menu.get_by_id(id)
     return jsonify(menu)
 
 @t_menu_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create():
     dati = request.json
     required_fields = ['data', 'fkTipoMenu', 'dataInserimento', 'utenteInserimento']
@@ -34,6 +38,7 @@ def create():
         return jsonify({'Error': str(e)}), 500
 
 @t_menu_controller.route('/update/<int:id>', methods=['PUT'])
+@jwt_required()
 def update(id):
     dati = request.json
     required_fields = ['data', 'fkTipoMenu', 'dataInserimento', 'utenteInserimento']
@@ -53,6 +58,7 @@ def update(id):
         return jsonify({'Error': str(e)}), 500
 
 @t_menu_controller.route('/delete/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete(id):
     dati = request.json
     if 'utenteCancellazione' not in dati or dati['utenteCancellazione'] is None:

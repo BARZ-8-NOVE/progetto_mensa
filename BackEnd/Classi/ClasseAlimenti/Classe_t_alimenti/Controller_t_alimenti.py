@@ -1,20 +1,24 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import ServiceAlimenti
 
 t_alimenti_controller = Blueprint('alimenti', __name__)
 service_alimenti = ServiceAlimenti()
 
 @t_alimenti_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all():
     alimenti = service_alimenti.get_all()
     return jsonify(alimenti)
 
 @t_alimenti_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_by_id(id):
     alimento = service_alimenti.get_by_id(id)
     return jsonify(alimento)
 
 @t_alimenti_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create():
     dati = request.json
     required_fields = ['alimento', 'energia_Kcal', 'energia_KJ', 'prot_tot_gr', 'glucidi_tot', 'lipidi_tot', 'saturi_tot', 'fkAllergene', 'fkTipologiaAlimento']
@@ -39,6 +43,7 @@ def create():
         return jsonify({'Error': str(e)}), 500
 
 @t_alimenti_controller.route('/update/<int:id>', methods=['PUT'])
+@jwt_required()
 def update(id):
     dati = request.json
     required_fields = ['alimento', 'energia_Kcal', 'energia_KJ', 'prot_tot_gr', 'glucidi_tot', 'lipidi_tot', 'saturi_tot', 'fkAllergene', 'fkTipologiaAlimento']
@@ -64,5 +69,6 @@ def update(id):
         return jsonify({'Error': str(e)}), 500
 
 @t_alimenti_controller.route('/delete/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete(id):
     return jsonify(service_alimenti.delete(id))

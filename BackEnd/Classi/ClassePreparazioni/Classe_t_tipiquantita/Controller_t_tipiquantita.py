@@ -1,18 +1,22 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
 
 t_tipoquantita_controller = Blueprint('tipoquantita', __name__)
 service_t_tipoquantita = Service_t_tipoquantita()
 
 @t_tipoquantita_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all_tipoquantita():
     return service_t_tipoquantita.get_all_tipoquantita()
 
 @t_tipoquantita_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_tipoquantita_by_id(id):
     return service_t_tipoquantita.get_tipoquantita_by_id(id)
 
 @t_tipoquantita_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create_tipoquantita():
     dati = request.json
     if 'tipo' not in dati:
@@ -26,6 +30,7 @@ def create_tipoquantita():
         return {'Error': str(e)}, 403
 
 @t_tipoquantita_controller.route('/update/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_tipoquantita(id):
     dati = request.json
     tipo = dati.get('tipo')
@@ -34,5 +39,6 @@ def update_tipoquantita(id):
     return service_t_tipoquantita.update_tipoquantita(id, tipo, peso_valore_in_grammi, peso_valore_in_Kg)
 
 @t_tipoquantita_controller.route('/delete/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_tipoquantita(id):
     return service_t_tipoquantita.delete_tipoquantita(id)

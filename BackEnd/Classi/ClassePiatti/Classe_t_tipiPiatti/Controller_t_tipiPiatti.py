@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import ServiceTipiPiatti
 from datetime import datetime
 
@@ -6,16 +7,19 @@ t_tipi_piatti_controller = Blueprint('tipi_piatti', __name__)
 service_tipi_piatti = ServiceTipiPiatti()
 
 @t_tipi_piatti_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all():
     tipi_piatti = service_tipi_piatti.get_all()
     return jsonify(tipi_piatti)
 
 @t_tipi_piatti_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_by_id(id):
     tipo_piatto = service_tipi_piatti.get_by_id(id)
     return jsonify(tipo_piatto)
 
 @t_tipi_piatti_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create():
     dati = request.json
     required_fields = ['descrizione', 'descrizionePlurale', 'inMenu', 'ordinatore', 'color', 'backgroundColor', 'utenteInserimento']
@@ -39,6 +43,7 @@ def create():
         return jsonify({'Error': str(e)}), 500
 
 @t_tipi_piatti_controller.route('/update/<int:id>', methods=['PUT'])
+@jwt_required()
 def update(id):
     dati = request.json
     required_fields = ['descrizione', 'descrizionePlurale', 'inMenu', 'ordinatore', 'color', 'backgroundColor', 'utenteInserimento']
@@ -68,6 +73,7 @@ def update(id):
         return jsonify({'Error': str(e)}), 500
 
 @t_tipi_piatti_controller.route('/delete/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete(id):
     dati = request.json
     if 'utenteCancellazione' not in dati or dati['utenteCancellazione'] is None:
