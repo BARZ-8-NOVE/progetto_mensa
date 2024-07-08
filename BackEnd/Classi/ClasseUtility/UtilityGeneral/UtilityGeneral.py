@@ -5,6 +5,7 @@ from Classi.ClasseUtenti.Classe_t_autorizzazioni.Domain_t_autorizzazioni import 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
+from Classi.ClasseAlimenti.Classe_t_alimenti.Domani_t_alimenti import TAlimenti
 
 class UtilityGeneral:   
     """Class for the utility general""" 
@@ -118,4 +119,19 @@ class UtilityGeneral:
                 for result in results:
                     ritorno.append({'id': result.id, 'nome': result.nome,
                            'frmNome': result.frmNome})
+        if isinstance(results, (TAlimenti, list)):
+            if isinstance(results, TAlimenti):
+                ritorno = {'id': results.id, 'alimento': results.alimento,
+                           'energia_Kcal': results.energia_Kcal, 'energia_KJ': results.energia_KJ,
+                           'prot_tot_gr': results.prot_tot_gr,'glucidi_tot':results.glucidi_tot,
+                           	'lipidi_tot':results.lipidi_tot, 'saturi_tot':results.saturi_tot,
+                        	'fkAllergene': results.fkAllergene, 'fkTipologiaAlimento':results.fkTipologiaAlimento}
+            elif all(isinstance(item, TAlimenti) for item in results):
+                ritorno = []
+                for result in results:
+                    ritorno.append({'id': result.id, 'alimento': result.alimento,
+                           'energia_Kcal': result.energia_Kcal, 'energia_KJ': result.energia_KJ,
+                           'prot_tot_gr': result.prot_tot_gr,'glucidi_tot':result.glucidi_tot,
+                           	'lipidi_tot':result.lipidi_tot, 'saturi_tot':result.saturi_tot,
+                        	'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento':result.fkTipologiaAlimento})
         return ritorno

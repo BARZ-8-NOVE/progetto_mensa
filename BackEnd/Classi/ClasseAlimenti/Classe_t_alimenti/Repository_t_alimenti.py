@@ -2,6 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseAlimenti.Classe_t_alimenti.Domani_t_alimenti import TAlimenti
 import logging
+from werkzeug.exceptions import NotFound
 
 class RepositoryAlimenti:
 
@@ -27,6 +28,20 @@ class RepositoryAlimenti:
         except Exception as e:
             logging.error(f"Error getting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        
+    def get_alimento_by_name(self, name):
+        result = self.session.query(TAlimenti).filter(TAlimenti.alimento.ilike(f'%{name}%')).all()
+        if result:
+            return result
+        else:
+            raise NotFound(f'cannot find alimento for this name: {name}')
+        
+    def get_alimenti_by_tipologia_alimento(self, tipologia_alimento):
+        result = self.session.query(TAlimenti).filter_by(fkTipologiaAlimento=tipologia_alimento).all()
+        if result:
+            return result
+        else:
+            raise NotFound(f'cannot find alimenti for this tipologia: {tipologia_alimento}')
         
     def create(self, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento):
         try:

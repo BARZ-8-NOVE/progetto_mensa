@@ -1,9 +1,13 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import ServiceAlimenti
+from werkzeug.exceptions import NotFound
+from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
+from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
 t_alimenti_controller = Blueprint('alimenti', __name__)
 service_alimenti = ServiceAlimenti()
+httpCodes = HttpCodes()
 
 @t_alimenti_controller.route('/get_all', methods=['GET'])
 @jwt_required()
@@ -72,3 +76,25 @@ def update(id):
 @jwt_required()
 def delete(id):
     return jsonify(service_alimenti.delete(id))
+
+@t_alimenti_controller.route('/get_alimenti_by_name/<string:name>', methods=['GET'])
+@jwt_required()
+def get_alimento_by_name(name):
+    try:
+        results = service_alimenti.get_alimento_by_name(name)
+        return jsonify(UtilityGeneral.getClassDictionaryOrList(results)), httpCodes.OK
+    except NotFound as e:
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
+    except Exception as e:
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+    
+@t_alimenti_controller.route('/get_alimenti_by_tipologia_alimento/<int:tipologia>', methods=['GET'])
+@jwt_required()
+def get_alimenti_by_tipologia_alimento(tipologia):
+    try:
+        results = service_alimenti.get_alimenti_by_tipologia_alimento(tipologia)
+        return jsonify(UtilityGeneral.getClassDictionaryOrList(results)), httpCodes.OK
+    except NotFound as e:
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
+    except Exception as e:
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
