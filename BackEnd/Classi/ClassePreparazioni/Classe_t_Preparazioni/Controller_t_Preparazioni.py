@@ -1,18 +1,22 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 
 t_preparazioni_controller = Blueprint('preparazioni', __name__)
 service_t_preparazioni = Service_t_preparazioni()
 
 @t_preparazioni_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all_preparazioni():
     return service_t_preparazioni.get_all_preparazioni()
 
 @t_preparazioni_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_preparazione_by_id(id):
     return service_t_preparazioni.get_preparazione_by_id(id)
 
 @t_preparazioni_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create_preparazione():
     dati = request.json
     if 'fkTipoPreparazione' not in dati or 'descrizione' not in dati or 'isEstivo' not in dati or 'isInvernale' not in dati:
@@ -39,5 +43,6 @@ def create_preparazione():
         return {'Error': str(e)}, 403
 
 @t_preparazioni_controller.route('/delete/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_preparazione(id):
     return service_t_preparazioni.delete_preparazione(id)

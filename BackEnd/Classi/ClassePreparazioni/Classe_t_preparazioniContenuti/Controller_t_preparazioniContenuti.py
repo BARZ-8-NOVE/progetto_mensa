@@ -1,18 +1,22 @@
 from flask import Blueprint, request
+from flask_jwt_extended import jwt_required
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
 
 t_preparazionicontenuti_controller = Blueprint('preparazionicontenuti', __name__)
 service_t_preparazionicontenuti = Service_t_preparazionicontenuti()
 
 @t_preparazionicontenuti_controller.route('/get_all', methods=['GET'])
+@jwt_required()
 def get_all_preparazioni_contenuti():
     return service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
 
 @t_preparazionicontenuti_controller.route('/<int:id>', methods=['GET'])
+@jwt_required()
 def get_preparazioni_contenuti_by_id(id):
     return service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id(id)
 
 @t_preparazionicontenuti_controller.route('/create', methods=['POST'])
+@jwt_required()
 def create_preparazioni_contenuti():
     dati = request.json
     if 'fkPreparazione' not in dati or 'fkAlimento' not in dati or 'quantita' not in dati or 'fkTipoQuantita' not in dati:
@@ -36,6 +40,7 @@ def create_preparazioni_contenuti():
         return {'Error': str(e)}, 403
     
 @t_preparazionicontenuti_controller.route('/update/<int:id>', methods=['PUT'])
+@jwt_required()
 def update_preparazioni_contenuti(id):
     dati = request.json
     if 'fkPreparazione' not in dati or 'fkAlimento' not in dati or 'quantita' not in dati or 'fkTipoQuantita' not in dati:
@@ -62,5 +67,6 @@ def update_preparazioni_contenuti(id):
 
 
 @t_preparazionicontenuti_controller.route('/delete/<int:id>', methods=['PUT'])
+@jwt_required()
 def delete_preparazioni_contenuti(id):
     return service_t_preparazionicontenuti.delete_preparazioni_contenuti(id)
