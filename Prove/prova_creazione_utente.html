@@ -99,7 +99,7 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
+            if (data) {
                 alert('Utente registrato con successo');
                 // Reindirizzamento alla pagina di login
                 window.location.href = 'secondaprova.html';

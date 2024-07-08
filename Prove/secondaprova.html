@@ -84,7 +84,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data) {
                     window.location.href = 'prova_pagina_principale.html';
                 } else {
                     // Gestione degli errori
