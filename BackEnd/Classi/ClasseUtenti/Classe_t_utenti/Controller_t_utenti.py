@@ -6,10 +6,18 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from server import jwt
 from datetime import datetime, timezone
+from apscheduler.schedulers.background import BackgroundScheduler
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
 httpCodes = HttpCodes()
+
+def remove_expired_tokens():
+    service_t_utenti.expiredTokens()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=remove_expired_tokens, trigger="interval", seconds=60)
+scheduler.start()
 
 @jwt.expired_token_loader
 def my_expired_token_callback(jwt_header, jwt_payload):

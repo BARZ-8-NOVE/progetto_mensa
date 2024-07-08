@@ -9,6 +9,8 @@ from werkzeug.security import check_password_hash
 from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
+from datetime import datetime
+from server import app
 
 class Repository_t_utenti:
     
@@ -199,6 +201,9 @@ class Repository_t_utenti:
                     access_token = create_access_token(identity=result.public_id)
                     response = jsonify(access_token=access_token)
                     set_access_cookies(response=response, encoded_access_token=access_token)
+                    result.token = access_token
+                    result.expires = datetime.now() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
+                    self.session.commit()
                     return {'token': access_token, 'username': username, 'reparti': result.reparti,
                         'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
                         'fkTipoUtente': result.fkTipoUtente}
@@ -230,3 +235,12 @@ class Repository_t_utenti:
         if not current_user:
             raise Unauthorized(UtilityMessages.unauthorizedErrorToken('invalid'))
         return current_user
+    
+    def expiredTokens(self):
+        expired_tokens = self.session.query(TUtenti).filter(TUtenti.expires < datetime.now()).all()
+        for utente in expired_tokens:
+            utente.attivo = 0
+            print(f"Removing expired token for user {utente.username}")
+            utente.expires = None
+            utente.token = None
+        self.session.commit()

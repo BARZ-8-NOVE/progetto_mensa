@@ -92,3 +92,6 @@ class Service_t_utenti:
     
     def current_user(self, public_id):
         return self.repository.current_user(public_id)
+    
+    def expiredTokens(self):
+        return self.repository.expiredTokens()
