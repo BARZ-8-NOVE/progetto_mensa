@@ -99,13 +99,15 @@ class UtilityUtenti:
     def checkEmail(email:str):
         """
         :description: Static method to check if <utenti>cognome is None the function will raise a TypeError 
-        and to check if <utenti>cognome is more than constants.MAX_LENGTH_EMAIL or it's an empty string
+        and to check if <utenti>cognome is more than constants.MAX_LENGTH_EMAIL or it's an empty string or it doesn't contain a @
         the function will raise a ValueError or None if both of the above conditions are false
         :args: <utenti>cognome:str
         :return: None | raise ValueError | raise TypeError
         """
         if email is None:
             raise TypeError("email cannot be None!")
+        if '@' not in email:
+            raise ValueError('email must contain @!')
         constants = ConstantsUtenti()
         if (len(email.strip()) > constants.MAX_LENGTH_EMAIL) or (email is None) or (email.strip() == ""):
             raise ValueError(f"email cannot be empty or more than {constants.MAX_LENGTH_EMAIL} characters!")
