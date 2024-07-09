@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=400)
 jwt = JWTManager(app)
 
 #from Classi.initialize_db.initialize_db import initialize_database

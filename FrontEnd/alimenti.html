@@ -71,7 +71,6 @@
                 <select id="searchType">
                     <option value="">Seleziona tipologia</option>
                 </select>
-                <button onclick="searchAlimenti()">Cerca</button>
             </div>
             <button onclick="window.location.href='aggiungi_alimento.html'">Aggiungi Alimento</button>
         </div>
@@ -96,116 +95,171 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const username = localStorage.getItem('username');
-            if (username) {
-                document.getElementById('username').textContent = username;
+let tipologieMap = {};
+let allergeniMap = {};
+let alimentiData = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const username = localStorage.getItem('username');
+    if (username) {
+        document.getElementById('username').textContent = username;
+    }
+
+    document.getElementById('logout').addEventListener('click', function() {
+        fetch('http://127.0.0.1:5000/utenti/do_logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt')}`
             }
+        }).then(response => {
+            if (response.ok) {
+                localStorage.removeItem('jwt');
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            }
+        });
+    });
 
-            document.getElementById('logout').addEventListener('click', function() {
-                fetch('http://127.0.0.1:5000/utenti/do_logout', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-                    }
-                }).then(response => {
-                    if (response.ok) {
-                        localStorage.removeItem('jwt');
-                        localStorage.removeItem('username');
-                        window.location.href = 'login.html';
-                    }
-                });
-            });
+    fetchTipologiaAlimenti();
 
-            fetchTipologiaAlimenti();
-            fetchAlimenti();
+    // Aggiungi l'evento di input per la ricerca del nome
+    document.getElementById('searchName').addEventListener('input', filterAlimenti);
+});
+
+function fetchTipologiaAlimenti() {
+    fetch('http://127.0.0.1:5000/tipologiaalimenti/get_all', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+        }
+    })
+    .then(response => response.json())
+    .then(tipologieData => {
+        const select = document.getElementById('searchType');
+        tipologieMap = {};
+
+        tipologieData.forEach(tipologia => {
+            const option = document.createElement('option');
+            option.value = tipologia.id;
+            option.textContent = tipologia.nome;
+            select.appendChild(option);
+
+            tipologieMap[tipologia.id] = tipologia.nome;
         });
 
-        function fetchTipologiaAlimenti() {
-            fetch('http://127.0.0.1:5000/tipologiaalimenti/get_all', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const select = document.getElementById('searchType');
-                data.forEach(tipologia => {
-                    const option = document.createElement('option');
-                    option.value = tipologia.id; // or use tipologia.name if id is not present
-                    option.textContent = tipologia.nome;
-                    select.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching tipologia alimenti:', error);
-            });
+        fetchAllergeni();
+    })
+    .catch(error => {
+        console.error('Error fetching tipologia alimenti:', error);
+    });
+
+    // Aggiungi l'evento di cambiamento al menu a discesa
+    document.getElementById('searchType').addEventListener('change', filterAlimenti);
+}
+
+function fetchAllergeni() {
+    fetch('http://127.0.0.1:5000/allergeni/get_all', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         }
+    })
+    .then(response => response.json())
+    .then(allergeniData => {
+        allergeniMap = {};
 
-        function fetchAlimenti() {
-            fetch('http://127.0.0.1:5000/alimenti/get_all', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById('alimentiTableBody');
-                tbody.innerHTML = ''; // Clear any existing rows
-                data.forEach(alimento => {
-                    const tr = document.createElement('tr');
+        allergeniData.forEach(allergene => {
+            allergeniMap[allergene.id] = allergene.nome;
+        });
 
-                    const tdNome = document.createElement('td');
-                    tdNome.textContent = alimento.alimento;
-                    tr.appendChild(tdNome);
+        fetchAlimenti(); // Optionally load all alimentos initially
+    })
+    .catch(error => {
+        console.error('Error fetching allergeni:', error);
+    });
+}
 
-                    const tdEnergiaKcal = document.createElement('td');
-                    tdEnergiaKcal.textContent = alimento.energia_Kcal;
-                    tr.appendChild(tdEnergiaKcal);
+function fetchAlimenti(tipologiaId = '') {
+    const url = tipologiaId ? `http://127.0.0.1:5000/alimenti/get_alimenti_by_tipologia_alimento/${tipologiaId}` : 'http://127.0.0.1:5000/alimenti/get_all';
 
-                    const tdEnergiaKJ = document.createElement('td');
-                    tdEnergiaKJ.textContent = alimento.energia_KJ;
-                    tr.appendChild(tdEnergiaKJ);
-
-                    const tdProteine = document.createElement('td');
-                    tdProteine.textContent = alimento.prot_tot_gr;
-                    tr.appendChild(tdProteine);
-
-                    const tdCarboidrati = document.createElement('td');
-                    tdCarboidrati.textContent = alimento.glucidi_tot;
-                    tr.appendChild(tdCarboidrati);
-
-                    const tdGrassi = document.createElement('td');
-                    tdGrassi.textContent = alimento.lipidi_tot;
-                    tr.appendChild(tdGrassi);
-
-                    const tdSaturi = document.createElement('td');
-                    tdSaturi.textContent = alimento.saturi_tot;
-                    tr.appendChild(tdSaturi);
-
-                    const tdAllergene = document.createElement('td');
-                    tdAllergene.textContent = alimento.fkAllergene;
-                    tr.appendChild(tdAllergene);
-
-                    const tdTipologia = document.createElement('td');
-                    tdTipologia.textContent = alimento.fkTipologiaAlimento;
-                    tr.appendChild(tdTipologia);
-
-                    tbody.appendChild(tr);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching alimenti:', error);
-            });
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
         }
+    })
+    .then(response => response.json())
+    .then(data => {
+        alimentiData = data; // Salva i dati ricevuti
+        updateTable(alimentiData);
+    })
+    .catch(error => {
+        console.error('Error fetching alimenti:', error);
+    });
+}
 
-        function searchAlimenti() {
-            const name = document.getElementById('searchName').value;
-            const type = document.getElementById('searchType').value;
-            // Logic for searching and updating the table goes here
-        }
+function updateTable(data) {
+    const tbody = document.getElementById('alimentiTableBody');
+    tbody.innerHTML = ''; // Pulisce eventuali righe esistenti
+
+    data.forEach(alimento => {
+        const tr = document.createElement('tr');
+
+        const tdNome = document.createElement('td');
+        tdNome.textContent = alimento.alimento;
+        tr.appendChild(tdNome);
+
+        const tdEnergiaKcal = document.createElement('td');
+        tdEnergiaKcal.textContent = alimento.energia_Kcal;
+        tr.appendChild(tdEnergiaKcal);
+
+        const tdEnergiaKJ = document.createElement('td');
+        tdEnergiaKJ.textContent = alimento.energia_KJ;
+        tr.appendChild(tdEnergiaKJ);
+
+        const tdProteine = document.createElement('td');
+        tdProteine.textContent = alimento.prot_tot_gr;
+        tr.appendChild(tdProteine);
+
+        const tdCarboidrati = document.createElement('td');
+        tdCarboidrati.textContent = alimento.glucidi_tot;
+        tr.appendChild(tdCarboidrati);
+
+        const tdGrassi = document.createElement('td');
+        tdGrassi.textContent = alimento.lipidi_tot;
+        tr.appendChild(tdGrassi);
+
+        const tdSaturi = document.createElement('td');
+        tdSaturi.textContent = alimento.saturi_tot;
+        tr.appendChild(tdSaturi);
+
+        const tdAllergene = document.createElement('td');
+        const allergeneIds = alimento.fkAllergene.split(',').map(id => id.trim());
+        const allergeneNames = allergeneIds.map(id => allergeniMap[id] || 'N/A').join(', ');
+        tdAllergene.textContent = allergeneNames;
+        tr.appendChild(tdAllergene);
+
+        const tdTipologia = document.createElement('td');
+        tdTipologia.textContent = tipologieMap[alimento.fkTipologiaAlimento];
+        tr.appendChild(tdTipologia);
+
+        tbody.appendChild(tr);
+    });
+}
+
+function filterAlimenti() {
+    const searchName = document.getElementById('searchName').value.toLowerCase();
+    const selectedType = document.getElementById('searchType').value;
+
+    const filteredData = alimentiData.filter(alimento => {
+        const matchesName = alimento.alimento.toLowerCase().includes(searchName);
+        const matchesType = selectedType === '' || alimento.fkTipologiaAlimento == selectedType;
+        return matchesName && matchesType;
+    });
+
+    updateTable(filteredData);
+}
+
     </script>
 </body>
 </html>
