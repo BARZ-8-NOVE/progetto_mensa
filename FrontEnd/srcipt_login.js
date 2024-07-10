@@ -23,7 +23,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
             localStorage.setItem('jwt', data.token);
             localStorage.setItem('username', data.username);
             // Reindirizza alla pagina principale
-            window.location.href = 'pagina_principale.html'; 
+            window.location.href = 'index.html'; 
         } else {
             // Gestione degli errori
             alert('Errore di login: ' + (data.message || 'Credenziali non valide'));

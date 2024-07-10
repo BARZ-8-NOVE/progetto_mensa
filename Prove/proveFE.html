@@ -3,65 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        .login-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .login-container input[type="text"], .login-container input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .login-container input[type="submit"], .login-container button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .login-container button {
-            background-color: #28a745;
-        }
-        .login-container input[type="submit"]:hover, .login-container button:hover {
-            background-color: #0056b3;
-        }
-        .login-container button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <title>Gestione Alimenti - Cucina e Mensa Ospedaliera</title>
+    <link rel="stylesheet" href="stili.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form action="login.php" method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="submit" value="Login">
-        </form>
-        <button onclick="window.location.href='registrati.html'">Registrati</button>
+    <header>
+        <h1>Gestione Cucina e Mensa Ospedaliera</h1>
+        <div class="user-info">
+            <span>Utente: <span id="username">Nome Utente</span></span>
+            <a href="#" id="settings">Impostazioni</a>
+            <a href="#" id="logout">Logout</a>
+        </div>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Ordini</a></li>
+            <li class="dropdown">
+                <a href="#">Configurazione</a>
+                <div class="dropdown-content">
+                    <div class="dropdown">
+                        <a href="alimenti.html">Alimenti</a>
+                        <div class="dropdown-subcontent">
+                            <a href="alimenti.html">Alimenti</a>
+                            <a href="#">Preparazioni</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#">Piatti</a>
+                        <div class="dropdown-subcontent">
+                            <a href="#">Tipologia Piatti</a>
+                            <a href="#">Piatti</a>
+                            <a href="#">Associazione Piatti Preparazioni</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#">Menu</a>
+                        <div class="dropdown-subcontent">
+                            <a href="#">Tipologia Menu</a>
+                            <a href="#">Menu</a>
+                        </div>
+                    </div>
+                    <a href="#">Programmazione</a>
+                    <div class="dropdown">
+                        <a href="#">Configurazioni</a>
+                        <div class="dropdown-subcontent">
+                            <a href="#">Reparti</a>
+                            <a href="#">Servizi</a>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <li class="dropdown">
+                <a href="#">Sistema</a>
+                <div class="dropdown-content">
+                    <a href="#">Sicurezza</a>
+                    <a href="#">Qualifiche</a>
+                </div>
+            </li>
+            <li><a href="#">Contatti</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="search-container">
+            <div>
+                <input type="text" id="searchName" placeholder="Cerca per nome...">
+                <select id="searchType">
+                    <option value="">Seleziona tipologia</option>
+                </select>
+                <button onclick="searchAlimenti()">Cerca</button>
+            </div>
+            <button onclick="window.location.href='aggiungi_alimento.html'">Aggiungi Alimento</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Energia (Kcal)</th>
+                    <th>Energia (KJ)</th>
+                    <th>Proteine (g)</th>
+                    <th>Carboidrati (g)</th>
+                    <th>Grassi (g)</th>
+                    <th>Grassi Saturi (g)</th>
+                    <th>Allergene</th>
+                    <th>Tipologia</th>
+                </tr>
+            </thead>
+            <tbody id="alimentiTableBody">
+                <!-- Dati degli alimenti verranno inseriti qui -->
+            </tbody>
+        </table>
     </div>
+
+    <script>
+let tipologieMap = {};
+let allergeniMap = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const username = localStorage.getItem('username');
+    if (username) {
+        document.getElementById('username').textContent = username;
+    }
+
+    document.getElementById('logout').addEventListener('click', function() {
+        fetch('http://127.0.0.1:5000/utenti/do_logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+            }
+        }).then(response => {
+            if (response.ok) {
+                localStorage.removeItem('jwt');
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            }
+        });
+    });
+
+    fetchTipologiaAlimenti();
+});
+
+function fetchTipologiaAlimenti() {
+    fetch('http://127.0.0.1:5000/tipologiaalimenti/get_all', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+        }
+    })
+    .then(response => response.json())
+    .then(tipologieData => {
+        const select = document.getElementById('searchType');
+        tipologieMap = {};
+
+        tipologieData.forEach(tipologia => {
+            const option = document.createElement('option');
+            option.value = tipologia.id;
+            option.textContent = tipologia.nome;
+            select.appendChild(option);
+
+            tipologieMap[tipologia.id] = tipologia.nome;
+        });
+
+        fetchAllergeni();
+    })
+    .catch(error => {
+        console.error('Error fetching tipologia alimenti:', error);
+    });
+}
+
+function fetchAllergeni() {
+    fetch('http://127.0.0.1:5000/allergeni/get_all', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+        }
+    })
+    .then(response => response.json())
+    .then(allergeniData => {
+        allergeniMap = {};
+
+        allergeniData.forEach(allergene => {
+            allergeniMap[allergene.id] = allergene.nome;
+        });
+
+        fetchAlimenti(); // Optionally load all alimentos initially
+    })
+    .catch(error => {
+        console.error('Error fetching allergeni:', error);
+    });
+}
+
+function fetchAlimenti(tipologiaId = '') {
+    const url = tipologiaId ? `http://127.0.0.1:5000/alimenti/get_alimenti_by_tipologia_alimento/${tipologiaId}` : 'http://127.0.0.1:5000/alimenti/get_all';
+
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateTable(data);
+    })
+    .catch(error => {
+        console.error('Error fetching alimenti:', error);
+    });
+}
+
+function updateTable(data) {
+    const tbody = document.getElementById('alimentiTableBody');
+    tbody.innerHTML = ''; // Pulisce eventuali righe esistenti
+
+    data.forEach(alimento => {
+        const tr = document.createElement('tr');
+
+        const tdNome = document.createElement('td');
+        tdNome.textContent = alimento.alimento;
+        tr.appendChild(tdNome);
+
+        const tdEnergiaKcal = document.createElement('td');
+        tdEnergiaKcal.textContent = alimento.energia_Kcal;
+        tr.appendChild(tdEnergiaKcal);
+
+        const tdEnergiaKJ = document.createElement('td');
+        tdEnergiaKJ.textContent = alimento.energia_KJ;
+        tr.appendChild(tdEnergiaKJ);
+
+        const tdProteine = document.createElement('td');
+        tdProteine.textContent = alimento.prot_tot_gr;
+        tr.appendChild(tdProteine);
+
+        const tdCarboidrati = document.createElement('td');
+        tdCarboidrati.textContent = alimento.glucidi_tot;
+        tr.appendChild(tdCarboidrati);
+
+        const tdGrassi = document.createElement('td');
+        tdGrassi.textContent = alimento.lipidi_tot;
+        tr.appendChild(tdGrassi);
+
+        const tdSaturi = document.createElement('td');
+        tdSaturi.textContent = alimento.saturi_tot;
+        tr.appendChild(tdSaturi);
+
+        const tdAllergene = document.createElement('td');
+        const allergeneIds = alimento.fkAllergene.split(',').map(id => id.trim());
+        const allergeneNames = allergeneIds.map(id => allergeniMap[id] || 'N/A').join(', ');
+        tdAllergene.textContent = allergeneNames;
+        tr.appendChild(tdAllergene);
+
+        const tdTipologia = document.createElement('td');
+        tdTipologia.textContent = tipologieMap[alimento.fkTipologiaAlimento];
+        tr.appendChild(tdTipologia);
+
+        tbody.appendChild(tr);
+    });
+}
+
+function filterAlimenti() {
+    const selectedType = document.getElementById('searchType').value;
+    fetchAlimenti(selectedType);
+        }
+    </script>
 </body>
 </html>
