@@ -50,6 +50,10 @@ from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_controller
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import t_ordini_piatti_controller
 
+from Classi.ClasseFrontEnd.Classe_t_FrontEndMenu.Controller_t_FrontEndMenu import feMenuPadre
+from Classi.ClasseFrontEnd.Classe_t_FrontEndVociMenu.Controller_t_FrontEndVociMenu import feMenufigli
+from Classi.ClasseFrontEnd.Classe_t_FrontEndVociFiglieMenu.Controller_t_FrontEndVociFiglieMenu import feMenunipoti
+
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')
 app.register_blueprint(t_allergeni_controller, url_prefix='/allergeni')
@@ -80,6 +84,10 @@ app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 
 app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
 app.register_blueprint(t_ordini_piatti_controller, url_prefix='/ordinipiatti')
+
+app.register_blueprint(feMenuPadre, url_prefix='/fepadre')
+app.register_blueprint(feMenufigli, url_prefix='/fefigli')
+app.register_blueprint(feMenunipoti, url_prefix='/fenipoti')
 
 #if __name__ == '__main__':
 #    app.run(debug=True)
