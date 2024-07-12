@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestione Cucina e Mensa Ospedaliera{% endblock %}</title>
+    <!--<link rel="stylesheet"  href="{{ url_for('static', filename='css/stili.css') }}">-->
+    <link rel="stylesheet"  href="static/css/stili.css"> 
+</head>
+<body>
+    <header>
+        <h1>Gestione Cucina e Mensa Ospedaliera</h1>
+        <div class="user-info">
+            <span>Utente: <span id="username">Nome Utente</span></span>
+            <a href="/impostazioni">Impostazioni</a>
+            <a href="login" id="logout">Logout</a> <!-- Aggiungi ID qui -->
+        </div>
+    </header>
+    <nav>
+        <ul>
+            {% for padre in menu_structure %}
+                <li class="dropdown">
+                    <a href="#">{{ padre['titolo'] }}</a>
+                    <div class="dropdown-content">
+                        {% for figlio in padre['figli'] %}
+                            <div class="dropdown">
+                                <a href="{{ figlio['link'] }}">{{ figlio['titolo'] }}</a>
+                                <div class="dropdown-subcontent">
+                                    {% for nipote in figlio['nipoti'] %}
+                                        <a href="{{ nipote['link'] }}">{{ nipote['titolo'] }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+    {% block content %}
+
+    {% endblock %}
+    <!--<script src="{{ url_for('static', filename='js/index.js') }}"></script> -->
+    <script src="static/js/index.js"></script>
+</body>
+</html>

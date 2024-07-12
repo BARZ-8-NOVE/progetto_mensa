@@ -1,12 +1,14 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from flask_jwt_extended import jwt_required, get_jwt_identity, unset_jwt_cookies
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
+from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtente import TFunzionalitaUtenteService
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from server import jwt
 from datetime import datetime, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
+
 
 t_utenti_controller = Blueprint('utenti', __name__)
 service_t_utenti = Service_t_utenti()
@@ -151,6 +153,44 @@ def delete_utente():
     except Exception as e:
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
+
+@t_utenti_controller.route('/do_login1', methods=['POST'])
+def do_loginx():
+    try:
+        dati = request.json
+        required_fields = ['username', 'password']
+        UtilityGeneral.check_fields(dati, required_fields)
+        
+        username = dati['username']
+        password = dati['password']
+        
+        user = service_t_utenti.do_login(username, password)
+        
+        if user:  # Assuming user is an object with an 'id' attribute
+            session['authenticated'] = True
+            session['user_id'] = user['id']  # Correctly getting the user ID
+            
+            # Instantiate the TFunzionalitaUtenteService if not done globally
+            funzionalita_service = TFunzionalitaUtenteService()
+            menu_structure = funzionalita_service.build_menu_structure(user['id'])  # Call method properly
+            session['menu_structure'] = menu_structure
+            
+            return jsonify({'message': 'Login successful', 'menu_structure': menu_structure}), httpCodes.OK
+        else:
+            raise NotFound('Invalid username or password')
+    
+    except NotFound as e:
+        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
+    except KeyError as e:
+        return jsonify({'Error': str(e)}), httpCodes.BAD_REQUEST
+    except ValueError as e:
+        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
+    except Forbidden as e:
+        return jsonify({'Error': str(e)}), httpCodes.FORBIDDEN
+    except Exception as e:
+        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+
+
 @t_utenti_controller.route('/do_login', methods=['POST'])
 def do_login():
     try:
@@ -169,7 +209,7 @@ def do_login():
     except Forbidden as e:
         return jsonify({'Error': str(e)}), httpCodes.FORBIDDEN
     except Exception as e:
-        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
 @t_utenti_controller.route('/do_logout', methods=['POST'])
 @jwt_required()

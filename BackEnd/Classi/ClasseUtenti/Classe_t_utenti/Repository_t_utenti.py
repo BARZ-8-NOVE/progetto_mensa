@@ -204,10 +204,11 @@ class Repository_t_utenti:
                     result.token = access_token
                     result.expires = datetime.now() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
                     self.session.commit()
-                    return {'token': access_token, 'username': username, 'reparti': result.reparti,
+                    return {'id' : result.id, 'token': access_token, 'username': username, 'reparti': result.reparti,
                         'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
                         'fkTipoUtente': result.fkTipoUtente}
                 else:
+                    self.update_utente_attivo(result.id, 0)
                     self.session.close()
                     raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'in'))
             else:
@@ -244,3 +245,15 @@ class Repository_t_utenti:
             utente.expires = None
             utente.token = None
         self.session.commit()
+
+    def get_utente_by_username_and_password(self, username: str, password: str):
+        # Check if user exists by username
+        utente = self.exists_utente_by_username(username)
+        if utente:
+            # Verify password
+            if check_password_hash(utente.password, password):
+                return UtilityGeneral.getClassDictionaryOrList(utente)  # Return user details
+            else:
+                raise Forbidden(UtilityMessages.forbiddenPasswordIncorrectError(username))
+        else:
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))

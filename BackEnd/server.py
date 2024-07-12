@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
-
+import sys
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -12,7 +13,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=400)
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 jwt = JWTManager(app)
 
 #from Classi.initialize_db.initialize_db import initialize_database
@@ -21,6 +22,7 @@ jwt = JWTManager(app)
 
 # Importare i controller
 from Classi.ClasseUtenti.Classe_t_funzionalita.Controller_t_funzionalita import t_funzionalita_controller
+from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Controller_t_funzionalitaUtente import t_funzionalitaUtenti_controller
 from Classi.ClasseUtenti.Classe_t_autorizzazioni.Controller_t_autorizzazioni import t_autorizzazioni_controller
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Controller_t_tipiUtenti import t_tipiUtenti_controller
 from Classi.ClasseUtenti.Classe_t_utenti.Controller_t_utenti import t_utenti_controller
@@ -50,9 +52,14 @@ from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_controller
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import t_ordini_piatti_controller
 
-from Classi.ClasseFrontEnd.Classe_t_FrontEndMenu.Controller_t_FrontEndMenu import feMenuPadre
-from Classi.ClasseFrontEnd.Classe_t_FrontEndVociMenu.Controller_t_FrontEndVociMenu import feMenufigli
-from Classi.ClasseFrontEnd.Classe_t_FrontEndVociFiglieMenu.Controller_t_FrontEndVociFiglieMenu import feMenunipoti
+
+
+# Add the parent directory of the current script to the system path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+# Now you can import the FrontEnd module using the full package path
+from progetto_mensa.FrontEnd.Front_end import app_cucina
+
 
 db = engine
 app.register_blueprint(t_tipologiaconservazioni_controller, url_prefix='/tipologiaconservazioni')
@@ -68,9 +75,10 @@ app.register_blueprint(t_preparazionicontenuti_controller, url_prefix='/preparaz
 app.register_blueprint(t_tipipreparazioni_controller, url_prefix='/tipipreparazioni')
 
 app.register_blueprint(t_funzionalita_controller, url_prefix='/funzionalita')
-app.register_blueprint(t_autorizzazioni_controller, url_prefix='/autorizzazioni')
+app.register_blueprint(t_funzionalitaUtenti_controller, url_prefix='/funzionalita_utenti')
 app.register_blueprint(t_tipiUtenti_controller, url_prefix='/tipiUtenti')
 app.register_blueprint(t_utenti_controller, url_prefix='/utenti')
+app.register_blueprint(t_autorizzazioni_controller, url_prefix='/autorizzazioni')
 
 app.register_blueprint(t_piatti_controller, url_prefix='/piatti')
 app.register_blueprint(t_tipi_piatti_controller, url_prefix='/tipipiatti')
@@ -85,9 +93,7 @@ app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
 app.register_blueprint(t_ordini_piatti_controller, url_prefix='/ordinipiatti')
 
-app.register_blueprint(feMenuPadre, url_prefix='/fepadre')
-app.register_blueprint(feMenufigli, url_prefix='/fefigli')
-app.register_blueprint(feMenunipoti, url_prefix='/fenipoti')
+app.register_blueprint(app_cucina, url_prefix='/app_cucina')
 
 #if __name__ == '__main__':
 #    app.run(debug=True)
