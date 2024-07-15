@@ -9,8 +9,7 @@ from werkzeug.security import check_password_hash
 from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
-from datetime import datetime
-from server import app
+from datetime import datetime, timedelta
 
 class Repository_t_utenti:
     
@@ -18,28 +17,24 @@ class Repository_t_utenti:
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
-    def exists_utente_by_username(self, username:str):
-        result = self.session.query(TUtenti).filter_by(username=username)
-        return result
-
-    def exists_utente_by_id(self, id:int):
-        result = self.session.query(TUtenti).filter_by(id=id).first()
-        return result
-        
-    def exists_utente_by_username(self, username:str):
+    def exists_utente_by_username(self, username: str):
         result = self.session.query(TUtenti).filter_by(username=username).first()
         return result
-        
-    def exists_utente_by_email(self, email:str):
+
+    def exists_utente_by_id(self, id: int):
+        result = self.session.query(TUtenti).filter_by(id=id).first()
+        return result
+    
+    def exists_utente_by_email(self, email: str):
         result = self.session.query(TUtenti).filter_by(email=email).first()
         return result
     
-    def exists_utente_by_email_with_different_id(self, email:str, id:int):
-        result = self.session.query(TUtenti).filter(TUtenti.email==email, TUtenti.id!=id).first()
+    def exists_utente_by_email_with_different_id(self, email: str, id: int):
+        result = self.session.query(TUtenti).filter(TUtenti.email == email, TUtenti.id != id).first()
         return result
     
-    def exists_utente_by_username_with_different_id(self, username:str, id:int):
-        result = self.session.query(TUtenti).filter(TUtenti.username==username, TUtenti.id!=id).first()
+    def exists_utente_by_username_with_different_id(self, username: str, id: int):
+        result = self.session.query(TUtenti).filter(TUtenti.username == username, TUtenti.id != id).first()
         return result
     
     def exists_utente_by_public_id(self, public_id):
@@ -55,7 +50,7 @@ class Repository_t_utenti:
         self.session.close()
         return UtilityGeneral.getClassDictionaryOrList(results)
 
-    def get_utente_by_id(self, id:int):
+    def get_utente_by_id(self, id: int):
         result = self.session.query(TUtenti).filter_by(id=id).first()
         if result:
             self.session.close()
@@ -64,8 +59,8 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def create_utente(self, username:str, nome:str, cognome:str, fkTipoUtente:int,
-                    fkFunzCustom:str, reparti:str, attivo:int, inizio, email:str, password:str):
+    def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: int,
+                      fkFunzCustom: str, reparti: str, attivo: int, inizio, email: str, password: str):
         resultExistsEmail = self.exists_utente_by_email(email)
         if resultExistsEmail:
             self.session.close()
@@ -80,14 +75,14 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
         utente = TUtenti(public_id=str(uuid.uuid4()), username=username, nome=nome, cognome=cognome, fkTipoUtente=fkTipoUtente,
-                        fkFunzCustom=fkFunzCustom, reparti=reparti, attivo=attivo, inizio=inizio,
-                        email=email, password=password)
+                         fkFunzCustom=fkFunzCustom, reparti=reparti, attivo=attivo, inizio=inizio,
+                         email=email, password=password)
         self.session.add(utente)
         self.session.commit()
         return UtilityGeneral.getClassDictionaryOrList(utente)
     
-    def update_utente_username(self, id:int, username:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_username(self, id: int, username: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             result_exists_utente_by_username_with_different_id = self.exists_utente_by_username_with_different_id(username, id)
             if result_exists_utente_by_username_with_different_id:
@@ -99,8 +94,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_email(self, id:int, email:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_email(self, id: int, email: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, id)
             if result_exists_utente_by_email_with_different_id:
@@ -112,8 +107,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_fkTipoUtente(self, id:int, fkTipoUtente:int):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_fkTipoUtente(self, id: int, fkTipoUtente: int):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             tipoUtente = Repository_t_tipiUtente()
             result = tipoUtente.exists_tipoUtente_by_id(fkTipoUtente)
@@ -126,8 +121,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_nome(self, id:int, nome:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_nome(self, id: int, nome: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.nome = nome
             self.session.commit()
@@ -135,8 +130,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_cognome(self, id:int, cognome:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_cognome(self, id: int, cognome: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.cognome = cognome
             self.session.commit()
@@ -144,8 +139,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_fkFunzCustom(self, id:int, fkFunzCustom:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_fkFunzCustom(self, id: int, fkFunzCustom: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.fkFunzCustom = fkFunzCustom
             self.session.commit()
@@ -153,8 +148,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_reparti(self, id:int, reparti:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_reparti(self, id: int, reparti: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.reparti = reparti
             self.session.commit()
@@ -162,8 +157,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def update_utente_password(self, id:int, password:str):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_password(self, id: int, password: str):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.password = password
             self.session.commit()
@@ -171,8 +166,8 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
 
-    def update_utente_attivo(self, id:int,attivo):
-        utente:TUtenti = self.exists_utente_by_id(id)
+    def update_utente_attivo(self, id: int, attivo):
+        utente: TUtenti = self.exists_utente_by_id(id)
         if utente:
             utente.attivo = attivo
             self.session.commit()
@@ -180,7 +175,7 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def delete_utente(self, id:int):
+    def delete_utente(self, id: int):
         result = self.exists_utente_by_id(id)
         if result:
             self.session.delete(result)
@@ -191,22 +186,22 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-    def do_login(self, username:str, password:str):
+    def do_login(self, username: str, password: str, token_expires=timedelta(minutes=30)):
         result = self.exists_utente_by_username(username)
         if result:
             hashed_password = result.password
             if hashed_password and check_password_hash(hashed_password, password):
                 if result.attivo == 0:
                     self.update_utente_attivo(result.id, 1)
-                    access_token = create_access_token(identity=result.public_id)
+                    access_token = create_access_token(identity=result.public_id, expires_delta=token_expires)
                     response = jsonify(access_token=access_token)
                     set_access_cookies(response=response, encoded_access_token=access_token)
                     result.token = access_token
-                    result.expires = datetime.now() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
+                    result.expires = datetime.now() + token_expires
                     self.session.commit()
-                    return {'id' : result.id, 'token': access_token, 'username': username, 'reparti': result.reparti,
-                        'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
-                        'fkTipoUtente': result.fkTipoUtente}
+                    return {'id': result.id, 'token': access_token, 'username': username, 'reparti': result.reparti,
+                            'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
+                            'fkTipoUtente': result.fkTipoUtente}
                 else:
                     self.update_utente_attivo(result.id, 0)
                     self.session.close()
@@ -218,7 +213,7 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
         
-    def do_logout(self, current_utente_public_id:str):
+    def do_logout(self, current_utente_public_id: str):
         result = self.exists_utente_by_public_id(current_utente_public_id)
         if result:
             if result.attivo == 1:
@@ -257,3 +252,14 @@ class Repository_t_utenti:
                 raise Forbidden(UtilityMessages.forbiddenPasswordIncorrectError(username))
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+
+
+    def get_utente_by_public_id (self, public_id: str):
+        result = self.session.query(TUtenti).filter_by(public_id = public_id).first()
+        if result:
+            self.session.close()
+            return UtilityGeneral.getClassDictionaryOrList(result)
+        else:
+            self.session.close()
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        

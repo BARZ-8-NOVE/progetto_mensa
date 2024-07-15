@@ -2,7 +2,8 @@ from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.mysql import TINYINT
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
-
+# from Classi.ClasseOrdini.Classe_t_ordini.Domain_t_ordini import TOrdini
+# from Classi.ClasseMenu.Classe_t_menuServizi.Domain_t_menuServizi import TMenuServizi
 class TServizi(Base):
     __tablename__ = 't_servizi'
 

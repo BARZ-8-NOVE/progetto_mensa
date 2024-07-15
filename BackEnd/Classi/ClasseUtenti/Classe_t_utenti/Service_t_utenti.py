@@ -16,6 +16,10 @@ class Service_t_utenti:
         UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_id(id)
     
+    def get_utente_by_public_id(self, public_id : str):
+        UtilityGeneral.checkId(id)
+        return self.repository.get_utente_by_public_id(public_id)
+    
     def create_utente(self, username:str, nome:str, cognome:str, nomeTipoUtente,
                     fkFunzCustom:str, reparti:str, email:str, password:str):
         UtilityUtenti.checkUsername(username)

@@ -2,7 +2,8 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.sql import func
-
+# from Classi.ClasseMenu.Classe_t_menu.Domain_t_menu import TMenu
+# from Classi.ClasseServizi.Domani_t_servizi import TServizi
 class TMenuServizi(Base):
     __tablename__ = 't_menuservizi'
 

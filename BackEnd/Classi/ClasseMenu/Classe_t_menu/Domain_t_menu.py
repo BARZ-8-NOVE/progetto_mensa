@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.sql import func
-
+# from Classi.ClasseMenu.Classe_t_tipiMenu.Domain_t_tipiMenu import TTipiMenu
 class TMenu(Base):
     __tablename__ = 't_menu'
 

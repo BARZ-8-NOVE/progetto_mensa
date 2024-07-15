@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestione Cucina e Mensa Ospedaliera{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Gestione Cucina e Mensa Ospedaliera</h1>
+        <div class="user-info">
+            <span>Utente: <span id="username">{{ username }}</span></span>
+            <a href="/impostazioni">Impostazioni</a>
+            <form id="logoutForm" style="display: inline;">
+                <button type="button" id="logout">Logout</button>
+            </form>
+        </div>
+    </header>
+    
+    <nav>
+        <ul>
+            {% for padre in menu_structure %}
+                <li class="dropdown">
+                    <a href="#">{{ padre['titolo'] }}</a>
+                    <div class="dropdown-content">
+                        {% for figlio in padre['figli'] %}
+                            <div class="dropdown">
+                                <a href="{{ figlio['link'] }}">{{ figlio['titolo'] }}</a>
+                                <div class="dropdown-subcontent">
+                                    {% for nipote in figlio['nipoti'] %}
+                                        <a href="{{ nipote['link'] }}">{{ nipote['titolo'] }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+
+    <script>
+        const token = "{{ token }}";  // Retrieves the token from Flask
+    </script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+</body>
+</html>
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

@@ -176,6 +176,8 @@ def do_loginx():
             session['menu_structure'] = menu_structure
             
             return jsonify({'message': 'Login successful', 'menu_structure': menu_structure}), httpCodes.OK
+        
+        
         else:
             raise NotFound('Invalid username or password')
     

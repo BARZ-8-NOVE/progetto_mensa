@@ -25,14 +25,25 @@ header .user-info span {
     margin-right: 10px;
 }
 
-header .user-info a {
+header .user-info a,
+#logout {
     text-decoration: none;
     color: white;
-    background-color: #a6c9ee;
-    padding: 5px 10px;
+    background-color: #a6c9ee; /* Same color for both */
+    padding: 8px 12px; /* Increased padding for equal height */
     border-radius: 5px;
     margin-left: 10px;
+    border: none; /* Remove border */
+    display: inline-flex; /* Use flexbox for centering */
+    align-items: center; /* Center text vertically */
+    font-size: 16px; /* Ensure font size is the same */
+    line-height: 1; /* Ensure consistent line height */
 }
+
+#logout {
+    cursor: pointer; /* Cambia il cursore in manina */
+}
+
 
 nav {
     margin: 20px;

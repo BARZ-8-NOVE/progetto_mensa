@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
 from Classi.ClasseDB.db_connection import Base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-
+# from Classi.ClasseServizi.Domani_t_servizi import TServizi
+# from Classi.ClasseReparti.Domain_t_reparti import TReparti
 
 class TOrdini(Base):
     __tablename__ = 't_ordinischede'

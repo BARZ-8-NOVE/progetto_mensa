@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
-
+from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Domani_t_tipologiaalimenti import TTipologiaAlimenti
 
 class TAlimenti(Base):
     __tablename__ = 't_alimenti_con_allergeni'
@@ -17,8 +17,7 @@ class TAlimenti(Base):
     fkAllergene = Column(String(255))
     fkTipologiaAlimento = Column(Integer, ForeignKey('t_tipologiaalimenti.id'))
 
-    # Definizioni delle relazioni
-
-    tipologia_alimento = relationship("TTipologiaAlimenti", foreign_keys=[fkTipologiaAlimento])
+    # Relationship definitions
+    tipologia = relationship('TTipologiaAlimenti', back_populates='alimenti')
 
 
