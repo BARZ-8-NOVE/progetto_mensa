@@ -39,6 +39,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 from datetime import timedelta
 from werkzeug.utils import secure_filename
 import os
+import json
 
 # Import your service modules here
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
@@ -46,7 +47,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm
+from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm, AlimentoForm
 # Initialize the app and configuration
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
@@ -209,15 +210,26 @@ def preparazioni():
     preparazioni = service_t_preparazioni.get_all_preparazioni()
     tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
     preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
-    tipiQuantia = service_t_tipoquantita.get_all_tipoquantita()
-    eliminaPrep = service_t_preparazioni.delete_preparazione()
+
+    # Get alimenti and tipi_quantita using the appropriate methods
+    alimenti = serviceAlimenti.get_all()  # Assuming this method returns a list of alimenti
+    tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
 
     form = PreparazioniForm()
-    form.fkTipoPreparazione.choices = [(tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni]
-    
-
+    alimform = AlimentoForm()
+    form.fkTipoPreparazione.choices = [
+        (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
+    ]
+    alimform.fkAlimento.choices = [
+        (alimento['id'], alimento['alimento']) for alimento in alimenti
+    ]
+    alimform.fkTipoQuantita.choices = [
+        (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
+    ]
 
     TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
+    alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
+    tipo_quantita = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
 
     if 'authenticated' in session:
         if form.validate_on_submit():
@@ -228,33 +240,47 @@ def preparazioni():
             else:
                 image_filename = None
 
-            # Get the current user's username
             utente_inserimento = get_username()
 
-            service_t_preparazioni.create_preparazione(
+            # Create the preparation record and get its ID
+            new_preparazione_id = service_t_preparazioni.create_preparazione(
                 fkTipoPreparazione=form.fkTipoPreparazione.data, 
                 descrizione=form.descrizione.data, 
                 isEstivo=form.isEstivo.data, 
                 isInvernale=form.isInvernale.data,  
                 inizio=form.inizio.data if form.inizio.data else None, 
                 fine=form.fine.data if form.fine.data else None,  
-                utenteInserimento=utente_inserimento,  # Use the username here
+                utenteInserimento=utente_inserimento, 
                 immagine=image_filename
-                
             )
 
+            ingredient_list = request.form.getlist('ingredientList')
+            for ingredient in ingredient_list:
+                ingredient_data = json.loads(ingredient)
+                service_t_preparazionicontenuti.create_preparazioni_contenuti(
+                    fkPreparazione=new_preparazione_id, 
+                    fkAlimento=ingredient_data['fkAlimento'], 
+                    quantita=ingredient_data['quantita'], 
+                    fkTipoQuantita=ingredient_data['fkTipoQuantita'], 
+                    note=ingredient_data['note'],   
+                    utenteInserimento=utente_inserimento
+                )
+
             flash('Preparazione aggiunta con successo!', 'success')
-            return redirect(url_for('app_cucina.preparazioni'))
+            return redirect(url_for('app_cucina.preparazione_dettagli', id_preparazione=new_preparazione_id))
 
         return render_template(
             'preparazioni.html',
             preparazioni=preparazioni,
             tipiPreparazioni=tipiPreparazioni,
             preparazioniContenuti=preparazioniContenuti,
-            tipiQuantia=tipiQuantia,
+            tipiQuantia=tipi_quantita,
             TipoPreparazione_map=TipoPreparazione_map,
-            eliminaPrep=eliminaPrep,
-            form=form
+            form=form,
+            alimform=alimform,
+            alimento_map=alimento_map,
+            tipo_quantita=tipo_quantita
+
         )
     else:
         flash('Please log in first.', 'warning')
@@ -271,7 +297,6 @@ def preparazione_dettagli(id_preparazione):
         return render_template('preparazione_dettagli.html', preparazione=preparazione, preparazione_contenuti=preparazione_contenuti)
     else:
         return redirect(url_for('app_cucina.preparazioni'))
-
 
 
 

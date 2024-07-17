@@ -78,6 +78,18 @@ class Repository_t_preparazioni:
             self.session.rollback()
             return {'Error': str(e)}, 500
 
+    def get_last_id(self):
+            try:
+                # Fetch the last record by ordering by the primary key in descending order
+                result = self.session.query(TPreparazioni).filter(TPreparazioni.dataCancellazione.is_(None)).order_by(TPreparazioni.id.desc()).first()
+                
+                if result:
+                    return {'id': result.id}
+                else:
+                    return {'Error': 'No match found'}, 404
+            except Exception as e:
+                return {'Error': str(e)}, 400
+
     def delete_preparazione(self, id):
         try:
             preparazione = self.session.query(TPreparazioni).filter_by(id=id).first()

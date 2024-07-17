@@ -79,6 +79,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
                     </button>
                 </div>
                 <div class="modal-body">
+                    <!-- Existing fields for preparazione details -->
                     <div class="form-group">
                         {{ form.fkTipoPreparazione.label(class="form-label") }}
                         {{ form.fkTipoPreparazione(class="form-control") }}
@@ -129,39 +130,40 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
                         {% endfor %}
                     </div>
 
+                    <!-- Single ingredient input section -->
                     <div class="form-group">
-                        <label for="alimenti">Alimenti</label>
-                        <div id="alimenti">
-                            {% for alimento in form.alimenti %}
-                                <div class="form-group">
-                                    {{ alimento.fkAlimento.label(class="form-label") }}
-                                    {{ alimento.fkAlimento(class="form-control") }}
-                                    {% for error in alimento.fkAlimento.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                    
-                                    {{ alimento.quantita.label(class="form-label") }}
-                                    {{ alimento.quantita(class="form-control") }}
-                                    {% for error in alimento.quantita.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                    
-                                    {{ alimento.fkTipoQuantita.label(class="form-label") }}
-                                    {{ alimento.fkTipoQuantita(class="form-control") }}
-                                    {% for error in alimento.fkTipoQuantita.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                    
-                                    {{ alimento.note.label(class="form-label") }}
-                                    {{ alimento.note(class="form-control") }}
-                                    {% for error in alimento.note.errors %}
-                                        <span class="text-danger">{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <button type="button" class="btn btn-secondary" onclick="addAlimento()">Aggiungi Alimento</button>
+                        {{ alimform.fkAlimento.label(class="form-label") }}
+                        {{ alimform.fkAlimento(class="form-control") }}
+                        {% for error in alimform.fkAlimento.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.quantita.label(class="form-label") }}
+                        {{ alimform.quantita(class="form-control") }}
+                        {% for error in alimform.quantita.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.fkTipoQuantita.label(class="form-label") }}
+                        {{ alimform.fkTipoQuantita(class="form-control") }}
+                        {% for error in alimform.fkTipoQuantita.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.note.label(class="form-label") }}
+                        {{ alimform.note(class="form-control") }}
+                        {% for error in alimform.note.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
                     </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="addAlimento()">Aggiungi Alimento</button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Ingredient list section -->
+                    <h5>Ingredienti Aggiunti</h5>
+                    <ul id="ingredientList" class="list-group"></ul>
                 </div>
 
                 <div class="modal-footer">
@@ -174,26 +176,76 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
+
+    let ingredientList = [];
+
+    // Mappa degli alimenti
+    const alimento_map = {
+        {% for alimento in alimenti %}
+        {{ alimento.id }}: "{{ alimento.alimento }}",
+        {% endfor %}
+    };
+    
+    // Mappa dei tipi di quantità
+    const tipo_quantita = {
+        {% for tipo in tipi_quantita %}
+        {{ tipo.id }}: "{{ tipo.tipo }}",
+        {% endfor %}
+    };
+    
+    // Funzione per aggiungere un alimento
     function addAlimento() {
-        const container = document.getElementById('alimenti');
-        const index = container.children.length;
-        const newAlimento = `
-            <div class="form-group">
-                <label for="alimenti-${index}-fkAlimento" class="form-label">Alimento</label>
-                <input type="select" name="alimenti-${index}-fkAlimento" id="alimenti-${index}-fkAlimento" class="form-control" required>
-                
-                <label for="alimenti-${index}-quantita" class="form-label">Quantità</label>
-                <input type="text" name="alimenti-${index}-quantita" id="alimenti-${index}-quantita" class="form-control" required>
-                
-                <label for="alimenti-${index}-fkTipoQuantita" class="form-label">Tipo Quantità</label>
-                <input type="select" name="alimenti-${index}-fkTipoQuantita" id="alimenti-${index}-fkTipoQuantita" class="form-control" required>
-                
-                <label for="alimenti-${index}-note" class="form-label">Note</label>
-                <input type="text" name="alimenti-${index}-note" id="alimenti-${index}-note" class="form-control">
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', newAlimento);
+        const fkAlimento = document.querySelector('select[name="fkAlimento"]').value;
+        const quantita = document.querySelector('input[name="quantita"]').value;
+        const fkTipoQuantita = document.querySelector('select[name="fkTipoQuantita"]').value;
+        const note = document.querySelector('input[name="note"]').value;
+    
+        // Controllo per campi vuoti
+        if (!fkAlimento || !quantita || !fkTipoQuantita) {
+            alert('Per favore, riempi tutti i campi richiesti.');
+            return;
+        }
+    
+        // Aggiungi l'ingrediente alla lista
+        ingredientList.push({
+            fkAlimento: fkAlimento,
+            quantita: quantita,
+            fkTipoQuantita: fkTipoQuantita,
+            note: note
+        });
+    
+        // Aggiorna la lista visualizzata
+        updateIngredientList();
     }
+    
+    // Funzione per aggiornare la lista degli ingredienti
+    function updateIngredientList() {
+        const ingredientListElement = document.getElementById('ingredientList');
+        ingredientListElement.innerHTML = '';
+    
+        ingredientList.forEach((ingredient, index) => {
+            const alimentoName = alimento_map[ingredient.fkAlimento]; // Ottieni il nome dell'alimento
+            const quantita = ingredient.quantita;
+            const tipoQuantita = tipo_quantita[ingredient.fkTipoQuantita]; // Mappa anche il tipo di quantità
+    
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `
+                ${alimentoName} - ${quantita} ${tipoQuantita} - ${ingredient.note}
+                <button class="btn btn-danger btn-sm float-right" onclick="removeAlimento(${index})">Elimina</button>
+            `;
+            ingredientListElement.appendChild(listItem);
+        });
+    }
+    
+    // Funzione per rimuovere un alimento dalla lista
+    function removeAlimento(index) {
+        ingredientList.splice(index, 1);
+        updateIngredientList();
+    }
+    
+    
+
 
     document.addEventListener('DOMContentLoaded', function() {
         const searchNameInput = document.getElementById('searchName');

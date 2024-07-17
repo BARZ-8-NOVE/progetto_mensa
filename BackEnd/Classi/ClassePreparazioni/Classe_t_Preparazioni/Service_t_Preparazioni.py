@@ -16,6 +16,9 @@ class Service_t_preparazioni:
             fkTipoPreparazione, descrizione, isEstivo, isInvernale, allergeni, inizio, fine,
             dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione, immagine
         )
+    
+    def get_last_id(self):
+        return self.repository.get_last_id()
 
     def delete_preparazione(self, id):
         return self.repository.delete_preparazione(id)

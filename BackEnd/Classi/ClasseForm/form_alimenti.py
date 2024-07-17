@@ -44,6 +44,7 @@ class PreparazioniForm(FlaskForm):
     fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     immagine = FileField('Immagine', validators=[Optional()])
 
-    alimenti = FieldList(FormField(AlimentoForm), min_entries=1)
+    alimenti = FieldList(FormField(AlimentoForm), min_entries=1)  # Initialize FieldList with a minimum of 1
 
     submit = SubmitField('Aggiungi')
+
