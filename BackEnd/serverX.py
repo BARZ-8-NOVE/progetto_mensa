@@ -229,7 +229,7 @@ def preparazioni():
 
     TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
     alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
-    tipo_quantita = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
+    tipo_map = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
 
     if 'authenticated' in session:
         if form.validate_on_submit():
@@ -277,9 +277,11 @@ def preparazioni():
             tipiQuantia=tipi_quantita,
             TipoPreparazione_map=TipoPreparazione_map,
             form=form,
+            alimenti=alimenti,
+            tipi_quantita=tipi_quantita,
             alimform=alimform,
             alimento_map=alimento_map,
-            tipo_quantita=tipo_quantita
+            tipo_map=tipo_map
 
         )
     else:

@@ -177,6 +177,8 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
 
 <script>
 
+
+    
     let ingredientList = [];
 
     // Mappa degli alimenti
@@ -187,7 +189,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     };
     
     // Mappa dei tipi di quantità
-    const tipo_quantita = {
+    const tipo_map = {
         {% for tipo in tipi_quantita %}
         {{ tipo.id }}: "{{ tipo.tipo }}",
         {% endfor %}
@@ -200,6 +202,11 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         const fkTipoQuantita = document.querySelector('select[name="fkTipoQuantita"]').value;
         const note = document.querySelector('input[name="note"]').value;
     
+        console.log(`fkAlimento: ${fkAlimento}`);
+        console.log(`quantita: ${quantita}`);
+        console.log(`fkTipoQuantita: ${fkTipoQuantita}`);
+        console.log(`note: ${note}`);
+    
         // Controllo per campi vuoti
         if (!fkAlimento || !quantita || !fkTipoQuantita) {
             alert('Per favore, riempi tutti i campi richiesti.');
@@ -208,11 +215,14 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     
         // Aggiungi l'ingrediente alla lista
         ingredientList.push({
-            fkAlimento: fkAlimento,
+            fkAlimento: parseInt(fkAlimento),
             quantita: quantita,
-            fkTipoQuantita: fkTipoQuantita,
+            fkTipoQuantita: parseInt(fkTipoQuantita),
             note: note
         });
+    
+        // Log per vedere la lista degli ingredienti aggiornata
+        console.log('IngredientList:', ingredientList);
     
         // Aggiorna la lista visualizzata
         updateIngredientList();
@@ -226,7 +236,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         ingredientList.forEach((ingredient, index) => {
             const alimentoName = alimento_map[ingredient.fkAlimento]; // Ottieni il nome dell'alimento
             const quantita = ingredient.quantita;
-            const tipoQuantita = tipo_quantita[ingredient.fkTipoQuantita]; // Mappa anche il tipo di quantità
+            const tipoQuantita = tipo_map[ingredient.fkTipoQuantita]; // Mappa anche il tipo di quantità
     
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item';
@@ -245,6 +255,9 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     }
     
     
+    console.log('alimento_map:', alimento_map);
+    console.log('tipo_map:', tipo_map);
+
 
 
     document.addEventListener('DOMContentLoaded', function() {

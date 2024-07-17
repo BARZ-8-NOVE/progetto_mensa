@@ -30,9 +30,9 @@ class AlimentiForm(FlaskForm):
     submit = SubmitField('Aggiungi')
 
 class AlimentoForm(FlaskForm):
-    fkAlimento = SelectField('Alimento', coerce=int, validators=[DataRequired()])
-    quantita = StringField('Quantità', validators=[DataRequired()])
-    fkTipoQuantita = SelectField('Tipo Quantità', coerce=int, validators=[DataRequired()])
+    fkAlimento = SelectField('Alimento', coerce=int, validators=[Optional()])
+    quantita = StringField('Quantità', validators=[Optional()])
+    fkTipoQuantita = SelectField('Tipo Quantità', coerce=int, validators=[Optional()])
     note = StringField('Note', validators=[Optional()])
 
 class PreparazioniForm(FlaskForm):
