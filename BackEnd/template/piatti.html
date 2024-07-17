@@ -1,0 +1,23 @@
+{% extends "index.html" %}
+
+{% block title %}
+alimenti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+            <select id="searchType">
+                <option value="">Seleziona tipologia</option>
+                {% for tipologia in tipologie %}
+                <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="showAddAlimentoForm()">Aggiungi piatto</button>
+    </div>
+</div>
+
+    {% endblock %}

@@ -22,6 +22,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     <table>
         <thead>
             <tr>
+                <th>-</th>
                 <th>Descrizione</th>
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
@@ -32,7 +33,13 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         </thead>
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
-            <tr onclick="window.location='{{ url_for('app_cucina.preparazione_dettagli', id_preparazione=preparazione.id) }}'">
+            <tr>
+
+                <td>
+                    <a href="#" class="btn btn-info btn-sm" data-toggle="modal" data-target="#dettagliModal" 
+                    onclick="setPreparazioneDetails('{{ preparazione.id }}', '{{ preparazione.descrizione }}', '{{ preparazione.tipoPreparazione }}', '{{ preparazione.isEstivo }}', '{{ preparazione.isInvernale }}', '{{ preparazione.dataInserimento }}', '{{ preparazione.immagine }}')">Dettagli</a>
+                </td>
+
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
                 <td>
@@ -164,6 +171,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
                     <!-- Ingredient list section -->
                     <h5>Ingredienti Aggiunti</h5>
                     <ul id="ingredientList" class="list-group"></ul>
+                    <input type="hidden" id="ingredientListInput" name="ingredientList">
                 </div>
 
                 <div class="modal-footer">
@@ -175,10 +183,33 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     </div>
 </div>
 
+
+<!-- Modale -->>
+<div class="modal fade" id="dettagliModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli Preparazione</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p><strong>Descrizione:</strong> <span id="preparazioneDescrizione"></span></p>
+                <!-- Altri dettagli qui -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataInserimento, immagine) {
+    document.getElementById('preparazioneDescrizione').innerText = descrizione;
+    // Imposta altri dettagli
+}
 
-
-    
     let ingredientList = [];
 
     // Mappa degli alimenti
@@ -197,32 +228,24 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     
     // Funzione per aggiungere un alimento
     function addAlimento() {
-        const fkAlimento = document.querySelector('select[name="fkAlimento"]').value;
-        const quantita = document.querySelector('input[name="quantita"]').value;
-        const fkTipoQuantita = document.querySelector('select[name="fkTipoQuantita"]').value;
+        const fkAlimento = parseInt(document.querySelector('select[name="fkAlimento"]').value);
+        const quantita = parseFloat(document.querySelector('input[name="quantita"]').value); // Assicurati che sia float
+        const fkTipoQuantita = parseInt(document.querySelector('select[name="fkTipoQuantita"]').value);
         const note = document.querySelector('input[name="note"]').value;
     
-        console.log(`fkAlimento: ${fkAlimento}`);
-        console.log(`quantita: ${quantita}`);
-        console.log(`fkTipoQuantita: ${fkTipoQuantita}`);
-        console.log(`note: ${note}`);
-    
         // Controllo per campi vuoti
-        if (!fkAlimento || !quantita || !fkTipoQuantita) {
+        if (!fkAlimento || isNaN(quantita) || !fkTipoQuantita) {
             alert('Per favore, riempi tutti i campi richiesti.');
             return;
         }
     
         // Aggiungi l'ingrediente alla lista
         ingredientList.push({
-            fkAlimento: parseInt(fkAlimento),
+            fkAlimento: fkAlimento,
             quantita: quantita,
-            fkTipoQuantita: parseInt(fkTipoQuantita),
+            fkTipoQuantita: fkTipoQuantita,
             note: note
         });
-    
-        // Log per vedere la lista degli ingredienti aggiornata
-        console.log('IngredientList:', ingredientList);
     
         // Aggiorna la lista visualizzata
         updateIngredientList();
@@ -246,6 +269,9 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
             `;
             ingredientListElement.appendChild(listItem);
         });
+    
+        // Passa la lista al server
+        document.getElementById('ingredientListInput').value = JSON.stringify(ingredientList);
     }
     
     // Funzione per rimuovere un alimento dalla lista
@@ -254,10 +280,6 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         updateIngredientList();
     }
     
-    
-    console.log('alimento_map:', alimento_map);
-    console.log('tipo_map:', tipo_map);
-
 
 
     document.addEventListener('DOMContentLoaded', function() {

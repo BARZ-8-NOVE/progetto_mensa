@@ -243,6 +243,7 @@ def preparazioni():
             utente_inserimento = get_username()
 
             # Create the preparation record and get its ID
+            # Create the preparation record and get its ID
             new_preparazione_id = service_t_preparazioni.create_preparazione(
                 fkTipoPreparazione=form.fkTipoPreparazione.data, 
                 descrizione=form.descrizione.data, 
@@ -254,20 +255,28 @@ def preparazioni():
                 immagine=image_filename
             )
 
-            ingredient_list = request.form.getlist('ingredientList')
+            
+
+            ingredient_list = json.loads(request.form['ingredientList'])
+
             for ingredient in ingredient_list:
-                ingredient_data = json.loads(ingredient)
-                service_t_preparazionicontenuti.create_preparazioni_contenuti(
-                    fkPreparazione=new_preparazione_id, 
-                    fkAlimento=ingredient_data['fkAlimento'], 
-                    quantita=ingredient_data['quantita'], 
-                    fkTipoQuantita=ingredient_data['fkTipoQuantita'], 
-                    note=ingredient_data['note'],   
-                    utenteInserimento=utente_inserimento
-                )
+                try:
+                    # Save ingredient
+                    service_t_preparazionicontenuti.create_preparazioni_contenuti(
+                        fkPreparazione=new_preparazione_id,
+                        fkAlimento=int(ingredient['fkAlimento']),
+                        quantita=float(ingredient['quantita']),  # Ensure this is a float
+                        fkTipoQuantita=int(ingredient['fkTipoQuantita']),
+                        note=ingredient['note'],
+                        utenteInserimento=utente_inserimento
+                    )
+                    print(f"Ingredient saved: {ingredient}")
+                except (ValueError, KeyError) as e:
+                    print(f"Error processing ingredient: {ingredient}, error: {e}")
 
             flash('Preparazione aggiunta con successo!', 'success')
-            return redirect(url_for('app_cucina.preparazione_dettagli', id_preparazione=new_preparazione_id))
+            return redirect(url_for('app_cucina.preparazioni'))  # Redirect to the list of preparations
+
 
         return render_template(
             'preparazioni.html',
@@ -290,15 +299,15 @@ def preparazioni():
 
 
 
-@app_cucina.route('/preparazione_dettagli/<int:id_preparazione>', methods=['GET'])
-def preparazione_dettagli(id_preparazione):
-    preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
-    preparazione_contenuti = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
+# @app_cucina.route('/preparazione_dettagli/<int:id_preparazione>', methods=['GET'])
+# def preparazione_dettagli(id_preparazione):
+#     preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
+#     preparazione_contenuti = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
 
-    if preparazione:
-        return render_template('preparazione_dettagli.html', preparazione=preparazione, preparazione_contenuti=preparazione_contenuti)
-    else:
-        return redirect(url_for('app_cucina.preparazioni'))
+#     if preparazione:
+#         return render_template('preparazione_dettagli.html', preparazione=preparazione, preparazione_contenuti=preparazione_contenuti)
+#     else:
+#         return redirect(url_for('app_cucina.preparazioni'))
 
 
 
@@ -331,7 +340,19 @@ def do_logout():
         return jsonify({'Error': str(e)}), 500
 
 
+@app_cucina.route('/piatti')
+def piatti():
+    if 'authenticated' in session:
+        return render_template('piatti.html')
+    else:
+        return redirect(url_for('app_cucina.login'))
 
+@app_cucina.route('/tipologia_piatti')
+def tipologia_piatti():
+    if 'authenticated' in session:
+        return render_template('tipologia_piatti.html')
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 # Register the blueprint
