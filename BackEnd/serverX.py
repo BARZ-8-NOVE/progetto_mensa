@@ -17,10 +17,10 @@ from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import Service
 from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Service_t_tipologiaalimenti import Service_t_tipologiaalimenti
 from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione.Service_t_tipologiaconservazione import ServiceTipologiaConservazioni
 
-# from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
-# from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
-# from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
-# from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
+from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
+from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
+from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
+from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
 
 
 # from Classi.ClasseReparti.Service_t_reparti import ServiceReparti
@@ -37,6 +37,8 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, unset_jwt_cookies
 from werkzeug.exceptions import NotFound, Forbidden
 from datetime import timedelta
+from werkzeug.utils import secure_filename
+import os
 
 # Import your service modules here
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
@@ -44,7 +46,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-
+from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm
 # Initialize the app and configuration
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
@@ -62,6 +64,11 @@ service_t_utenti = Service_t_utenti()
 serviceAlimenti = ServiceAlimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 serviceAllergeni = ServiceAllergeni()
+
+service_t_preparazioni = Service_t_preparazioni()
+service_t_preparazionicontenuti = Service_t_preparazionicontenuti()
+service_t_tipipreparazioni = Service_t_tipipreparazioni()
+service_t_tipoquantita = Service_t_tipoquantita()
 
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
@@ -82,6 +89,8 @@ def my_expired_token_callback(jwt_header, jwt_payload):
     response = jsonify({"message": "Logged out because the token has expired."})
     unset_jwt_cookies(response)
     return response
+
+
 
 @app_cucina.route('/login', methods=['GET', 'POST'])
 def login():
@@ -118,6 +127,11 @@ def login():
     
     return render_template('loginx.html')  # GET request
 
+def get_username():
+    user_id = session.get('user_id')
+    user = service_t_utenti.get_utente_by_id(user_id)
+    
+    return user['username']
 
 @app.context_processor
 def inject_user_data():
@@ -126,14 +140,13 @@ def inject_user_data():
     user = service_t_utenti.get_utente_by_id(user_id) if user_id else None
     
     username = user['username'] if user else "Utente"
-    token = session.get('token', '')
-    
+    token = session.get('token')
+
     return dict(
         menu_structure=menu_structure,
         username=username,
         token=token
     )
-
 
 
 @app_cucina.route('/index')
@@ -143,53 +156,125 @@ def index():
     else:
         return redirect(url_for('app_cucina.login'))
 
-@app_cucina.route('/alimenti')
+
+@app_cucina.route('/alimenti', methods=['GET', 'POST'])
 def alimenti():
     # Retrieve the list of alimenti, tipologie, and allergeni from your database
-    alimenti = serviceAlimenti.get_all()
+    alimenti_list = serviceAlimenti.get_all()
     tipologie = service_t_tipologiaalimenti.get_all_tipologiaalimenti()
     allergeni = serviceAllergeni.get_all()
-    
     
     # Create maps for tipologie and allergeni
     tipologie_map = {int(tipologia['id']): tipologia['nome'] for tipologia in tipologie}
     allergeni_map = {str(allergene['id']): allergene['nome'] for allergene in allergeni}
+
+    form = AlimentiForm()
+    form.fkAllergene.choices = [(allergene['id'], allergene['nome']) for allergene in allergeni]
+    form.fkTipologiaAlimento.choices = [(tipologia['id'], tipologia['nome']) for tipologia in tipologie]
+
+    if 'authenticated' in session:
+        if form.validate_on_submit():
+            fkAllergene = ",".join(str(allergene_id) for allergene_id in form.fkAllergene.data)
+
+            serviceAlimenti.create(
+                alimento=form.alimento.data,
+                energia_Kcal=form.energia_Kcal.data,
+                energia_KJ=form.energia_KJ.data,
+                prot_tot_gr=form.prot_tot_gr.data,
+                glucidi_tot=form.glucidi_tot.data,
+                lipidi_tot=form.lipidi_tot.data,
+                saturi_tot=form.saturi_tot.data,
+                fkAllergene=fkAllergene,
+                fkTipologiaAlimento=form.fkTipologiaAlimento.data
+            )
+
+            flash('Alimento aggiunto con successo!', 'success')
+            return redirect(url_for('app_cucina.alimenti'))
+            
+
+        return render_template(
+            'alimenti.html',
+            alimenti=alimenti_list,
+            tipologie=tipologie,
+            allergeni=allergeni,
+            tipologie_map=tipologie_map,
+            allergeni_map=allergeni_map,
+            form=form
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+@app_cucina.route('/preparazioni', methods=['GET', 'POST'])
+def preparazioni():
+    preparazioni = service_t_preparazioni.get_all_preparazioni()
+    tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
+    preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
+    tipiQuantia = service_t_tipoquantita.get_all_tipoquantita()
+    eliminaPrep = service_t_preparazioni.delete_preparazione()
+
+    form = PreparazioniForm()
+    form.fkTipoPreparazione.choices = [(tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni]
     
-    return render_template(
-        'alimenti.html',
-        alimenti=alimenti,
-        tipologie=tipologie,
-        allergeni=allergeni,
-        tipologie_map=tipologie_map,
-        allergeni_map=allergeni_map,
-
-    )
 
 
-@app_cucina.route('alimenti/create', methods=['POST'])
-@jwt_required()
-def create():
-    dati = request.json
-    required_fields = ['alimento', 'energia_Kcal', 'energia_KJ', 'prot_tot_gr', 'glucidi_tot', 'lipidi_tot', 'saturi_tot', 'fkAllergene', 'fkTipologiaAlimento']
-    if not all(field in dati for field in required_fields):
-        return jsonify({'Error': 'wrong keys!'}), 403
-    try:
-        alimento = dati['alimento'].strip()
-        energia_Kcal = float(dati['energia_Kcal'])
-        energia_KJ = float(dati['energia_KJ'])
-        prot_tot_gr = float(dati['prot_tot_gr'])
-        glucidi_tot = float(dati['glucidi_tot'])
-        lipidi_tot = float(dati['lipidi_tot'])
-        saturi_tot = float(dati['saturi_tot'])
-        fkAllergene = dati['fkAllergene'].strip()
-        fkTipologiaAlimento = int(dati['fkTipologiaAlimento'])
+    TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
 
-        return jsonify(serviceAlimenti.create(alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento))
+    if 'authenticated' in session:
+        if form.validate_on_submit():
+            # Handling the image upload
+            if form.immagine.data:
+                image_filename = secure_filename(form.immagine.data.filename)
+                form.immagine.data.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+            else:
+                image_filename = None
 
-    except ValueError as ve:
-        return jsonify({'Error': str(ve)}), 403
-    except Exception as e:
-        return jsonify({'Error': str(e)}), 500
+            # Get the current user's username
+            utente_inserimento = get_username()
+
+            service_t_preparazioni.create_preparazione(
+                fkTipoPreparazione=form.fkTipoPreparazione.data, 
+                descrizione=form.descrizione.data, 
+                isEstivo=form.isEstivo.data, 
+                isInvernale=form.isInvernale.data,  
+                inizio=form.inizio.data if form.inizio.data else None, 
+                fine=form.fine.data if form.fine.data else None,  
+                utenteInserimento=utente_inserimento,  # Use the username here
+                immagine=image_filename
+                
+            )
+
+            flash('Preparazione aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.preparazioni'))
+
+        return render_template(
+            'preparazioni.html',
+            preparazioni=preparazioni,
+            tipiPreparazioni=tipiPreparazioni,
+            preparazioniContenuti=preparazioniContenuti,
+            tipiQuantia=tipiQuantia,
+            TipoPreparazione_map=TipoPreparazione_map,
+            eliminaPrep=eliminaPrep,
+            form=form
+        )
+    else:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/preparazione_dettagli/<int:id_preparazione>', methods=['GET'])
+def preparazione_dettagli(id_preparazione):
+    preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
+    preparazione_contenuti = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
+
+    if preparazione:
+        return render_template('preparazione_dettagli.html', preparazione=preparazione, preparazione_contenuti=preparazione_contenuti)
+    else:
+        return redirect(url_for('app_cucina.preparazioni'))
+
+
+
+
 
 
 @app_cucina.route('/do_logout', methods=['POST'])

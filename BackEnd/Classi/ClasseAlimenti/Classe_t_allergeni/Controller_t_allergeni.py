@@ -18,7 +18,6 @@ def get_by_id(id):
     return jsonify(allergene)
 
 @t_allergeni_controller.route('/create', methods=['POST'])
-@jwt_required()
 def create():
     dati = request.json
     if 'nome' not in dati:

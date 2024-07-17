@@ -5,7 +5,6 @@ alimenti - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
-
 <div class="container">
     <div class="search-container">
         <div>
@@ -13,13 +12,13 @@ alimenti - Gestione Cucina e Mensa Ospedaliera
             <select id="searchType">
                 <option value="">Seleziona tipologia</option>
                 {% for tipologia in tipologie %}
-                    <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
+                <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
                 {% endfor %}
             </select>
         </div>
         <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -36,22 +35,22 @@ alimenti - Gestione Cucina e Mensa Ospedaliera
         </thead>
         <tbody id="alimentiTableBody">
             {% for alimento in alimenti %}
-                <tr>
-                    <td>{{ alimento.alimento }}</td>
-                    <td>{{ alimento.energia_Kcal }}</td>
-                    <td>{{ alimento.energia_KJ }}</td>
-                    <td>{{ alimento.prot_tot_gr }}</td>
-                    <td>{{ alimento.glucidi_tot }}</td>
-                    <td>{{ alimento.lipidi_tot }}</td>
-                    <td>{{ alimento.saturi_tot }}</td>
-                    <td>
-                        {% set allergene_ids = alimento.fkAllergene.split(',') %}
-                        {% for id in allergene_ids %}
-                            {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
-                </tr>
+            <tr>
+                <td>{{ alimento.alimento }}</td>
+                <td>{{ alimento.energia_Kcal }}</td>
+                <td>{{ alimento.energia_KJ }}</td>
+                <td>{{ alimento.prot_tot_gr }}</td>
+                <td>{{ alimento.glucidi_tot }}</td>
+                <td>{{ alimento.lipidi_tot }}</td>
+                <td>{{ alimento.saturi_tot }}</td>
+                <td>
+                    {% set allergene_ids = alimento.fkAllergene.split(',') %}
+                    {% for id in allergene_ids %}
+                    {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
@@ -62,177 +61,101 @@ alimenti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-content">
         <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
         <h2>Aggiungi Alimento</h2>
-        <form id="addAlimentoForm">
-            <label for="alimentoName">Nome:</label>
-            <input type="text" id="alimentoName" required>
-            <label for="energiaKcal">Energia (Kcal):</label>
-            <input type="number" id="energiaKcal" required>
-            <label for="energiaKJ">Energia (KJ):</label>
-            <input type="number" id="energiaKJ" required>
-            <label for="proteine">Proteine (g):</label>
-            <input type="number" id="proteine" required>
-            <label for="carboidrati">Carboidrati (g):</label>
-            <input type="number" id="carboidrati" required>
-            <label for="grassi">Grassi (g):</label>
-            <input type="number" id="grassi" required>
-            <label for="grassiSaturi">Grassi Saturi (g):</label>
-            <input type="number" id="grassiSaturi" required>
-
-            <label for="allergeni">Allergeni:</label>
-            <select id="allergeni" multiple required>
-                {% for allergene in allergeni %}
-                    <option value="{{ allergene.id }}">{{ allergene.nome }}</option>
-                {% endfor %}
-            </select>
-            
-            <h3>Allergeni Selezionati:</h3>
-            <ul id="selectedAllergensList"></ul>
-
-            <label for="tipologia">Tipologia:</label>
-            <select id="tipologia" required>
-                {% for tipologia in tipologie %}
-                    <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Aggiungi</button>
+        <form method="POST" action="{{ url_for('app_cucina.alimenti') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.alimento.label }} {{ form.alimento(size=32) }}
+            </div>
+            <div>
+                {{ form.energia_Kcal.label }} {{ form.energia_Kcal() }}
+            </div>
+            <div>
+                {{ form.energia_KJ.label }} {{ form.energia_KJ() }}
+            </div>
+            <div>
+                {{ form.prot_tot_gr.label }} {{ form.prot_tot_gr() }}
+            </div>
+            <div>
+                {{ form.glucidi_tot.label }} {{ form.glucidi_tot() }}
+            </div>
+            <div>
+                {{ form.lipidi_tot.label }} {{ form.lipidi_tot() }}
+            </div>
+            <div>
+                {{ form.saturi_tot.label }} {{ form.saturi_tot() }}
+            </div>
+            <div>
+                {{ form.fkAllergene.label }} {{ form.fkAllergene() }}
+            </div>
+            <div>
+                {{ form.fkTipologiaAlimento.label }} {{ form.fkTipologiaAlimento() }}
+            </div>
+            <div>
+                {{ form.submit() }}
+            </div>
         </form>
+
     </div>
 </div>
 
 <script>
-function showAddAlimentoForm() {
-    document.getElementById('addAlimentoModal').style.display = 'block';
-}
-
-function closeAddAlimentoForm() {
-    document.getElementById('addAlimentoModal').style.display = 'none';
-}
-
-// Function to get selected allergens
-function getSelectedAllergens() {
-    return Array.from(document.getElementById('allergeni').selectedOptions)
-                .map(option => option.value);
-}
-
-// Function to get selected allergens
-function getSelectedAllergens() {
-    return Array.from(document.getElementById('allergeni').selectedOptions)
-                .map(option => option.value);
-}
-
-// Function to update the list of selected allergens
-function updateSelectedAllergensList() {
-    const selectedAllergens = getSelectedAllergens();
-    const selectedAllergensList = document.getElementById('selectedAllergensList');
-
-    // Clear the current list
-    selectedAllergensList.innerHTML = '';
-
-    // Add selected allergens to the list
-    selectedAllergens.forEach(allergeneId => {
-        const li = document.createElement('li');
-        li.textContent = allergeneId; // You can map this to allergene names if needed
-        selectedAllergensList.appendChild(li);
-    });
-}
-
-// Handle form submission
-document.getElementById('addAlimentoForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const alimentoNome = document.getElementById('alimentoName').value;
-    const energiaKcal = document.getElementById('energiaKcal').value;
-    const energiaKJ = document.getElementById('energiaKJ').value;
-    const proteine = document.getElementById('proteine').value;
-    const carboidrati = document.getElementById('carboidrati').value;
-    const grassi = document.getElementById('grassi').value;
-    const grassiSaturi = document.getElementById('grassiSaturi').value;
-
-    // Get selected allergens IDs
-    const selectedAllergens = getSelectedAllergens();
-
-    const alimentoData = {
-        alimento: alimentoNome,
-        energia_Kcal: energiaKcal,
-        energia_KJ: energiaKJ,
-        prot_tot_gr: proteine,
-        glucidi_tot: carboidrati,
-        lipidi_tot: grassi,
-        saturi_tot: grassiSaturi,
-        fkAllergene: selectedAllergens.join(','), // Join selected IDs as a comma-separated string
-        fkTipologiaAlimento: document.getElementById('tipologia').value
-    };
-
-    // Fetch request to add the alimento
-    fetch('http://127.0.0.1:5000/alimenti/create', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-        },
-        body: JSON.stringify(alimentoData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.Error) {
-            alert('Errore: ' + data.Error);
-        } else {
-            alert('Alimento aggiunto con successo!');
-            closeAddAlimentoForm();
-            fetchAlimenti(); // Call to refresh the list
-        }
-    })
-    .catch(error => {
-        console.error('Error adding alimento:', error);
-    });
-});
-
-// Event listener for real-time updates
-document.getElementById('allergeni').addEventListener('change', function() {
-    updateSelectedAllergensList(); // Update the displayed list
-});
-
-
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    const searchNameInput = document.getElementById('searchName');
-    const searchTypeSelect = document.getElementById('searchType');
-    const alimentiTableBody = document.getElementById('alimentiTableBody');
-
-    // Create a map for tipologie
-    const searchTypeMap = {};
-    {% for tipologia in tipologie %}
-        searchTypeMap["{{ tipologia.id }}"] = "{{ tipologia.nome }}";
-    {% endfor %}
-
-    function filterTable() {
-        const searchName = searchNameInput.value.toLowerCase();
-        const searchType = searchTypeSelect.value;
-
-        const rows = alimentiTableBody.getElementsByTagName('tr');
-
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const nome = row.cells[0].textContent.toLowerCase(); // Nome nella prima colonna
-            const tipo = row.cells[8].textContent; // Tipologia nella nona colonna
-
-            const matchesName = nome.includes(searchName);
-            const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
-
-            if (matchesName && matchesType) {
-                row.style.display = ''; // Mostra la riga
-            } else {
-                row.style.display = 'none'; // Nascondi la riga
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchNameInput = document.getElementById('searchName');
+        const searchTypeSelect = document.getElementById('searchType');
+        const alimentiTableBody = document.getElementById('alimentiTableBody');
+    
+        function filterTable() {
+            const searchName = searchNameInput.value.toLowerCase();
+            const searchType = searchTypeSelect.value;
+    
+            const rows = alimentiTableBody.getElementsByTagName('tr');
+    
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const nome = row.cells[0].textContent.toLowerCase(); // Nome nella prima colonna
+                const tipo = row.cells[8].textContent; // Tipologia nella nona colonna
+    
+                const matchesName = nome.includes(searchName);
+                const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
+    
+                if (matchesName && matchesType) {
+                    row.style.display = ''; // Mostra la riga
+                } else {
+                    row.style.display = 'none'; // Nascondi la riga
+                }
             }
         }
+    
+                /* eslint-disable */
+            // Crea una mappa per le tipologie
+            const searchTypeMap = {};
+            {% for tipologia in tipologie %}
+                searchTypeMap["{{ tipologia.id }}"] = "{{ tipologia.nome }}";
+            {% endfor %}
+            /* eslint-enable */
+    
+        // Event listener per i filtri
+        searchNameInput.addEventListener('input', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
+    });
+
+    function showAddAlimentoForm() {
+        document.getElementById('addAlimentoModal').style.display = 'block';
     }
 
-    // Event listeners for filters
-    searchNameInput.addEventListener('input', filterTable);
-    searchTypeSelect.addEventListener('change', filterTable);
-});
+    function closeAddAlimentoForm() {
+        document.getElementById('addAlimentoModal').style.display = 'none';
+    }
+
+    document.getElementById('allergeni').addEventListener('change', function () {
+        const selectedAllergens = Array.from(this.selectedOptions).map(option => option.text);
+        const selectedAllergensList = document.getElementById('selectedAllergensList');
+        selectedAllergensList.innerHTML = '';
+        selectedAllergens.forEach(allergene => {
+            const li = document.createElement('li');
+            li.textContent = allergene;
+            selectedAllergensList.appendChild(li);
+        });
+    });
 </script>
-
 {% endblock %}
-

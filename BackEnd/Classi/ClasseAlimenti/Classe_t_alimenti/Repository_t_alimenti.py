@@ -45,8 +45,18 @@ class RepositoryAlimenti:
         
     def create(self, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento):
         try:
-            alimento = TAlimenti(alimento=alimento, energia_Kcal=energia_Kcal, energia_KJ=energia_KJ, prot_tot_gr=prot_tot_gr, glucidi_tot=glucidi_tot, lipidi_tot=lipidi_tot, saturi_tot=saturi_tot, fkAllergene=fkAllergene, fkTipologiaAlimento=fkTipologiaAlimento)
-            self.session.add(alimento)
+            new_alimento = TAlimenti(
+                alimento=alimento,
+                energia_Kcal=energia_Kcal,
+                energia_KJ=energia_KJ,
+                prot_tot_gr=prot_tot_gr,
+                glucidi_tot=glucidi_tot,
+                lipidi_tot=lipidi_tot,
+                saturi_tot=saturi_tot,
+                fkAllergene=fkAllergene,
+                fkTipologiaAlimento=fkTipologiaAlimento
+            )
+            self.session.add(new_alimento)
             self.session.commit()
             return {'alimento': 'added!'}, 200
         except Exception as e:

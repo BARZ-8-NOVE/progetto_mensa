@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey,text
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
-
+from sqlalchemy.sql import func
 
 class TPreparazioni(Base):
     __tablename__ = 't_preparazioni'
@@ -14,7 +14,7 @@ class TPreparazioni(Base):
     allergeni = Column(String(4000), nullable=True)
     inizio = Column(Date, nullable=True)
     fine = Column(Date, nullable=True)
-    dataInserimento = Column(DateTime, nullable=True)
+    dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)

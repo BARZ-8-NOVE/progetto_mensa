@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-
+    const searchNameInput = document.getElementById('searchName');
+    const searchTypeSelect = document.getElementById('searchType');
+    const alimentiTableBody = document.getElementById('alimentiTableBody');
 
     function filterTable() {
         const searchName = searchNameInput.value.toLowerCase();
@@ -23,11 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Crea una mappa per le tipologie
-    const searchTypeMap = {};
-    {% for tipologia in tipologie %}
-        searchTypeMap["{{ tipologia.id }}"] = "{{ tipologia.nome }}";
-    {% endfor %}
+            /* eslint-disable */
+        // Crea una mappa per le tipologie
+        const searchTypeMap = {};
+        {% for tipologia in tipologie %}
+            searchTypeMap["{{ tipologia.id }}"] = "{{ tipologia.nome }}";
+        {% endfor %}
+        /* eslint-enable */
 
     // Event listener per i filtri
     searchNameInput.addEventListener('input', filterTable);

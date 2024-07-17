@@ -207,7 +207,7 @@ th {
 }
 
 .modal-content label {
-    display: block;
+    display: inline;
     margin: 15px 0 5px;
     color: #333;
 }

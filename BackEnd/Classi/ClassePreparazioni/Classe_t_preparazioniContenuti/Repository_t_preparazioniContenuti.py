@@ -48,6 +48,30 @@ class Repository_t_preparazionicontenuti:
         except Exception as e:
             return {'Error': str(e)}, 400
 
+    def get_preparazioni_contenuti_by_id_preparazione(self, fkPreparazione):
+        try:
+            results = self.session.query(TPreparazioniContenuti).filter_by(fkPreparazione=fkPreparazione).filter(TPreparazioniContenuti.dataCancellazione.is_(None)).all()
+
+            if not results:
+                return {'Error': f'No match found for fkPreparazione: {fkPreparazione}'}, 404
+
+            return [{
+                'id': result.id,
+                'fkPreparazione': result.fkPreparazione,
+                'fkAlimento': result.fkAlimento,
+                'quantita': result.quantita,
+                'fkTipoQuantita': result.fkTipoQuantita,
+                'note': result.note,
+                'dataInserimento': result.dataInserimento,
+                'utenteInserimento': result.utenteInserimento,
+                'dataCancellazione': result.dataCancellazione,
+                'utenteCancellazione': result.utenteCancellazione
+            } for result in results]
+        
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+
     def create_preparazioni_contenuti(self, fkPreparazione, fkAlimento, quantita, fkTipoQuantita, note=None, dataInserimento=None, utenteInserimento=None, dataCancellazione=None, utenteCancellazione=None):
         try:
             preparazione_contenuto = TPreparazioniContenuti(
