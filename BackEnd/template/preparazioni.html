@@ -22,6 +22,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     <table>
         <thead>
             <tr>
+                
                 <th>Descrizione</th>
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
@@ -33,6 +34,9 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
             <tr onclick="window.location='{{ url_for('app_cucina.preparazione_dettagli', id_preparazione=preparazione.id) }}'">
+
+
+
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
                 <td>
@@ -82,11 +86,19 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
                     <!-- Existing fields for preparazione details -->
                     <div class="form-group">
                         {{ form.fkTipoPreparazione.label(class="form-label") }}
-                        {{ form.fkTipoPreparazione(class="form-control") }}
+                        {{ form.fkTipoPreparazione(class="form-control", id="fkTipoPreparazioneSelect") }}
                         {% for error in form.fkTipoPreparazione.errors %}
                             <span class="text-danger">{{ error }}</span>
                         {% endfor %}
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="titoloSelect" class="form-label">Tipo Piatto</label>
+                        <select id="titoloSelect" name="titolo" class="form-control">
+                            <!-- Le opzioni saranno popolate dinamicamente tramite JavaScript -->
+                        </select>
+                    </div>
+                    
 
                     <div class="form-group">
                         {{ form.descrizione.label(class="form-label") }}
@@ -164,6 +176,7 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
                     <!-- Ingredient list section -->
                     <h5>Ingredienti Aggiunti</h5>
                     <ul id="ingredientList" class="list-group"></ul>
+                    <input type="hidden" id="ingredientListInput" name="ingredientList">
                 </div>
 
                 <div class="modal-footer">
@@ -175,10 +188,33 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     </div>
 </div>
 
+
+<!-- Modale -->>
+<div class="modal fade" id="dettagliModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli Preparazione</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p><strong>Descrizione:</strong> <span id="preparazioneDescrizione"></span></p>
+                <!-- Altri dettagli qui -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataInserimento, immagine) {
+    document.getElementById('preparazioneDescrizione').innerText = descrizione;
+    // Imposta altri dettagli
+}
 
-
-    
     let ingredientList = [];
 
     // Mappa degli alimenti
@@ -197,32 +233,24 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     
     // Funzione per aggiungere un alimento
     function addAlimento() {
-        const fkAlimento = document.querySelector('select[name="fkAlimento"]').value;
-        const quantita = document.querySelector('input[name="quantita"]').value;
-        const fkTipoQuantita = document.querySelector('select[name="fkTipoQuantita"]').value;
+        const fkAlimento = parseInt(document.querySelector('select[name="fkAlimento"]').value);
+        const quantita = parseFloat(document.querySelector('input[name="quantita"]').value); // Assicurati che sia float
+        const fkTipoQuantita = parseInt(document.querySelector('select[name="fkTipoQuantita"]').value);
         const note = document.querySelector('input[name="note"]').value;
     
-        console.log(`fkAlimento: ${fkAlimento}`);
-        console.log(`quantita: ${quantita}`);
-        console.log(`fkTipoQuantita: ${fkTipoQuantita}`);
-        console.log(`note: ${note}`);
-    
         // Controllo per campi vuoti
-        if (!fkAlimento || !quantita || !fkTipoQuantita) {
+        if (!fkAlimento || isNaN(quantita) || !fkTipoQuantita) {
             alert('Per favore, riempi tutti i campi richiesti.');
             return;
         }
     
         // Aggiungi l'ingrediente alla lista
         ingredientList.push({
-            fkAlimento: parseInt(fkAlimento),
+            fkAlimento: fkAlimento,
             quantita: quantita,
-            fkTipoQuantita: parseInt(fkTipoQuantita),
+            fkTipoQuantita: fkTipoQuantita,
             note: note
         });
-    
-        // Log per vedere la lista degli ingredienti aggiornata
-        console.log('IngredientList:', ingredientList);
     
         // Aggiorna la lista visualizzata
         updateIngredientList();
@@ -246,6 +274,9 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
             `;
             ingredientListElement.appendChild(listItem);
         });
+    
+        // Passa la lista al server
+        document.getElementById('ingredientListInput').value = JSON.stringify(ingredientList);
     }
     
     // Funzione per rimuovere un alimento dalla lista
@@ -254,10 +285,6 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         updateIngredientList();
     }
     
-    
-    console.log('alimento_map:', alimento_map);
-    console.log('tipo_map:', tipo_map);
-
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -324,6 +351,48 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         }
     });
 
-</script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var fkTipoPreparazioneSelect = document.getElementById('fkTipoPreparazioneSelect');
+        var titoloSelect = document.getElementById('titoloSelect');
+        var form = document.querySelector('form'); // Assumi che ci sia solo un form nel template
+    
+        fkTipoPreparazioneSelect.addEventListener('change', function() {
+            var selectedTipoPreparazione = fkTipoPreparazioneSelect.value;
+    
+            // Chiamata Ajax per ottenere i titoli dei piatti per il tipo di preparazione selezionato
+            fetch('/get_tipi_piatti/' + selectedTipoPreparazione)
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    // Pulisci le opzioni correnti
+                    titoloSelect.innerHTML = '';
+    
+                    // Aggiungi le nuove opzioni
+                    data.forEach(function(piatto) {
+                        var option = document.createElement('option');
+                        option.value = piatto.id;
+                        option.textContent = piatto.titolo;
+                        titoloSelect.appendChild(option);
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Error fetching piatti:', error);
+                });
+        });
+    
+        // Aggiungi un evento al submit del form per assicurarti che il valore di titolo venga inviato
+        form.addEventListener('submit', function(event) {
+            // Controlla se un valore è stato selezionato
+            var selectedPiatto = titoloSelect.value;
+            if (!selectedPiatto) {
+                event.preventDefault();
+                alert('Per favore seleziona un tipo piatto.');
+            }
+        });
+    });
+        </script>
+        
 
 {% endblock %}

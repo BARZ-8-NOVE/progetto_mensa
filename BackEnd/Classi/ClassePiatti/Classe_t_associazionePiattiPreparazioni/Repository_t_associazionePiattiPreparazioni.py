@@ -27,7 +27,7 @@ class RepositoryAssociazionePiattiPreparazioni:
         except Exception as e:
             return {'Error': str(e)}, 400
 
-    def create(self, fkPiatto, fkPreparazione, dataInserimento, utenteInserimento):
+    def create(self, fkPiatto, fkPreparazione, utenteInserimento, dataInserimento = None):
         try:
             associazione = TAssociazionePiattiPreparazioni (
                 fkPiatto=fkPiatto,

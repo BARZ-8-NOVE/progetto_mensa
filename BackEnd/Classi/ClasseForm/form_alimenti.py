@@ -44,7 +44,15 @@ class PreparazioniForm(FlaskForm):
     fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     immagine = FileField('Immagine', validators=[Optional()])
 
-    alimenti = FieldList(FormField(AlimentoForm), min_entries=1)  # Initialize FieldList with a minimum of 1
+    submit = SubmitField('Aggiungi')
+
+class PiattiForm(FlaskForm):
+    fkTipoPiatto = SelectField('Tipo piatto', coerce=int, validators=[DataRequired()])
+    codice = StringField('Codice', validators=[DataRequired()])
+    titolo = StringField('Tipo Piatto', validators=[DataRequired()])
+    descrizione = StringField('Descrizione', validators=[DataRequired()])
+    inMenu = BooleanField('In Menu', validators=[DataRequired()])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
 
     submit = SubmitField('Aggiungi')
 

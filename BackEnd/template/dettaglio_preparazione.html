@@ -1,0 +1,43 @@
+{% extends "index.html" %}
+
+{% block title %}
+Dettagli Preparazione - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Dettagli Preparazione</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ preparazione.descrizione }}</h5>
+            <p class="card-text">
+                <strong>Tipo Preparazione:</strong> {{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}<br>
+                <strong>Estivo:</strong> {% if preparazione.isEstivo %}Sì{% else %}No{% endif %}<br>
+                <strong>Invernale:</strong> {% if preparazione.isInvernale %}Sì{% else %}No{% endif %}<br>
+                <strong>Data Inserimento:</strong> {{ preparazione.dataInserimento }}<br>
+                <strong>Immagine:</strong><br>
+                {% if preparazione.immagine %}
+                    <img src="{{ url_for('static', filename='images/' ~ preparazione.immagine) }}" class="img-fluid" alt="Immagine Preparazione">
+                {% else %}
+                    <p>Nessuna immagine disponibile.</p>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <h3>Ingredienti</h3>
+    <ul class="list-group">
+        {% for preparazione_contenuto in alimentiPerPrep %}
+            <li class="list-group-item">
+                <strong>Alimento:</strong> {{ prep_map[preparazione_contenuto.fkAlimento] }}<br>
+                <strong>Quantità:</strong> {{ preparazione_contenuto.quantita }} {{ tipo_map[preparazione_contenuto.fkTipoQuantita] }}<br>
+                <strong>Note:</strong> {{ preparazione_contenuto.note }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <br>
+    <a href="{{ url_for('app_cucina.preparazioni') }}" class="btn btn-primary">Torna alle Preparazioni</a>
+</div>
+{% endblock %}

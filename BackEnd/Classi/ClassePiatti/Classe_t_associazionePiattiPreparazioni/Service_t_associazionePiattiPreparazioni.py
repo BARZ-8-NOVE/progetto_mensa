@@ -11,10 +11,10 @@ class ServiceAssociazionePiattiPreparazionie:
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
     
-    def create(self, fkPiatto, fkPreparazione, dataInserimento, utenteInserimento):
+    def create(self, fkPiatto, fkPreparazione, utenteInserimento , dataInserimento = None):
         if not dataInserimento:
             dataInserimento = datetime.now()
-        return self.repository.create(fkPiatto, fkPreparazione, dataInserimento, utenteInserimento)
+        return self.repository.create(fkPiatto, fkPreparazione, utenteInserimento, dataInserimento)
 
     def update(self, id, fkPiatto, fkPreparazione, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
         if not dataInserimento:

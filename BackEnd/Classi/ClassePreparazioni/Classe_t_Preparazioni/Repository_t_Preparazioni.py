@@ -73,7 +73,7 @@ class Repository_t_preparazioni:
             )
             self.session.add(preparazione)
             self.session.commit()
-            return {'preparazione': 'added!'}, 200
+            return preparazione.id
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500

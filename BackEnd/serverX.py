@@ -5,32 +5,31 @@
 #initialize_database()
 
 # Importare i controller
-# from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
-# from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
-# from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtente import TFunzionalitaUtenteService
-# from Classi.ClasseUtenti.Classe_t_autorizzazioni.Service_t_autorizzazioni import Service_t_autorizzazioni
-# from Classi.ClasseUtenti.Classe_t_tipiUtenti.Service_t_tipiUtenti import Service_t_tipiUtenti
 
+from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
+from Classi.ClasseUtenti.Classe_t_tipiUtenti.Service_t_tipiUtenti import Service_t_tipiUtenti
+ 
 
 from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import ServiceAlimenti
 from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import ServiceAllergeni
 from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Service_t_tipologiaalimenti import Service_t_tipologiaalimenti
-from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione.Service_t_tipologiaconservazione import ServiceTipologiaConservazioni
+
+
+from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import ServiceTipiPiatti
+from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import ServicePiatti
+from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import ServiceAssociazionePiattiPreparazionie
 
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
 
+from Classi.ClasseReparti.Service_t_reparti import ServiceReparti
 
-# from Classi.ClasseReparti.Service_t_reparti import ServiceReparti
+from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import ServiceOrdini
+from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import ServiceOrdiniPiatti
+from Classi.ClasseUtility import *
 
-# from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import ServiceOrdini
-# from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import ServiceOrdiniPiatti
-# from Classi.ClasseUtility import *
-
-# from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
-# from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, Blueprint, request, session, render_template, redirect, url_for, flash
 from flask_cors import CORS
@@ -47,8 +46,10 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm, AlimentoForm
+from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm
 # Initialize the app and configuration
+import Reletionships
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -65,6 +66,9 @@ service_t_utenti = Service_t_utenti()
 serviceAlimenti = ServiceAlimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 serviceAllergeni = ServiceAllergeni()
+
+servicePiatti = ServicePiatti()
+serviceAssociazionePiattiPreparazionie = ServiceAssociazionePiattiPreparazionie()
 
 service_t_preparazioni = Service_t_preparazioni()
 service_t_preparazionicontenuti = Service_t_preparazionicontenuti()
@@ -205,24 +209,39 @@ def alimenti():
     else:
         return redirect(url_for('app_cucina.login'))
 
+@app_cucina.route('/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
+def get_by_fkTipoPreparazione(fkTipoPreparazione):
+    piatti = servicePiatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
+    tutti_i_piatti = servicePiatti.get_all()
+    return jsonify(piatti if piatti else tutti_i_piatti)
+
+
 @app_cucina.route('/preparazioni', methods=['GET', 'POST'])
 def preparazioni():
+    #FACCIAMO TUTTE LE GET CHE CI SEERVONO
     preparazioni = service_t_preparazioni.get_all_preparazioni()
     tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
     preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
-
-    # Get alimenti and tipi_quantita using the appropriate methods
+    piatti = servicePiatti.get_all()
     alimenti = serviceAlimenti.get_all()  # Assuming this method returns a list of alimenti
     tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
+    associazione = serviceAssociazionePiattiPreparazionie.get_all()
 
+
+    #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
+    piattiform = PiattiForm()
     form = PreparazioniForm()
     alimform = AlimentoForm()
+
+    #REIMPIAMO LE POSSIBILI SCELTE DELLE FORM
     form.fkTipoPreparazione.choices = [
         (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
     ]
+
     alimform.fkAlimento.choices = [
         (alimento['id'], alimento['alimento']) for alimento in alimenti
     ]
+
     alimform.fkTipoQuantita.choices = [
         (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
     ]
@@ -241,9 +260,11 @@ def preparazioni():
                 image_filename = None
 
             utente_inserimento = get_username()
+            fk_piatto = request.form.get('titolo')
 
             # Create the preparation record and get its ID
             new_preparazione_id = service_t_preparazioni.create_preparazione(
+                
                 fkTipoPreparazione=form.fkTipoPreparazione.data, 
                 descrizione=form.descrizione.data, 
                 isEstivo=form.isEstivo.data, 
@@ -254,20 +275,35 @@ def preparazioni():
                 immagine=image_filename
             )
 
-            ingredient_list = request.form.getlist('ingredientList')
+
+            serviceAssociazionePiattiPreparazionie.create(
+                fkPiatto=fk_piatto, 
+                fkPreparazione = new_preparazione_id,
+                utenteInserimento = utente_inserimento
+            )
+
+            
+
+            ingredient_list = json.loads(request.form['ingredientList'])
+
             for ingredient in ingredient_list:
-                ingredient_data = json.loads(ingredient)
-                service_t_preparazionicontenuti.create_preparazioni_contenuti(
-                    fkPreparazione=new_preparazione_id, 
-                    fkAlimento=ingredient_data['fkAlimento'], 
-                    quantita=ingredient_data['quantita'], 
-                    fkTipoQuantita=ingredient_data['fkTipoQuantita'], 
-                    note=ingredient_data['note'],   
-                    utenteInserimento=utente_inserimento
-                )
+                try:
+                    # Save ingredient
+                    service_t_preparazionicontenuti.create_preparazioni_contenuti(
+                        fkPreparazione=new_preparazione_id,
+                        fkAlimento=int(ingredient['fkAlimento']),
+                        quantita=float(ingredient['quantita']),  # Ensure this is a float
+                        fkTipoQuantita=int(ingredient['fkTipoQuantita']),
+                        note=ingredient['note'],
+                        utenteInserimento=utente_inserimento
+                    )
+                    print(f"Ingredient saved: {ingredient}")
+                except (ValueError, KeyError) as e:
+                    print(f"Error processing ingredient: {ingredient}, error: {e}")
 
             flash('Preparazione aggiunta con successo!', 'success')
-            return redirect(url_for('app_cucina.preparazione_dettagli', id_preparazione=new_preparazione_id))
+            return redirect(url_for('app_cucina.preparazioni'))  # Redirect to the list of preparations
+
 
         return render_template(
             'preparazioni.html',
@@ -281,6 +317,8 @@ def preparazioni():
             tipi_quantita=tipi_quantita,
             alimform=alimform,
             alimento_map=alimento_map,
+            piattiform=piattiform,
+            piatti=piatti,
             tipo_map=tipo_map
 
         )
@@ -290,16 +328,47 @@ def preparazioni():
 
 
 
-@app_cucina.route('/preparazione_dettagli/<int:id_preparazione>', methods=['GET'])
+@app_cucina.route('/preparazioni/<int:id_preparazione>', methods=['GET'])
 def preparazione_dettagli(id_preparazione):
+    # Recupera la preparazione basata sull'ID fornito
     preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
-    preparazione_contenuti = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
-
-    if preparazione:
-        return render_template('preparazione_dettagli.html', preparazione=preparazione, preparazione_contenuti=preparazione_contenuti)
-    else:
+    
+    if not preparazione:
+        flash('Preparazione non trovata.', 'danger')
         return redirect(url_for('app_cucina.preparazioni'))
 
+    # Recupera tutti i tipi di preparazione disponibili
+    tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
+    
+    # Recupera tutti gli alimenti disponibili
+    alimenti = serviceAlimenti.get_all()
+    
+    # Recupera tutti i contenuti di preparazione per l'ID preparazione specificato
+    alimentiPerPrep = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
+    
+    # Recupera tutti i tipi di quantità disponibili
+    tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
+
+    # Costruisci il mapping degli alimenti per ID
+    alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
+    
+    # Costruisci il mapping dei tipi di preparazione per ID
+    TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
+    
+    # Costruisci il mapping dei tipi di quantità per ID
+    tipo_map = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
+    
+    # Costruisci il mapping dei contenuti di preparazione per ID di alimento
+    prep_map = {int(contenuto['fkAlimento']): alimento_map[int(contenuto['fkAlimento'])] for contenuto in alimentiPerPrep}
+
+    # Passa i dati al template
+    return render_template('dettaglio_preparazione.html', 
+                           alimentiPerPrep=alimentiPerPrep,
+                           preparazione=preparazione,
+                           TipoPreparazione_map=TipoPreparazione_map,
+                           alimento_map=alimento_map,
+                           prep_map=prep_map,
+                           tipo_map=tipo_map)
 
 
 
@@ -331,7 +400,19 @@ def do_logout():
         return jsonify({'Error': str(e)}), 500
 
 
+@app_cucina.route('/piatti')
+def piatti():
+    if 'authenticated' in session:
+        return render_template('piatti.html')
+    else:
+        return redirect(url_for('app_cucina.login'))
 
+@app_cucina.route('/tipologia_piatti')
+def tipologia_piatti():
+    if 'authenticated' in session:
+        return render_template('tipologia_piatti.html')
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 # Register the blueprint

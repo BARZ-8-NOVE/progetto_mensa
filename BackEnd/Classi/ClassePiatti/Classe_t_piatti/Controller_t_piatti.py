@@ -18,6 +18,7 @@ def get_by_id(id):
     piatto = service_piatti.get_by_id(id)
     return jsonify(piatto)
 
+
 @t_piatti_controller.route('/create', methods=['POST'])
 @jwt_required()
 def create():

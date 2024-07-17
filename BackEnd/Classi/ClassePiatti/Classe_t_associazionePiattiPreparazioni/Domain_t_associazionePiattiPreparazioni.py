@@ -16,6 +16,6 @@ class TAssociazionePiattiPreparazioni(Base):
 
     piatto = relationship("TPiatti", backref="associazioni")
     preparazione = relationship("TPreparazioni", backref="associazioni")
-    ordini_piatti = relationship("TOrdiniPiatti", back_populates="associazioni")
+    ordini_piatti = relationship("TOrdiniPiatti", back_populates="associazioni", uselist=True)
 
     # ordini_piatti = relationship("TOrdiniPiatti", backref="associazioni")

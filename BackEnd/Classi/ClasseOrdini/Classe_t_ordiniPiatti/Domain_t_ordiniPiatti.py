@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Domain_t_associazionePiattiPreparazioni import TAssociazionePiattiPreparazioni
 from Classi.ClasseDB.db_connection import Base
 
 
@@ -13,4 +14,4 @@ class TOrdiniPiatti(Base):
     note = Column(String(255))
 
     ordini = relationship("TOrdini", back_populates="ordini_piatti")
-    associazioni = relationship("TAssociazionePiattiPreparazioni", back_populates="ordini_piatti")
+    associazioni = relationship("TAssociazionePiattiPreparazioni", back_populates="ordini_piatti", uselist=False)

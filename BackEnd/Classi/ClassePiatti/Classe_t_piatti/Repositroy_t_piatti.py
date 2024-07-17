@@ -34,6 +34,17 @@ class RepositoryPiatti:
         except Exception as e:
             logging.error(f"Error getting piatto by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        
+        
+    def get_by_fkTipoPiatto(self, fkTipoPiatto):
+        try:
+            results = self.session.query(TPiatti).filter_by(fkTipoPiatto=fkTipoPiatto, dataCancellazione=None).all()
+            return [{'id': result.id, 'titolo': result.titolo} for result in results]
+        except Exception as e:
+            logging.error(f"Error getting piatti by fkTipoPiatto: {e}")
+            return []
+
+
 
     def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento):
         try:

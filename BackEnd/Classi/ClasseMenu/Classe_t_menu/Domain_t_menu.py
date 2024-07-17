@@ -14,5 +14,5 @@ class TMenu(Base):
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
 
-    tipo_menu = relationship("TTipiMenu", back_populates="menu")
-    menu_servizi = relationship("TMenuServizi", back_populates="menu")
+    menu_servizi = relationship("TMenuServizi", back_populates="menu", uselist=True)
+    tipi_menu = relationship("TTipiMenu", back_populates="menu", uselist=True)
