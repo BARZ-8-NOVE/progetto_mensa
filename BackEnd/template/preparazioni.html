@@ -22,7 +22,10 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
     <table>
         <thead>
             <tr>
+
                 
+
+
                 <th>Descrizione</th>
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
@@ -33,9 +36,8 @@ Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
         </thead>
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
+
             <tr onclick="window.location='{{ url_for('app_cucina.preparazione_dettagli', id_preparazione=preparazione.id) }}'">
-
-
 
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>

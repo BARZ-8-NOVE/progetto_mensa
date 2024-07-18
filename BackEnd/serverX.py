@@ -263,6 +263,7 @@ def preparazioni():
             fk_piatto = request.form.get('titolo')
 
             # Create the preparation record and get its ID
+            # Create the preparation record and get its ID
             new_preparazione_id = service_t_preparazioni.create_preparazione(
                 
                 fkTipoPreparazione=form.fkTipoPreparazione.data, 
@@ -276,11 +277,13 @@ def preparazioni():
             )
 
 
+
             serviceAssociazionePiattiPreparazionie.create(
                 fkPiatto=fk_piatto, 
                 fkPreparazione = new_preparazione_id,
                 utenteInserimento = utente_inserimento
             )
+
 
             
 
@@ -336,6 +339,7 @@ def preparazione_dettagli(id_preparazione):
     if not preparazione:
         flash('Preparazione non trovata.', 'danger')
         return redirect(url_for('app_cucina.preparazioni'))
+
 
     # Recupera tutti i tipi di preparazione disponibili
     tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
