@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+{% block title %}
+Tipologia Menu - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+            <select id="searchType">
+            </select>
+        </div>
+        <button onclick="showAddTipologiaMenuForm()">Aggiungi Menu</button>
+    </div>
+
+    <div class="TipologiaMenu-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Colore</th>
+                    <th>Descrizione</th>
+                    <th>Ordinatore</th>
+                </tr>
+            </thead>
+            <tbody id="piattiTableBody">
+                {% for tipologiamenu in tipologie_menu %}
+                <tr>
+                    <td>
+                        <div style="width: 20px; height: 20px; background-color: {{ tipologiamenu.backgroundColor }}; border-radius: 5px; border: 1px solid black;"></div>
+                    </td>
+                    <td>{{ tipologiamenu.descrizione }}</td>
+                    <td>{{ tipologiamenu.ordinatore }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

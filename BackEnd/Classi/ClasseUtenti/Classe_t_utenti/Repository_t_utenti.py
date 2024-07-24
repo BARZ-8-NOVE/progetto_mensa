@@ -263,3 +263,12 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
+
+    def is_token_valid(self, id, token):
+        # Recupera l'utente dal database usando il suo public_id
+        user = self.session.query(TUtenti).filter_by(id = id).first()
+        if not user:
+            return False
+
+        # Confronta il token attuale con quello salvato nel database
+        return user.token == token

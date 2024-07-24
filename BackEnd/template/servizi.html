@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+
+{% block title %}
+Servizi - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+        </div>
+        <button onclick="showAddRepartoForm()">Aggiungi servizio</button>
+    </div>
+
+    <div class="servizi-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>servizio</th>  
+                    <th>ordinatore</th>
+                </tr>
+            </thead>
+            <tbody id="serviziTableBody">
+                {% for servizio in servizi %}
+                <tr>
+                    <td>{{ servizio.descrizione }}</td>
+                    <td>{{ servizio.ordinatore}}</td>
+                   
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>    
+
+
+    {% endblock %}

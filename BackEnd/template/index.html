@@ -43,6 +43,7 @@
     <script>
         const token = "{{ token }}";  // Retrieves the token from Flask
     </script>
+    <script type="module" src="{{ url_for('static', filename='js/apiUtils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>

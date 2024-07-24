@@ -51,10 +51,17 @@ class PreparazioniForm(FlaskForm):
 class PiattiForm(FlaskForm):
     fkTipoPiatto = SelectField('Tipo piatto', coerce=int, validators=[DataRequired()])
     codice = StringField('Codice', validators=[DataRequired()])
-    titolo = StringField('Tipo Piatto', validators=[DataRequired()])
-    descrizione = StringField('Descrizione', validators=[DataRequired()])
-    inMenu = BooleanField('In Menu', validators=[DataRequired()])
+    titolo = StringField('Nome Piatto', validators=[DataRequired()])
+    descrizione = StringField('Descrizione', validators=[Optional()])
+    inMenu = BooleanField('In Menu', validators=[Optional()])
     ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
 
+    submit = SubmitField('Aggiungi')
+
+class MenuForm(FlaskForm):
+    codice = SelectField('Codice Piatto', coerce=int, validators=[DataRequired()])
+    fkTipoPiatto = MultiCheckboxField('piatto', validators=[MultiCheckboxAtLeastOne()], coerce=int)
+    preparazione = SelectField('Preparazione', coerce=int, validators=[DataRequired()])
+    
     submit = SubmitField('Aggiungi')
 

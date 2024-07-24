@@ -17,5 +17,5 @@ class TMenuServizi(Base):
     utenteCancellazione = Column(String(20), nullable=True)
 
     menu = relationship("TMenu", back_populates="menu_servizi")
-    
     servizio = relationship("TServizi", back_populates="menu_servizi")
+    menu_servizi_associazione = relationship("TMenuServiziAssociazione", back_populates="menu_servizi", uselist=True)

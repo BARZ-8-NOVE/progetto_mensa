@@ -1,3 +1,5 @@
+
+
 document.getElementById('logout').addEventListener('click', function() {
     fetch("do_logout", {
         method: 'POST',
@@ -30,3 +32,4 @@ document.getElementById('logout').addEventListener('click', function() {
         window.location.href = "login";  // Redirect to login page
     });
 });
+

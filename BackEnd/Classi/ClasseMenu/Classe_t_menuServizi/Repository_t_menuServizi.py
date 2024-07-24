@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from datetime import datetime
 from Classi.ClasseMenu.Classe_t_menuServizi.Domain_t_menuServizi import TMenuServizi
+from sqlalchemy import and_
 
 class RepositoryMenuServizi:
 
@@ -28,6 +29,36 @@ class RepositoryMenuServizi:
         except Exception as e:
             logging.error(f"Error getting all menu servizi: {e}")
             return {'Error': str(e)}, 500
+
+
+    def get_all_by_menu_ids(self, menu_ids):
+        try:
+            # Assicurati che menu_ids sia una lista
+            if not isinstance(menu_ids, list):
+                raise ValueError("menu_ids deve essere una lista di ID")
+
+            # Filtra i record con fkMenu in menu_ids
+            results = self.session.query(TMenuServizi).filter(
+                TMenuServizi.fkMenu.in_(menu_ids),
+                TMenuServizi.dataCancellazione.is_(None)
+            ).all()
+
+            return [
+                {
+                    'id': result.id,
+                    'fkMenu': result.fkMenu,
+                    'fkServizio': result.fkServizio,
+                    'note': result.note,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione,
+                } for result in results
+            ]
+        except Exception as e:
+            logging.error(f"Error getting menu services by menu ids: {e}")
+            return {'Error': str(e)}, 500
+
 
     def get_by_id(self, id):
         try:
@@ -97,4 +128,33 @@ class RepositoryMenuServizi:
         except Exception as e:
             self.session.rollback()
             logging.error(f"Error deleting menu servizi by ID {id}: {e}")
+            return {'Error': str(e)}, 500
+
+
+
+    def get_all_by_menu_ids_con_servizio(self, menu_id, fkServizio):
+        try:
+        # Filtra i record con fkMenu e fkServizio
+            result = self.session.query(TMenuServizi).filter(
+                TMenuServizi.fkMenu == menu_id,
+                TMenuServizi.fkServizio == fkServizio,
+                TMenuServizi.dataCancellazione.is_(None)
+            ).first()
+            
+            if result:
+                return {
+                    'id': result.id,
+                    'fkMenu': result.fkMenu,
+                    'fkServizio': result.fkServizio,
+                    'note': result.note,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione,
+                }
+            else:
+                return {'id': 'N/A'}
+            
+        except Exception as e:
+            logging.error(f"Error getting menu services by menu id and service type: {e}")
             return {'Error': str(e)}, 500

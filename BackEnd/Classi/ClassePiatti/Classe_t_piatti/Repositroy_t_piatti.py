@@ -5,6 +5,10 @@ from Classi.ClassePiatti.Classe_t_piatti.Domain_t_piatti import TPiatti
 import logging
 from datetime import datetime
 
+# Configura il logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 class RepositoryPiatti:
     def __init__(self):
         Session = sessionmaker(bind=engine)
@@ -46,7 +50,7 @@ class RepositoryPiatti:
 
 
 
-    def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento):
+    def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento=None):
         try:
             piatto = TPiatti(
                 fkTipoPiatto=fkTipoPiatto, 
@@ -58,13 +62,19 @@ class RepositoryPiatti:
                 dataInserimento=dataInserimento, 
                 utenteInserimento=utenteInserimento
             )
+            logger.debug(f"Creazione del piatto: {piatto}")
             self.session.add(piatto)
+            logger.debug("Piatto aggiunto alla sessione.")
             self.session.commit()
+            logger.debug("Sessione committata.")
             return {'piatto': 'added!'}, 200
         except Exception as e:
+            logger.error(f"Errore durante il commit: {e}")
             self.session.rollback()
+            logger.debug("Sessione rollbackata.")
             return {'Error': str(e)}, 500
-
+        
+        
     def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
         try:
             piatto = self.session.query(TPiatti).filter_by(id=id).first()

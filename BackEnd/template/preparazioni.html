@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 
 {% block title %}
-Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
+preparazioni - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
@@ -363,8 +363,11 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             var selectedTipoPreparazione = fkTipoPreparazioneSelect.value;
     
             // Chiamata Ajax per ottenere i titoli dei piatti per il tipo di preparazione selezionato
-            fetch('/get_tipi_piatti/' + selectedTipoPreparazione)
+            fetch('/app_cucina/get_tipi_piatti/' + selectedTipoPreparazione)
                 .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
                     return response.json();
                 })
                 .then(function(data) {
@@ -394,6 +397,7 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             }
         });
     });
+    
         </script>
         
 

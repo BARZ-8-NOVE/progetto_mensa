@@ -1,24 +1,41 @@
 {% extends "index.html" %}
 
 {% block title %}
-alimenti - Gestione Cucina e Mensa Ospedaliera
+Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome...">
-            <select id="searchType">
-                <option value="">Seleziona tipologia</option>
-                {% for tipologia in tipologie %}
-                <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <button onclick="showAddAlimentoForm()">Aggiungi tipologia piatto</button>
+    <h1>Tipologia Piatti</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descrizione</th>
+                <th>Descrizione Plurale</th>
+                <th>In Menu</th>
+                <th>Ordinatore</th>
+                <th>Colore</th>
+                <th>Colore Sfondo</th>
+                <th>Data Inserimento</th>
+                <th>Utente Inserimento</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for piatto in tipologia_piatti %}
+            <tr>
+                <td>{{ piatto.id }}</td>
+                <td>{{ piatto.descrizione }}</td>
+                <td>{{ piatto.descrizionePlurale }}</td>
+                <td>{{ piatto.inMenu }}</td>
+                <td>{{ piatto.ordinatore }}</td>
+                <td>{{ piatto.color }}</td>
+                <td>{{ piatto.backgroundColor }}</td>
+                <td>{{ piatto.dataInserimento }}</td>
+                <td>{{ piatto.utenteInserimento }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-
-
 {% endblock %}

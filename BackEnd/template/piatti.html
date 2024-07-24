@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 
 {% block title %}
-alimenti - Gestione Cucina e Mensa Ospedaliera
+Piatti - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
@@ -10,14 +10,162 @@ alimenti - Gestione Cucina e Mensa Ospedaliera
         <div>
             <input type="text" id="searchName" placeholder="Cerca per nome...">
             <select id="searchType">
-                <option value="">Seleziona tipologia</option>
-                {% for tipologia in tipologie %}
-                <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
+                <option value="">Seleziona tipo</option>
+                {% for tipoPiatto in tipologia_piatti %}
+                <option value="{{ tipoPiatto.id }}">{{ tipoPiatto.descrizione }}</option>
                 {% endfor %}
             </select>
         </div>
-        <button onclick="showAddAlimentoForm()">Aggiungi piatto</button>
+        <button onclick="showAddPiattoForm()">Aggiungi piatto</button>
+    </div>
+
+    <div class="piatti-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Tipo piatto</th>
+                    <th>Codice</th>
+                    <th>Nome Piatto</th>
+                    <th>In Menu</th>
+                    <th>Ordinatore</th>
+                    <th>Data Inserimento</th>
+                    <th>Utente Inserimento</th>
+                </tr>
+            </thead>
+            <tbody id="piattiTableBody">
+                {% for piatto in piatti %}
+                <tr>
+                    <td>{{ TipoPiatto_map[piatto.fkTipoPiatto] }}</td>
+                    <td>{{ piatto.codice }}</td>
+                    <td>{{ piatto.titolo }}</td>
+                    <td>{{ "Si" if piatto.inMenu else "No" }}</td>
+                    <td>{{ piatto.ordinatore }}</td>
+                    <td>{{ piatto.dataInserimento }}</td>
+                    <td>{{ piatto.utenteInserimento }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-    {% endblock %}
+<!-- Modal per l'aggiunta di un piatto -->
+<div id="addPiattoModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Aggiungi Piatto</h5>
+                    <button type="button" class="close" onclick="closeAddPiattoForm()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.fkTipoPiatto.label(class="form-label") }}
+                        {{ form.fkTipoPiatto(class="form-control", id="fkTipoPiattoSelect") }}
+                        {% for error in form.fkTipoPiatto.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.codice.label(class="form-label") }}
+                        {{ form.codice(class="form-control") }}
+                        {% for error in form.codice.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.titolo.label(class="form-label") }}
+                        {{ form.titolo(class="form-control") }}
+                        {% for error in form.titolo.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.descrizione.label(class="form-label") }}
+                        {{ form.descrizione(class="form-control") }}
+                        {% for error in form.descrizione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.inMenu.label(class="form-check-label") }}
+                        {{ form.inMenu(class="form-check-input") }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.ordinatore.label(class="form-check-label") }}
+                        {{ form.ordinatore(class="form-check-input") }}
+                        {% for error in form.ordinatore.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+
+                    
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Aggiungi Piatto</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddPiattoForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchNameInput = document.getElementById('searchName');
+        const searchTypeSelect = document.getElementById('searchType');
+        const piattiTableBody = document.getElementById('piattiTableBody');
+
+        function filterTable() {
+            const searchName = searchNameInput.value.trim().toLowerCase();
+            const searchType = searchTypeSelect.value;
+
+            const rows = piattiTableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const nome = row.cells[2].textContent.trim().toLowerCase(); // Nome del piatto nella terza colonna
+                const tipo = row.cells[0].textContent.trim(); // Tipo del piatto nella prima colonna
+
+                const matchesName = nome.includes(searchName);
+                const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
+
+                if (matchesName && matchesType) {
+                    row.style.display = ''; // Mostra la riga
+                } else {
+                    row.style.display = 'none'; // Nascondi la riga
+                }
+            }
+        }
+
+        const searchTypeMap = {};
+        {% for tipoPiatto in tipologia_piatti %}
+            searchTypeMap["{{ tipoPiatto.id }}"] = "{{ tipoPiatto.descrizione }}";
+        {% endfor %}
+
+        // Event listener per i filtri
+        searchNameInput.addEventListener('input', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
+    });
+
+    function showAddPiattoForm() {
+        document.getElementById('addPiattoModal').style.display = 'block';
+    }
+
+    function closeAddPiattoForm() {
+        document.getElementById('addPiattoModal').style.display = 'none';
+    }
+</script>
+
+{% endblock %}

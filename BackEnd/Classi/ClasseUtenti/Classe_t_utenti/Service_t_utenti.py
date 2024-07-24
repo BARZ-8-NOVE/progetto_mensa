@@ -99,3 +99,6 @@ class Service_t_utenti:
     
     def expiredTokens(self):
         return self.repository.expiredTokens()
+    
+    def is_token_valid(self, id, token):
+         return self.repository.is_token_valid(id, token)

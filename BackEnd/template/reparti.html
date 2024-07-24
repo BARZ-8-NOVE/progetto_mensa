@@ -1,0 +1,43 @@
+{% extends "index.html" %}
+
+{% block title %}
+Reparti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+        </div>
+        <button onclick="showAddRepartoForm()">Aggiungi Reparto</button>
+    </div>
+
+    <div class="reparti-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Reparto</th>  
+                    <th>Sezione</th>
+                    <th>Areas</th>
+                    <th>Inizio</th>
+                    <th>Fine</th>
+                </tr>
+            </thead>
+            <tbody id="repartiTableBody">
+                {% for reparto in reparti %}
+                <tr>
+                    <td>{{ reparto.descrizione }}</td>
+                    <td>{{ reparto.sezione }}</td>
+                    <td>{{ reparto.codiceAreas }}</td>
+                    <td>{{ reparto.inizio }}</td>
+                    <td>{{ reparto.fine }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>    
+
+
+    {% endblock %}
