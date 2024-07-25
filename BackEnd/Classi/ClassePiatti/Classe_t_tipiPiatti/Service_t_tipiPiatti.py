@@ -9,6 +9,9 @@ class ServiceTipiPiatti:
     def get_all(self):
         return self.repository.get_all()
 
+    def get_all_in_menu(self):
+        return self.repository.get_all_in_menu()
+
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
 

@@ -31,4 +31,10 @@ class MenuServiziAssociazioneService:
     
     def get_all_by_associazione_ids(self, fkMenuServizio):
         return self.repository.get_all_by_associazione_ids(fkMenuServizio)
+    
+    def populate_from_csv(self, csv_file):
+        return self.repository.populate_from_csv(csv_file)
+    
+    def close(self):
+        return self.repository.session.close()
 

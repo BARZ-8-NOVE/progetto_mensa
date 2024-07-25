@@ -52,20 +52,60 @@ Calendario Menu - Gestione Cucina
                             {% set current_date = datetime(year, month, day) %}
                             {{ current_date.strftime('%Y-%m-%d') }} - {{ weekdays[current_date.weekday()] }}
                         </td>
-                        <td>
+                        <td onclick="showMenuForm('{{ current_date.strftime('%Y-%m-%d') }}', 1)">
                             {% set current_date_str = current_date.strftime('%Y-%m-%d') %}
                             {% if current_date_str in menu_per_giorno %}
                                 {% set pranzo_id = menu_per_giorno[current_date_str].get(1) %}
                                 {% if pranzo_id %}
+                                    {% set piatti_by_category = {'Primi': [], 'Secondi': [], 'Contorni': [], 'Dolci': [] } %}
                                     {% set piatti_pranzo = piattimenu.get(pranzo_id, []) %}
-                                    <ul>
-                                        {% for piatto in piatti_pranzo %}
-                                            {% set associazione = associazione_map.get(piatto.id, {}) %}
-                                            <li>{{ associazione.piatto }} - {{ associazione.preparazione }}</li>
-                                        {% else %}
-                                            <p>Nessun piatto disponibile</p>
-                                        {% endfor %}
-                                    </ul>
+                                    {% for piatto in piatti_pranzo %}
+                                        {% set associazione = associazione_map.get(piatto.id, {}) %}
+                                        {% if associazione.piatto == 1 %}
+                                            {% set _ = piatti_by_category['Primi'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 2 %}
+                                            {% set _ = piatti_by_category['Secondi'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 3 %}
+                                            {% set _ = piatti_by_category['Contorni'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 4 %}
+                                            {% set _ = piatti_by_category['Dolci'].append(associazione.preparazione) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <div class="menu-columns">
+                                        <div class="column">
+                                            <h4>Primi</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Primi'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Secondi</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Secondi'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Contorni</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Contorni'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Dolci</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Dolci'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
                                 {% else %}
                                     <p>Nessun piatto disponibile</p>
                                 {% endif %}
@@ -73,20 +113,60 @@ Calendario Menu - Gestione Cucina
                                 <p>Nessun servizio disponibile</p>
                             {% endif %}
                         </td>
-                        <td>
+                        <td onclick="showMenuForm('{{ current_date.strftime('%Y-%m-%d') }}', 2)">
                             {% set current_date_str = current_date.strftime('%Y-%m-%d') %}
                             {% if current_date_str in menu_per_giorno %}
                                 {% set cena_id = menu_per_giorno[current_date_str].get(2) %}
                                 {% if cena_id %}
+                                    {% set piatti_by_category = {'Primi': [], 'Secondi': [], 'Contorni': [], 'Dolci': [] } %}
                                     {% set piatti_cena = piattimenu.get(cena_id, []) %}
-                                    <ul>
-                                        {% for piatto in piatti_cena %}
-                                            {% set associazione = associazione_map.get(piatto.id, {}) %}
-                                            <li>{{ associazione.piatto }} - {{ associazione.preparazione }}</li>
-                                        {% else %}
-                                            <p>Nessun piatto disponibile</p>
-                                        {% endfor %}
-                                    </ul>
+                                    {% for piatto in piatti_cena %}
+                                        {% set associazione = associazione_map.get(piatto.id, {}) %}
+                                        {% if associazione.piatto == 1 %}
+                                            {% set _ = piatti_by_category['Primi'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 2 %}
+                                            {% set _ = piatti_by_category['Secondi'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 3 %}
+                                            {% set _ = piatti_by_category['Contorni'].append(associazione.preparazione) %}
+                                        {% elif associazione.piatto == 4 %}
+                                            {% set _ = piatti_by_category['Dolci'].append(associazione.preparazione) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <div class="menu-columns">
+                                        <div class="column">
+                                            <h4>Primi</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Primi'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Secondi</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Secondi'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Contorni</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Contorni'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="column">
+                                            <h4>Dolci</h4>
+                                            <ul>
+                                                {% for piatto in piatti_by_category['Dolci'] %}
+                                                    <li>{{ piatto }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
                                 {% else %}
                                     <p>Nessun piatto disponibile</p>
                                 {% endif %}
@@ -100,15 +180,207 @@ Calendario Menu - Gestione Cucina
             {% endfor %}
         </tbody>
     </table>
-    
-    <form method="POST" action="{{ url_for('app_cucina.menu') }}">
-        {{ form.hidden_tag() }}
-        <input type="submit" value="Submit">
-    </form>
 
+    <!-- Struttura del Modal -->
+    <div id="addMenuModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="menuForm" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modifica Menu</h5>
+                        <button type="button" class="close" onclick="closeMenuForm()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Bottoni per la selezione della categoria dei piatti -->
+                            <div class="col-md-12">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-primary" onclick="filterPiatti(1)">Primi</button>
+                                    <button type="button" class="btn btn-primary" onclick="filterPiatti(2)">Secondi</button>
+                                    <button type="button" class="btn btn-primary" onclick="filterPiatti(3)">Contorni</button>
+                                    <button type="button" class="btn btn-primary" onclick="filterPiatti(4)">Dolci</button>
+                                </div>
+                            </div>
+                            <!-- Lista dei piatti -->
+                            <div class="col-md-12">
+                                <div id="piatti-list">
+                                    <!-- La lista dei piatti verrà popolata dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeMenuForm()">Chiudi</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script>
-        document.getElementById('tipo_menu').addEventListener('change', function() {
-            this.form.submit();
+
+        function showMenuForm(pranzoId, mealType) {
+            if (pranzoId !== null) {
+                // Mostra il modulo del menu basato sull'ID del pranzo
+                console.log('Pranzo ID:', pranzoId);
+                console.log('Tipo di pasto:', mealType);
+                // Logica per aprire un popup o eseguire altre azioni
+            } else {
+                console.error('ID del pranzo non trovato.');
+            }
+        }
+
+        // Funzione per aprire il popup e caricare i dettagli del menu
+        function openMenuPopup(menuId) {
+            // Ottieni il div del popup
+            const menuPopup = document.getElementById('menu-popup');
+            const menuDetails = document.getElementById('menu-details');
+            
+            // Pulizia dei dettagli del menu
+            menuDetails.innerHTML = '';
+    
+            // Chiamata per ottenere i dettagli del menu
+            fetch(`/get_menu_details/${menuId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Popola il popup con i dati del menu
+                    populateMenuDetails(data);
+                    
+                    // Mostra il popup
+                    menuPopup.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching menu details:', error);
+                });
+        }
+    
+        // Funzione per popolare i dettagli del menu nel popup
+        function populateMenuDetails(data) {
+            const menuDetails = document.getElementById('menu-details');
+            
+            // Popola i piatti
+            data.piatti.forEach(piatto => {
+                const div = document.createElement('div');
+                div.classList.add('form-check');
+                
+                const piattoId = piatto.id;
+                div.innerHTML = `
+                    <input type="checkbox" id="piatto-${piattoId}" name="piatti" value="${piattoId}" class="form-check-input" onchange="loadPreparazioni(${piattoId}, this)">
+                    <label for="piatto-${piattoId}" class="form-check-label">${piatto.titolo}</label>
+                    <select id="preparazioni-${piattoId}" name="preparazioni-${piattoId}[]" multiple class="form-control preparazioni-select">
+                        <!-- Preparazioni verranno aggiunte dinamicamente -->
+                    </select>
+                `;
+                menuDetails.appendChild(div);
+                
+                // Aggiungi preparazioni già selezionate, se disponibili
+                if (piatto.preparazioni) {
+                    const preparazioniSelect = document.getElementById(`preparazioni-${piattoId}`);
+                    piatto.preparazioni.forEach(preparazioneId => {
+                        const option = document.createElement('option');
+                        option.value = preparazioneId;
+                        option.text = preparazioniMap[preparazioneId] || `Preparazione ${preparazioneId}`;
+                        preparazioniSelect.appendChild(option);
+                    });
+                }
+            });
+        }
+    
+        // Funzione per mostrare il modulo del menu
+        function showMenuForm(date, mealType) {
+            document.getElementById('addMenuModal').style.display = 'block';
+            // Imposta i valori nel modulo, se necessario
+        }
+    
+        // Funzione per chiudere il modulo del menu
+        function closeMenuForm() {
+            document.getElementById('addMenuModal').style.display = 'none';
+        }
+    
+        // Funzione per filtrare i piatti in base alla categoria
+        function filterPiatti(categoria) {
+            fetch(`get_piatti/${categoria}`)
+                .then(response => response.json())
+                .then(data => {
+                    const piattiList = document.getElementById('piatti-list');
+                    piattiList.innerHTML = ''; // Pulisci le opzioni esistenti
+    
+                    data.forEach(piatto => {
+                        const div = document.createElement('div');
+                        div.classList.add('form-check');
+                        div.innerHTML = `
+                            <input type="checkbox" id="piatto-${piatto.id}" name="piatti" value="${piatto.id}" class="form-check-input" onchange="loadPreparazioni(${piatto.id}, this)">
+                            <label for="piatto-${piatto.id}" class="form-check-label">${piatto.titolo}</label>
+                            <select id="preparazioni-${piatto.id}" name="preparazioni-${piatto.id}[]" multiple class="form-control preparazioni-select">
+                                <!-- Preparazioni will be loaded here -->
+                            </select>
+                        `;
+                        piattiList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching piatti:', error);
+                });
+        }
+    
+        const preparazioniMap = {{ preparazioni_map | tojson | safe }};
+    
+        // Funzione per caricare le preparazioni per un piatto selezionato
+        function loadPreparazioni(piattoId, checkbox) {
+            const preparazioniSelect = document.getElementById(`preparazioni-${piattoId}`);
+            
+            if (checkbox.checked) {
+                fetch(`get_preparazioni/${piattoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        preparazioniSelect.innerHTML = ''; // Pulisci le preparazioni esistenti
+                        
+                        data.forEach(preparazione => {
+                            const option = document.createElement('option');
+                            const preparazioneId = preparazione.fkPreparazione;
+                            
+                            // Usa la mappa per ottenere la descrizione
+                            option.value = preparazioneId;
+                            option.text = preparazioniMap[preparazioneId] || `Preparazione ${preparazioneId}`; // Fallback in caso di ID non trovato
+                            
+                            preparazioniSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching preparazioni:', error);
+                    });
+            } else {
+                preparazioniSelect.innerHTML = ''; // Pulisci le preparazioni se la checkbox viene deselezionata
+            }
+        }
+    
+        // Funzione per gestire il clic sui piatti e mostrare le preparazioni
+        function showPreparazioni(piattoId) {
+            // Mostra la selezione delle preparazioni
+            document.getElementById('preparazioni-container').style.display = 'block';
+    
+            // Popola le preparazioni in base al piatto selezionato (potresti fare una richiesta AJAX qui)
+            // Per esempio:
+            // fetch(`/get_preparazioni/${piattoId}`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         var selectField = document.getElementById('form-preparazioni');
+            //         selectField.innerHTML = '';
+            //         data.preparazioni.forEach(function(preparazione) {
+            //             var option = document.createElement('option');
+            //             option.value = preparazione.id;
+            //             option.text = preparazione.descrizione;
+            //             selectField.add(option);
+            //         });
+            //     });
+        }
+    
+        // Funzione per inizializzare il filtro piatti alla categoria predefinita
+        document.addEventListener('DOMContentLoaded', function() {
+            filterPiatti(1); // Imposta la categoria predefinita, ad esempio, 1 per "Primi"
         });
     </script>
+    
 {% endblock %}

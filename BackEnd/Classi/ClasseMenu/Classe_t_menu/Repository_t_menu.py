@@ -94,17 +94,16 @@ class RepositoryMenu:
             logging.error(f"Error getting menu by ID {id}: {e}")
             return {'Error': str(e)}, 400
 
-    def create(self, data, fkTipoMenu, dataInserimento, utenteInserimento):
+    def create(self, data, fkTipoMenu,  utenteInserimento):
         try:
             menu = TMenu(
                 data=data,
                 fkTipoMenu=fkTipoMenu,
-                dataInserimento=dataInserimento,
                 utenteInserimento=utenteInserimento
             )
             self.session.add(menu)
             self.session.commit()
-            return {'menu': 'added!'}, 200
+            return menu.id
         except Exception as e:
             self.session.rollback()
             logging.error(f"Error creating menu: {e}")

@@ -30,6 +30,34 @@ class RepositoryTipiPiatti:
         except Exception as e:
             logging.error(f"Error getting all tipi piatti: {e}")
             return {'Error': str(e)}, 500
+    
+    def get_all_in_menu(self):
+        try:
+            # Assuming inMenu is a column of TTipiPiatti
+            results = self.session.query(TTipiPiatti).filter(
+                TTipiPiatti.inMenu == True, 
+                TTipiPiatti.dataCancellazione.is_(None)
+            ).all()
+
+            return [
+                {
+                    'id': result.id,
+                    'descrizione': result.descrizione,
+                    'descrizionePlurale': result.descrizionePlurale,
+                    'inMenu': result.inMenu,
+                    'ordinatore': result.ordinatore,
+                    'color': result.color,
+                    'backgroundColor': result.backgroundColor,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione,
+                } for result in results
+            ]
+        except Exception as e:
+            logging.error(f"Error getting all tipi piatti: {e}")
+            return {'Error': 'An error occurred while fetching the data.'}, 500
+
 
     def get_by_id(self, id):
         try:

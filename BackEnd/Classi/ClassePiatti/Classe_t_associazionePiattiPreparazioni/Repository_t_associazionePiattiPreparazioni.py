@@ -16,6 +16,20 @@ class RepositoryAssociazionePiattiPreparazioni:
             return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        
+    def get_preparazione_by_piatto(self, fkPiatto):
+        try:
+            results = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPiatto=fkPiatto, dataCancellazione=None).all()
+            return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 500
+        
+    def get_id_by_preparazione_e_piatto(self, fkPiatto, fkpreparazione):
+        try:
+            result = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPiatto=fkPiatto,fkpreparazione=fkpreparazione, dataCancellazione=None).first()
+            return {'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} 
+        except Exception as e:
+            return {'Error': str(e)}, 500
 
     def get_by_id(self, id):
         try:

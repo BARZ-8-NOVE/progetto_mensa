@@ -16,3 +16,4 @@ class TMenuServiziAssociazione(Base):
 
     menu_servizi = relationship("TMenuServizi", back_populates="menu_servizi_associazione")
     associazioni = relationship("TAssociazionePiattiPreparazioni", back_populates="menu_servizi_associazione", uselist=True) 
+

@@ -30,7 +30,7 @@ class ServicePiatti:
             return self.repository.get_by_fkTipoPiatto(id_modificato)
         else:
             return None
-
+    
     
     def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento = None):
         return self.repository.create(fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento)

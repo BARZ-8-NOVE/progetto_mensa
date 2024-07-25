@@ -23,7 +23,7 @@ from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Domani_t_preparazi
 from Classi.ClassePiatti.Classe_t_piatti.Domain_t_piatti import TPiatti
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Domani_t_tipiPiatti import TTipiPiatti
 from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Domain_t_associazionePiattiPreparazioni import TAssociazionePiattiPreparazioni
-
+from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Domain_t_menuServiziAssociazione import TMenuServiziAssociazione
 from Classi.ClasseMenu.Classe_t_tipiMenu.Domain_t_tipiMenu import TTipiMenu
 from Classi.ClasseMenu.Classe_t_menu.Domain_t_menu import TMenu
 
@@ -62,3 +62,15 @@ def initialize_database():
     finally:
                 # Chiudere la sessione
             session.close()
+
+def init_database():
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        populate_from_csv_with_ids(session, TMenuServiziAssociazione, 'DBMS/file_dati_statici/output.csv')
+    except Exception as e:
+        print(f"Errore durante il popolamento delle tabelle: {e}")
+        session.rollback()
+    finally:
+        session.close()
+

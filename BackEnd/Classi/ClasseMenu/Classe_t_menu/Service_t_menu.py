@@ -12,10 +12,9 @@ class ServiceMenu:
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
 
-    def create(self, data, fkTipoMenu, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.create(data, fkTipoMenu, dataInserimento, utenteInserimento)
+    def create(self, data, fkTipoMenu, utenteInserimento):
+
+        return self.repository.create(data, fkTipoMenu, utenteInserimento)
 
     def update(self, id, data, fkTipoMenu, dataInserimento, utenteInserimento ):
         if not dataInserimento:

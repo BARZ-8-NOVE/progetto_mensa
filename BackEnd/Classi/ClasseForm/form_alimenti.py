@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList
+from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList, RadioField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 from wtforms.validators import StopValidation
 
@@ -58,10 +58,10 @@ class PiattiForm(FlaskForm):
 
     submit = SubmitField('Aggiungi')
 
-class MenuForm(FlaskForm):
-    codice = SelectField('Codice Piatto', coerce=int, validators=[DataRequired()])
-    fkTipoPiatto = MultiCheckboxField('piatto', validators=[MultiCheckboxAtLeastOne()], coerce=int)
-    preparazione = SelectField('Preparazione', coerce=int, validators=[DataRequired()])
-    
-    submit = SubmitField('Aggiungi')
 
+class MenuForm(FlaskForm):
+    # piatto_categoria = RadioField('Categoria', choices=[], validators=[DataRequired()], coerce=int)
+    piatti = MultiCheckboxField('piatti', validators=[MultiCheckboxAtLeastOne()], coerce=int)
+    preparazioni = SelectMultipleField('Preparazioni', choices=[], coerce=int)
+
+    submit = SubmitField('Aggiungi Menu')

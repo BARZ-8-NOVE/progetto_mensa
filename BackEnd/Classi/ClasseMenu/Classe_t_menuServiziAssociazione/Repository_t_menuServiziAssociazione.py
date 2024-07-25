@@ -1,5 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+import pandas as pd
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Domain_t_menuServiziAssociazione import TMenuServiziAssociazione
 import logging
@@ -104,3 +105,18 @@ class RepositoryMenuServiziAssociazion:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        
+    def populate_from_csv(self, csv_file):
+        df = pd.read_csv(csv_file)
+
+        for index, row in df.iterrows():
+            response = self.create(
+                fkMenuServizio=row['fkMenuServizio'],
+                fkAssociazione=row['fkAssociazione'],
+                utenteInserimento='BARZ',  # Imposta un valore di default se vuoto
+            
+            )
+            print(response)
+    
+    def close(self):
+        self.session.close()

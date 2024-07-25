@@ -87,6 +87,7 @@ service_t_tipoquantita = Service_t_tipoquantita()
 serviceMenu = ServiceMenu()
 serviceMenuServizi = ServiceMenuServizi()
 menuServiziAssociazioneService = MenuServiziAssociazioneService()
+
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
 
@@ -267,6 +268,21 @@ def get_by_fkTipoPreparazione(fkTipoPreparazione):
     piatti = servicePiatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
     tutti_i_piatti = servicePiatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
+
+@app_cucina.route('/get_piatti/<tipo_piatto>', methods=['GET'])
+def get_piatti_fktipo_piatto(tipo_piatto): 
+    piatti_filtarti_menu = servicePiatti.get_by_fkTipoPiatto(tipo_piatto)
+    return jsonify(piatti_filtarti_menu)
+
+
+@app_cucina.route('/get_preparazioni/<tipo_piatto>', methods=['GET'])
+def get_preparazioni_e_associazione(tipo_piatto): 
+    preparazione = serviceAssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
+    print (preparazione)
+    return jsonify(preparazione)
+
+
+
 
 
 @app_cucina.route('/preparazioni', methods=['GET', 'POST'])
@@ -527,7 +543,13 @@ def tipologia_menu():
         return render_template('tipologia_menu.html', tipologie_menu=tipologie_menu)
     else:
         return redirect(url_for('app_cucina.login'))
+    
+    
 
+
+
+    
+    
 
 
 @app_cucina.route('/menu', methods=['GET', 'POST'])
@@ -544,13 +566,15 @@ def menu():
     # Mappa per i giorni della settimana
     weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
 
+ 
     # Recupera i dati dal servizio
     tipologie_menu = serviceTipiMenu.get_all()
     menu = serviceMenu.get_by_month(year, month, tipo_menu)
-
+    tipiPiatti = serviceTipiPiatti.get_all_in_menu()
     associazione = serviceAssociazionePiattiPreparazionie.get_all()
     piatti = servicePiatti.get_all()
     preparazioni = service_t_preparazioni.get_all_preparazioni()
+    
 
     # Recupera gli ID dei menu filtrati per il mese corrente
     menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
@@ -576,15 +600,17 @@ def menu():
             servizio_id = menu_servizi_map.get(menu_item['id'], {}).get(servizio)
             menu_per_giorno[date_key][servizio] = servizio_id
 
+    print(menu_per_giorno)
+
     # Recupera i piatti per ogni servizio dinamicamente
     piattimenu = {}
     for servizio_id in set(id for ids in menu_servizi_map.values() for id in ids.values()):
         piattimenu[servizio_id] = menuServiziAssociazioneService.get_by_fk_menu_servizio(servizio_id)
 
     # Crea una mappa dei piatti e delle preparazioni
-    piatti_map = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
+    piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
     preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
-    
+    # piatti_form = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
     # Mappa per associare i piatti e le preparazioni
     associazione_map = {}
     for tipo_associa in associazione:
@@ -595,8 +621,23 @@ def menu():
             'preparazione': preparazione_descrizione
         }
 
-    # Passa i dati al template
+
+    # associazione_piatti_form = {}
+    # for tipo_associa in associazione:
+    #     piatto_tipo = piatti_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
+    #     selezione_piatti = piatti_form.get(tipo_associa['fkPiatto'], 'Sconosciuto')
+    #     associazione_map[tipo_associa['id']] = {
+    #         'piatto': piatto_nome,
+    #     }
     form = MenuForm()
+    
+    # form.piatto_categoria.choices = [(tipopiatto['id'], tipopiatto['descrizione']) for tipopiatto in tipiPiatti]
+    form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
+    form.preparazioni.choices = [(preparazione['id'], preparazione['descrizione']) for preparazione in preparazioni]
+
+
+    # Passa i dati al template
+
 
     if 'authenticated' in session:
         return render_template(
@@ -613,6 +654,8 @@ def menu():
             preparazioni_map=preparazioni_map,
             associazione_map=associazione_map,
             piattimenu=piattimenu,  # Passa piattimenu al template
+            piatti=piatti,
+            preparazioni=preparazioni,
             datetime=datetime,
             calendar=calendar
         )
