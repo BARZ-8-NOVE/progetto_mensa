@@ -278,8 +278,9 @@ def get_piatti_fktipo_piatto(tipo_piatto):
 @app_cucina.route('/get_preparazioni/<tipo_piatto>', methods=['GET'])
 def get_preparazioni_e_associazione(tipo_piatto): 
     preparazione = serviceAssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
-    print (preparazione)
     return jsonify(preparazione)
+
+
 
 
 
@@ -545,13 +546,6 @@ def tipologia_menu():
         return redirect(url_for('app_cucina.login'))
     
     
-
-
-
-    
-    
-
-
 @app_cucina.route('/menu', methods=['GET', 'POST'])
 def menu():
     # Ottieni i parametri dai query string
@@ -574,21 +568,21 @@ def menu():
     associazione = serviceAssociazionePiattiPreparazionie.get_all()
     piatti = servicePiatti.get_all()
     preparazioni = service_t_preparazioni.get_all_preparazioni()
+    servizi = serviceTServizi.get_all_servizi()
     
-
     # Recupera gli ID dei menu filtrati per il mese corrente
     menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
 
     # Recupera tutti i servizi associati ai menu per il mese
     menu_servizi = serviceMenuServizi.get_all_by_menu_ids(menu_ids)
-
+    
     # Crea una mappa per gli ID dei servizi associati ai menu
     menu_servizi_map = {}
     for ms in menu_servizi:
         if ms['fkMenu'] not in menu_servizi_map:
             menu_servizi_map[ms['fkMenu']] = {}
         menu_servizi_map[ms['fkMenu']][ms['fkServizio']] = ms['id']
-
+    
     # Organizza i dati per giorno e servizio
     menu_per_giorno = {}
     for menu_item in menu:
@@ -596,11 +590,9 @@ def menu():
         if date_key not in menu_per_giorno:
             menu_per_giorno[date_key] = {'id_menu': menu_item['id']}
         # Aggiungi servizi per pranzo e cena
-        for servizio in [1, 2]:  # Supponiamo che '1' sia pranzo e '2' sia cena
-            servizio_id = menu_servizi_map.get(menu_item['id'], {}).get(servizio)
-            menu_per_giorno[date_key][servizio] = servizio_id
-
-    print(menu_per_giorno)
+        for servizio in servizi:  # Iterate over each service
+            servizio_id = menu_servizi_map.get(menu_item['id'], {}).get(servizio['id'])
+            menu_per_giorno[date_key][servizio['descrizione']] = servizio_id
 
     # Recupera i piatti per ogni servizio dinamicamente
     piattimenu = {}
@@ -622,22 +614,13 @@ def menu():
         }
 
 
-    # associazione_piatti_form = {}
-    # for tipo_associa in associazione:
-    #     piatto_tipo = piatti_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
-    #     selezione_piatti = piatti_form.get(tipo_associa['fkPiatto'], 'Sconosciuto')
-    #     associazione_map[tipo_associa['id']] = {
-    #         'piatto': piatto_nome,
-    #     }
     form = MenuForm()
     
     # form.piatto_categoria.choices = [(tipopiatto['id'], tipopiatto['descrizione']) for tipopiatto in tipiPiatti]
     form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
     form.preparazioni.choices = [(preparazione['id'], preparazione['descrizione']) for preparazione in preparazioni]
 
-
-    # Passa i dati al template
-
+        
 
     if 'authenticated' in session:
         return render_template(
@@ -662,7 +645,50 @@ def menu():
     else:
         return redirect(url_for('app_cucina.login'))
 
+@app_cucina.route('/set_menu_id/<int:menuServizio_id>')
+def set_menu_id(menuServizio_id):
+    session['menu_id'] = menuServizio_id
 
+    associazioni = menuServiziAssociazioneService.get_by_fk_menu_servizio(menuServizio_id)
+
+    # Crea una lista per accumulare gli oggetti prep
+    preps = []
+
+    for associazione in associazioni:
+        piatto_id = associazione['id']
+        prep = serviceAssociazionePiattiPreparazionie.get_by_id(piatto_id)
+        preps.append(prep)  # Aggiungi l'oggetto prep alla lista
+
+    # Restituisci la risposta JSON con la lista di oggetti prep
+    return jsonify({
+        'menu_id': menuServizio_id,
+        'associazion': preps  # Invia l'array di oggetti
+    })
+
+
+@app_cucina.route('/get_menu_details', methods=['GET'])
+def get_menu_details():
+    menu_servizio = session.get('menu_id')
+
+    if menu_servizio is None:
+        return jsonify({'error': 'ID del menu servizio non trovato nella sessione'}), 400
+
+    associazioni = menuServiziAssociazioneService.get_by_fk_menu_servizio(menu_servizio)
+    preparazioni = service_t_preparazioni.get_all_preparazioni() 
+    piatti = servicePiatti.get_all()
+
+    piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
+    preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
+    dettagli_menu = []
+    for associazione in associazioni:
+        piatto_id = associazione['id']
+        preparazioni = serviceAssociazionePiattiPreparazionie.get_by_id(piatto_id)
+        dettagli_menu.append({
+            'piatto': piatti_map.get(piatto_id, 'Sconosciuto'),
+            'preparazione': preparazioni_map.get(preparazioni['fkPreparazione'], 'Sconosciuto')
+        })
+
+    return jsonify(dettagli_menu)
 
 @app_cucina.route('/do_logout', methods=['POST'])
 @jwt_required()
