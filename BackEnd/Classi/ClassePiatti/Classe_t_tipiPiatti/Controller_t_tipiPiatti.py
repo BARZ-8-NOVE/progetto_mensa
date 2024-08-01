@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import ServiceTipiPiatti
+from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import Service_t_TipiPiatti
 from datetime import datetime
 
 t_tipi_piatti_controller = Blueprint('tipi_piatti', __name__)
-service_tipi_piatti = ServiceTipiPiatti()
+service_tipi_piatti = Service_t_TipiPiatti()
 
 @t_tipi_piatti_controller.route('/get_all', methods=['GET'])
 @jwt_required()

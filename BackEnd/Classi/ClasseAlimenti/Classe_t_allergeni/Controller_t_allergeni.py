@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import ServiceAllergeni
+from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import Service_t_Allergeni
 
 t_allergeni_controller = Blueprint('allergeni', __name__)
-service_allergeni = ServiceAllergeni()
+service_allergeni = Service_t_Allergeni()
 
 @t_allergeni_controller.route('/get_all', methods=['GET'])
 @jwt_required()

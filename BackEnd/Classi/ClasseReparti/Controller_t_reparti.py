@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClasseReparti.Service_t_reparti import ServiceReparti
+from Classi.ClasseReparti.Service_t_reparti import Service_t_Reparti
 
 t_reparti_controller = Blueprint('reparti', __name__)
-service_reparti = ServiceReparti()
+service_reparti = Service_t_Reparti()
 
 @t_reparti_controller.route('/get_all', methods=['GET'])
 @jwt_required()

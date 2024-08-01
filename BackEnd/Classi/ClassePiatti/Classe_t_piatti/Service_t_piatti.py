@@ -1,6 +1,6 @@
 from Classi.ClassePiatti.Classe_t_piatti.Repositroy_t_piatti import RepositoryPiatti
 from datetime import datetime
-class ServicePiatti:
+class Service_t_Piatti:
 
     def __init__(self) -> None:
         self.repository = RepositoryPiatti()

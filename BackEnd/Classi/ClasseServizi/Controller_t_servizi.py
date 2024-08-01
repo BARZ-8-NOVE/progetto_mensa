@@ -1,9 +1,9 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from Classi.ClasseServizi.Service_t_servizi import ServiceTServizi
+from Classi.ClasseServizi.Service_t_servizi import Service_t_Servizi
 
 t_servizi_controller = Blueprint('servizi', __name__)
-service_t_servizi = ServiceTServizi()
+service_t_servizi = Service_t_Servizi()
 
 @t_servizi_controller.route('/get_all', methods=['GET'])
 @jwt_required()

@@ -1,6 +1,6 @@
 from Classi.ClasseAlimenti.Classe_t_allergeni.Repository_t_allergeni import RepositoryAllergeni
 
-class ServiceAllergeni:
+class Service_t_Allergeni:
 
     def __init__(self) -> None:
         self.repository = RepositoryAllergeni()

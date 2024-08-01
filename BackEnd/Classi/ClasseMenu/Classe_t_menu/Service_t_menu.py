@@ -1,7 +1,7 @@
 from Classi.ClasseMenu.Classe_t_menu.Repository_t_menu import RepositoryMenu
-from datetime import datetime
+from datetime import datetime, date
 
-class ServiceMenu:
+class Service_t_Menu:
 
     def __init__(self) -> None:
         self.repository = RepositoryMenu()
@@ -35,6 +35,15 @@ class ServiceMenu:
         """
         return self.repository.get_by_mese_corrente(year, month, tipo_menu)
     
+    def get_by_date_and_type(self, year, month, day, fkTipoMenu):
+        return self.repository.get_by_date_and_type(year, month, day, fkTipoMenu)
+    
+    def get_by_date_and_type_previous_year(self, year, month, day, fkTipoMenu):
+        new_year = year - 1
+        return self.repository.get_by_date_and_type(new_year, month, day, fkTipoMenu)
+
+
+
     def get_menu_details(self, year: int, month: int, tipo_menu: int = None, id_menu: int = None):
         return self.repository.get_menu_details( year, month, tipo_menu, id_menu)
 

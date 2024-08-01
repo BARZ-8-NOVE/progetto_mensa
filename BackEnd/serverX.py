@@ -5,7 +5,8 @@
 #initialize_database()
 
 # Importare i controller
-from datetime import datetime
+from datetime import datetime, date
+
 import calendar
 from functools import wraps
 import pprint
@@ -14,26 +15,26 @@ from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Ser
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Service_t_tipiUtenti import Service_t_tipiUtenti
  
 
-from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import ServiceAlimenti
-from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import ServiceAllergeni
+from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import Service_t_Alimenti
+from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import Service_t_Allergeni
 from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Service_t_tipologiaalimenti import Service_t_tipologiaalimenti
 
-from Classi.ClasseMenu.Classe_t_tipiMenu.Service_t_tipiMenu import ServiceTipiMenu
-from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import ServiceMenu
-from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import ServiceMenuServizi
-from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Service_t_menuServiziAssociazione import MenuServiziAssociazioneService
+from Classi.ClasseMenu.Classe_t_tipiMenu.Service_t_tipiMenu import Service_t_TipiMenu
+from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import Service_t_Menu
+from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import Service_t_MenuServizi
+from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Service_t_menuServiziAssociazione import Service_t_MenuServiziAssociazione
 
-from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import ServiceTipiPiatti
-from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import ServicePiatti
-from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import ServiceAssociazionePiattiPreparazionie
+from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import Service_t_TipiPiatti
+from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import Service_t_Piatti
+from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import Service_t_AssociazionePiattiPreparazionie
 
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
 
-from Classi.ClasseServizi.Service_t_servizi import ServiceTServizi
-from Classi.ClasseReparti.Service_t_reparti import ServiceReparti
+from Classi.ClasseServizi.Service_t_servizi import Service_t_Servizi
+from Classi.ClasseReparti.Service_t_reparti import Service_t_Reparti
 
 from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import ServiceOrdini
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import ServiceOrdiniPiatti
@@ -42,6 +43,7 @@ from Classi.ClasseUtility import *
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, Blueprint, request, session, render_template, redirect, url_for, flash
 from flask_cors import CORS
+from flask_wtf.csrf import CSRFProtect
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, unset_jwt_cookies,  verify_jwt_in_request
 from werkzeug.exceptions import NotFound, Forbidden
 from datetime import timedelta
@@ -55,7 +57,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form_alimenti import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF
 # Initialize the app and configuration
 import Reletionships
 
@@ -64,6 +66,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
+app.config['WTF_CSRF_ENABLED'] = True
+
+csrf = CSRFProtect(app)
 
 # Initialize JWT and CORS
 jwt = JWTManager(app)
@@ -71,22 +76,22 @@ CORS(app)
 
 # Initialize services
 service_t_utenti = Service_t_utenti()
-serviceReparti = ServiceReparti()
-serviceTServizi = ServiceTServizi()
-serviceAlimenti = ServiceAlimenti()
+service_t_Reparti = Service_t_Reparti()
+service_t_Servizi = Service_t_Servizi()
+service_t_Alimenti = Service_t_Alimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
-serviceAllergeni = ServiceAllergeni()
-serviceTipiPiatti= ServiceTipiPiatti()
-servicePiatti = ServicePiatti()
-serviceAssociazionePiattiPreparazionie = ServiceAssociazionePiattiPreparazionie()
-serviceTipiMenu = ServiceTipiMenu()
+service_t_Allergeni = Service_t_Allergeni()
+service_t_TipiPiatti= Service_t_TipiPiatti()
+service_t_Piatti = Service_t_Piatti()
+service_t_AssociazionePiattiPreparazionie = Service_t_AssociazionePiattiPreparazionie()
+service_t_TipiMenu = Service_t_TipiMenu()
 service_t_preparazioni = Service_t_preparazioni()
 service_t_preparazionicontenuti = Service_t_preparazionicontenuti()
 service_t_tipipreparazioni = Service_t_tipipreparazioni()
 service_t_tipoquantita = Service_t_tipoquantita()
-serviceMenu = ServiceMenu()
-serviceMenuServizi = ServiceMenuServizi()
-menuServiziAssociazioneService = MenuServiziAssociazioneService()
+service_t_Menu = Service_t_Menu()
+service_t_MenuServizi = Service_t_MenuServizi()
+service_t_MenuServiziAssociazione = Service_t_MenuServiziAssociazione()
 
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
@@ -143,22 +148,23 @@ def check_token():
     except Exception as e:
         session['authenticated'] = False
         return redirect(url_for('app_cucina.login'))
-        
+
+@app_cucina.before_request
+def check_csrf():
+    exempt_routes = ['app_cucina.login', 'app_cucina.index','app_cucina.do_logout' ]
+    if request.endpoint not in exempt_routes:
+        csrf.protect()
 
 
-        
-
+#login fattio con il form 
 @app_cucina.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        try:
-            dati = request.form
-            required_fields = ['username', 'password']
-            UtilityGeneral.check_fields(dati, required_fields)
-            
-            username = dati['username']
-            password = dati['password']
+    form = LoginFormNoCSRF()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
 
+        try:
             user = service_t_utenti.do_login(username, password)
             if user:
                 session['authenticated'] = True
@@ -169,19 +175,58 @@ def login():
                 menu_structure = funzionalita_service.build_menu_structure(user['id'])
                 session['menu_structure'] = menu_structure
                 
-                # Redirect to index with token in session
                 return redirect(url_for('app_cucina.index'))
-
             else:
                 flash('Invalid username or password', 'error')
-                return render_template('loginx.html')
+                return render_template('loginx.html', form=form)
         
         except Exception as e:
             print(f"Error during login: {e}")
             flash('An error occurred during login. Please try again.', 'error')
-            return render_template('loginx.html')
+            return render_template('loginx.html', form=form)
     
-    return render_template('loginx.html')  # GET request
+    return render_template('loginx.html', form=form)  # GET request
+
+
+
+
+        
+
+# @app_cucina.route('/login', methods=['GET', 'POST'])
+
+# def login():
+#     if request.method == 'POST':
+#         try:
+#             dati = request.form
+#             required_fields = ['username', 'password']
+#             UtilityGeneral.check_fields(dati, required_fields)
+            
+#             username = dati['username']
+#             password = dati['password']
+
+#             user = service_t_utenti.do_login(username, password)
+#             if user:
+#                 session['authenticated'] = True
+#                 session['user_id'] = user['id']
+#                 session['token'] = user['token']
+                
+#                 funzionalita_service = TFunzionalitaUtenteService()
+#                 menu_structure = funzionalita_service.build_menu_structure(user['id'])
+#                 session['menu_structure'] = menu_structure
+                
+#                 # Redirect to index with token in session
+#                 return redirect(url_for('app_cucina.index'))
+
+#             else:
+#                 flash('Invalid username or password', 'error')
+#                 return render_template('loginx.html')
+        
+#         except Exception as e:
+#             print(f"Error during login: {e}")
+#             flash('An error occurred during login. Please try again.', 'error')
+#             return render_template('loginx.html')
+    
+#     return render_template('loginx.html')  # GET request
 
 def get_username():
     user_id = session.get('user_id')
@@ -199,10 +244,13 @@ def inject_user_data():
     username = user['username'] if user else "Utente"
     token = session.get('token')
 
+    form = LogoutFormNoCSRF()
+
     return dict(
         menu_structure=menu_structure,
         username=username,
-        token=token
+        token=token,
+        form=form
     )
 
 
@@ -213,15 +261,14 @@ def index():
     else:
         return redirect(url_for('app_cucina.login'))
 
-
 @app_cucina.route('/alimenti', methods=['GET', 'POST'])
 @login_required
 def alimenti():
 
     # Retrieve the list of alimenti, tipologie, and allergeni from your database
-    alimenti_list = serviceAlimenti.get_all()
+    alimenti_list = service_t_Alimenti.get_all()
     tipologie = service_t_tipologiaalimenti.get_all_tipologiaalimenti()
-    allergeni = serviceAllergeni.get_all()
+    allergeni = service_t_Allergeni.get_all()
     
     # Create maps for tipologie and allergeni
     tipologie_map = {int(tipologia['id']): tipologia['nome'] for tipologia in tipologie}
@@ -235,7 +282,7 @@ def alimenti():
         if form.validate_on_submit():
             fkAllergene = ",".join(str(allergene_id) for allergene_id in form.fkAllergene.data)
 
-            serviceAlimenti.create(
+            service_t_Alimenti.create(
                 alimento=form.alimento.data,
                 energia_Kcal=form.energia_Kcal.data,
                 energia_KJ=form.energia_KJ.data,
@@ -265,19 +312,19 @@ def alimenti():
 
 @app_cucina.route('/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
 def get_by_fkTipoPreparazione(fkTipoPreparazione):
-    piatti = servicePiatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
-    tutti_i_piatti = servicePiatti.get_all()
+    piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
+    tutti_i_piatti = service_t_Piatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
 
 @app_cucina.route('/get_piatti/<tipo_piatto>', methods=['GET'])
 def get_piatti_fktipo_piatto(tipo_piatto): 
-    piatti_filtarti_menu = servicePiatti.get_by_fkTipoPiatto(tipo_piatto)
+    piatti_filtarti_menu = service_t_Piatti.get_by_fkTipoPiatto(tipo_piatto)
     return jsonify(piatti_filtarti_menu)
 
 
 @app_cucina.route('/get_preparazioni/<tipo_piatto>', methods=['GET'])
 def get_preparazioni_e_associazione(tipo_piatto): 
-    preparazione = serviceAssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
+    preparazione = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
     return jsonify(preparazione)
 
 
@@ -292,10 +339,10 @@ def preparazioni():
     preparazioni = service_t_preparazioni.get_all_preparazioni()
     tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
     preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
-    piatti = servicePiatti.get_all()
-    alimenti = serviceAlimenti.get_all()  # Assuming this method returns a list of alimenti
+    piatti = service_t_Piatti.get_all()
+    alimenti = service_t_Alimenti.get_all()  # Assuming this method returns a list of alimenti
     tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
-    associazione = serviceAssociazionePiattiPreparazionie.get_all()
+    associazione = service_t_AssociazionePiattiPreparazionie.get_all()
 
 
     #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
@@ -347,7 +394,7 @@ def preparazioni():
 
 
 
-            serviceAssociazionePiattiPreparazionie.create(
+            service_t_AssociazionePiattiPreparazionie.create(
                 fkPiatto=fk_piatto, 
                 fkPreparazione = new_preparazione_id,
                 utenteInserimento = utente_inserimento
@@ -414,7 +461,7 @@ def preparazione_dettagli(id_preparazione):
     tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
     
     # Recupera tutti gli alimenti disponibili
-    alimenti = serviceAlimenti.get_all()
+    alimenti = service_t_Alimenti.get_all()
     
     # Recupera tutti i contenuti di preparazione per l'ID preparazione specificato
     alimentiPerPrep = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
@@ -452,8 +499,8 @@ def preparazione_dettagli(id_preparazione):
 @app_cucina.route('/piatti', methods=['GET', 'POST'])
 def piatti():
     # Ottenere tutti i piatti e le tipologie di piatti dal servizio
-    piatti = servicePiatti.get_all()
-    tipologia_piatti = serviceTipiPiatti.get_all()
+    piatti = service_t_Piatti.get_all()
+    tipologia_piatti = service_t_TipiPiatti.get_all()
 
     # Mappare le tipologie di piatti per l'uso nel template
     TipoPiatto_map = {int(tipoPiatto['id']): tipoPiatto['descrizione'] for tipoPiatto in tipologia_piatti}
@@ -472,7 +519,7 @@ def piatti():
             utente_inserimento = get_username()
            
             try:
-                servicePiatti.create(
+                service_t_Piatti.create(
                     fkTipoPiatto=form.fkTipoPiatto.data, 
                     codice=form.codice.data, 
                     titolo=form.titolo.data,
@@ -487,7 +534,7 @@ def piatti():
                 return {'Error': str(e)}, 500
 
             # Se il salvataggio nel database ha successo, aggiorna la lista dei piatti
-            piatti = servicePiatti.get_all()
+            piatti = service_t_Piatti.get_all()
 
             # Mostra il template con i dati aggiornati
             return render_template('piatti.html',
@@ -513,7 +560,7 @@ def piatti():
 
 @app_cucina.route('/tipologia_piatti')
 def tipologia_piatti():
-    tipologia_piatti = serviceTipiPiatti.get_all()
+    tipologia_piatti = service_t_TipiPiatti.get_all()
     if 'authenticated' in session:
         return render_template('tipologia_piatti.html',tipologia_piatti=tipologia_piatti)
     else:
@@ -523,7 +570,7 @@ def tipologia_piatti():
 
 @app_cucina.route('/reparti')
 def reparti():
-    reparti = serviceReparti.get_all()
+    reparti = service_t_Reparti.get_all()
     if 'authenticated' in session:
         return render_template('reparti.html',reparti=reparti)
     else:
@@ -531,7 +578,7 @@ def reparti():
 
 @app_cucina.route('/servizi')
 def servizi():
-    servizi = serviceTServizi.get_all_servizi()
+    servizi = service_t_Servizi.get_all_servizi()
     if 'authenticated' in session:
         return render_template('servizi.html',servizi=servizi)
     else:
@@ -539,7 +586,7 @@ def servizi():
 
 @app_cucina.route('/tipologia_menu')
 def tipologia_menu():
-    tipologie_menu = serviceTipiMenu.get_all()
+    tipologie_menu = service_t_TipiMenu.get_all()
     if 'authenticated' in session:
         return render_template('tipologia_menu.html', tipologie_menu=tipologie_menu)
     else:
@@ -560,21 +607,48 @@ def menu():
     # Mappa per i giorni della settimana
     weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
 
- 
+    utente_inserimento = get_username()
     # Recupera i dati dal servizio
-    tipologie_menu = serviceTipiMenu.get_all()
-    menu = serviceMenu.get_by_month(year, month, tipo_menu)
-    tipiPiatti = serviceTipiPiatti.get_all_in_menu()
-    associazione = serviceAssociazionePiattiPreparazionie.get_all()
-    piatti = servicePiatti.get_all()
+    tipologie_menu = service_t_TipiMenu.get_all()
+    menu = service_t_Menu.get_by_month(year, month, tipo_menu)
+    associazione = service_t_AssociazionePiattiPreparazionie.get_all()
+    piatti = service_t_Piatti.get_all()
     preparazioni = service_t_preparazioni.get_all_preparazioni()
-    servizi = serviceTServizi.get_all_servizi()
+    servizi = service_t_Servizi.get_all_servizi()
     
     # Recupera gli ID dei menu filtrati per il mese corrente
     menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
 
+    # Crea menu e servizi se non ci sono abbastanza menu per tutti i giorni del mese
+    if len(menu_ids) < len(month_days):
+        for week in month_days:
+            for day in week:
+                if day != 0:  # Salta i giorni che sono parte del mese precedente o successivo
+                    # Controlla se esiste già un menu per il giorno corrente
+                    existing_menu = service_t_Menu.get_by_date_and_type(year, month, day, tipo_menu)
+                    if not existing_menu:
+                        # Crea un nuovo menu
+                        new_menu_id = service_t_Menu.create(date(year, month, day), tipo_menu, utente_inserimento)
+                        if new_menu_id:
+                            # Popola il nuovo menu con i servizi
+                            for servizio in servizi:
+                                new_servizio_id = service_t_MenuServizi.create(new_menu_id, servizio['id'], utente_inserimento)
+                                
+                                old_menu = service_t_Menu.get_by_date_and_type_previous_year(year, month, day, tipo_menu)
+                                if old_menu:
+                                    old_menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(old_menu.id)
+                                    for old_servizio in old_menu_servizi:
+                                        if old_servizio['fkServizio'] == servizio['id']:
+                                            old_menu_piatti = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(old_servizio ['id'])
+                                            for old_piatto in old_menu_piatti:
+                                                service_t_MenuServiziAssociazione.create(new_servizio_id, old_piatto['id'], utente_inserimento)
+        
+        # Dopo aver creato i menu, servizi e piatti, fai un redirect alla stessa pagina
+        return redirect(url_for('app_cucina.menu', year=year, month=month, tipo_menu=tipo_menu))
+                                        
+
     # Recupera tutti i servizi associati ai menu per il mese
-    menu_servizi = serviceMenuServizi.get_all_by_menu_ids(menu_ids)
+    menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(menu_ids)
     
     # Crea una mappa per gli ID dei servizi associati ai menu
     menu_servizi_map = {}
@@ -597,7 +671,7 @@ def menu():
     # Recupera i piatti per ogni servizio dinamicamente
     piattimenu = {}
     for servizio_id in set(id for ids in menu_servizi_map.values() for id in ids.values()):
-        piattimenu[servizio_id] = menuServiziAssociazioneService.get_by_fk_menu_servizio(servizio_id)
+        piattimenu[servizio_id] = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(servizio_id)
 
     # Crea una mappa dei piatti e delle preparazioni
     piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
@@ -614,11 +688,6 @@ def menu():
         }
 
 
-    form = MenuForm()
-    
-    # form.piatto_categoria.choices = [(tipopiatto['id'], tipopiatto['descrizione']) for tipopiatto in tipiPiatti]
-    form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
-    form.preparazioni.choices = [(preparazione['id'], preparazione['descrizione']) for preparazione in preparazioni]
 
         
 
@@ -631,7 +700,6 @@ def menu():
             month_days=month_days,
             weekdays=weekdays,
             tipologie_menu=tipologie_menu,
-            form=form,
             menu_per_giorno=menu_per_giorno,
             piatti_map=piatti_map,
             preparazioni_map=preparazioni_map,
@@ -649,14 +717,14 @@ def menu():
 def set_menu_id(menuServizio_id):
     session['menu_id'] = menuServizio_id
 
-    associazioni = menuServiziAssociazioneService.get_by_fk_menu_servizio(menuServizio_id)
+    associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menuServizio_id)
 
     # Crea una lista per accumulare gli oggetti prep
     preps = []
 
     for associazione in associazioni:
         piatto_id = associazione['id']
-        prep = serviceAssociazionePiattiPreparazionie.get_by_id(piatto_id)
+        prep = service_t_AssociazionePiattiPreparazionie.get_by_id(piatto_id)
         preps.append(prep)  # Aggiungi l'oggetto prep alla lista
 
     # Restituisci la risposta JSON con la lista di oggetti prep
@@ -666,6 +734,112 @@ def set_menu_id(menuServizio_id):
     })
 
 
+@app_cucina.route('/menu/dettagli/<int:id_menu>', methods=['GET', 'POST'])
+def menu_dettagli(id_menu):
+    if 'authenticated' in session:
+        # Recupera le associazioni esistenti
+        associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
+        
+        piatti_e_prep = []
+        for associazione in associazioni:
+            piatti_e_prep.extend(service_t_AssociazionePiattiPreparazionie.get_by_id_ritorno_diz(associazione['id']))
+
+        tipologia_piatti = service_t_TipiPiatti.get_all()
+        piatti = service_t_Piatti.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+
+        prep_per_piatto = []
+        for piatto in piatti:
+            prep = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(piatto['id'])       
+            associazione = {
+                'piatto': piatto,
+                'preparazioni': prep
+            }        
+            prep_per_piatto.append(associazione)
+
+        form = MenuForm()
+        form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
+        form.preparazioni.choices = [(preparazione['id'], preparazione['descrizione']) for preparazione in preparazioni]
+
+        # Imposta i valori di default per i campi del form
+        selected_piatti_ids = [item['fkPiatto'] for item in piatti_e_prep]
+        selected_preparazioni_ids = [item['fkPreparazione'] for item in piatti_e_prep]
+        form.piatti.default = selected_piatti_ids
+        form.preparazioni.default = selected_preparazioni_ids
+        form.process()
+
+        piatti_to_preparazioni = {piatto['id']: [] for piatto in piatti}
+        for assoc in piatti_e_prep:
+            piatti_to_preparazioni[assoc['fkPiatto']].append(assoc['fkPreparazione'])
+
+        piatti_map = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
+        preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
+
+        if form.validate_on_submit():
+            app.logger.debug("Form valido.")
+            utente = get_username()
+            
+            # Raccogli le associazioni selezionate dall'utente
+            piatto_e_prep = []
+            for piatto_id in request.form.getlist('piatti'):
+                preparazioni_ids = request.form.getlist(f'preparazioni-{piatto_id}')
+                for preparazione_id in preparazioni_ids:
+                    piatto_e_prep.append({
+                        'fkPiatto': piatto_id,
+                        'fkPreparazione': preparazione_id
+                    })
+            print(piatto_e_prep)
+
+            associazioni_id = []
+            for assoc in piatto_e_prep:
+                result = service_t_AssociazionePiattiPreparazionie.get_id_by_preparazione_e_piatto(assoc['fkPiatto'], assoc['fkPreparazione'])
+                if 'Error' in result:
+                    app.logger.error(f"Errore durante il recupero dell'associazione: {result['Error']}")
+                    return {'Error': result['Error']}, 500
+                associazioni_id.append(result['id'])
+            print(associazioni_id)
+            # Elenco delle nuove associazioni da inserire
+            try:
+                # Elimina le associazioni esistenti
+                if associazioni:
+                    service_t_MenuServiziAssociazione.delete_per_menu(fkMenuServizio=id_menu, utenteCancellazione=utente)
+               
+                # Crea le nuove associazioni
+                for assoc_id in associazioni_id:
+                    response = service_t_MenuServiziAssociazione.create(
+                        fkMenuServizio=id_menu,
+                        fkAssociazione=assoc_id,
+                        utenteInserimento=utente
+                    )
+
+                    print(response)
+                    if 'Error' in response:
+                        app.logger.error(f"Errore durante l'inserimento dell'associazione: {response['Error']}")
+                        return {'Error': response['Error']}, 500
+                
+                app.logger.debug("Menu modificato con successo nel database.")
+                return redirect(url_for('app_cucina.menu'))
+            except Exception as e:
+                app.logger.error(f"Errore durante la modifica del menu: {str(e)}")
+                return {'Error': str(e)}, 500
+        else:
+            app.logger.debug("Form non valido: {}".format(form.errors))
+
+        # Renderizza il template se il form non è stato sottomesso con successo
+        return render_template('dettaglio_menu.html', 
+                                form=form,
+                                preparazioni=preparazioni,
+                                piatti_map=piatti_map,
+                                preparazioni_map=preparazioni_map,
+                                piatti=piatti,
+                                tipologia_piatti=tipologia_piatti,
+                                piatti_to_preparazioni=piatti_to_preparazioni,
+                                prep_per_piatto=prep_per_piatto
+                                )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
 @app_cucina.route('/get_menu_details', methods=['GET'])
 def get_menu_details():
     menu_servizio = session.get('menu_id')
@@ -673,16 +847,16 @@ def get_menu_details():
     if menu_servizio is None:
         return jsonify({'error': 'ID del menu servizio non trovato nella sessione'}), 400
 
-    associazioni = menuServiziAssociazioneService.get_by_fk_menu_servizio(menu_servizio)
+    associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio)
     preparazioni = service_t_preparazioni.get_all_preparazioni() 
-    piatti = servicePiatti.get_all()
+    piatti = service_t_Piatti.get_all()
 
     piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
     preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
     dettagli_menu = []
     for associazione in associazioni:
         piatto_id = associazione['id']
-        preparazioni = serviceAssociazionePiattiPreparazionie.get_by_id(piatto_id)
+        preparazioni = service_t_AssociazionePiattiPreparazionie.get_by_id_ritorno_diz(piatto_id)
         dettagli_menu.append({
             'piatto': piatti_map.get(piatto_id, 'Sconosciuto'),
             'preparazione': preparazioni_map.get(preparazioni['fkPreparazione'], 'Sconosciuto')
@@ -690,31 +864,41 @@ def get_menu_details():
 
     return jsonify(dettagli_menu)
 
+
+
 @app_cucina.route('/do_logout', methods=['POST'])
-@jwt_required()
 def do_logout():
-    try:
-        current_utente_public_id = get_jwt_identity()
-        service_t_utenti.do_logout(current_utente_public_id)
+    form = LogoutFormNoCSRF()
+    if form.validate_on_submit():
+        service_t_utenti.do_logout_nuovo(session['user_id'])
         session.clear()
-        return jsonify({'message': 'Successfully logged out.'}), 200 
-    except NotFound as e:
-        return jsonify({'Error': str(e)}), 404
-    except KeyError as e:
-        return jsonify({'Error': str(e)}), 400
-    except Forbidden as e:
-        return jsonify({
-            'Error': str(e),
-            'redirect': url_for('app_cucina.login')  # Redirect URL
-        }), 403
-    except Exception as e:
-        # Handle token expiration separately
-        if isinstance(e, jwt.ExpiredSignatureError):
-            return jsonify({
-                'Error': 'Token has expired. You will be redirected to the login page.',
-                'redirect': url_for('app_cucina.login')
-            }), 403
-        return jsonify({'Error': str(e)}), 500
+        return jsonify({'message': 'Successfully logged out.'}), 200
+    return jsonify({'error': 'Invalid request.'}), 400
+
+# @app_cucina.route('/do_logout_vecchio', methods=['POST'])
+# @jwt_required()
+# def do_logout_veccio():
+#     try:
+#         current_utente_public_id = get_jwt_identity()
+#         service_t_utenti.do_logout(current_utente_public_id)
+#         session.clear()
+#         return jsonify({'message': 'Successfully logged out.'}), 200 
+#     except NotFound as e:
+#         return jsonify({'Error': str(e)}), 404
+#     except KeyError as e:
+#         return jsonify({'Error': str(e)}), 400   
+#     except Forbidden as e:
+#         return jsonify({
+#             'Error': str(e),
+#             'redirect': url_for('app_cucina.login')
+#         }), 403
+#     except jwt.ExpiredSignatureError:
+#         return jsonify({
+#             'Error': 'Token has expired. You will be redirected to the login page.',
+#             'redirect': url_for('app_cucina.login')
+#         }), 403
+#     except Exception as e:
+#         return jsonify({'Error': str(e)}), 500
 
 
 

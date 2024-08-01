@@ -213,6 +213,22 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
         
+
+
+    def do_logout_nuovo(self, id: int):
+        """
+        Logs out a user by updating their 'attivo' status to 0 if they are currently active.
+
+        :param id: The ID of the user to log out.
+        :return: A tuple containing a farewell message and an HTTP status code.
+        """
+        result = self.exists_utente_by_id(id)
+        if result:
+            if result.attivo == 1:
+                self.update_utente_attivo(result.id, 0)
+        return {'message': 'Ciao, alla prossima volta!'}, 200
+
+
     def do_logout(self, current_utente_public_id: str):
         result = self.exists_utente_by_public_id(current_utente_public_id)
         if result:

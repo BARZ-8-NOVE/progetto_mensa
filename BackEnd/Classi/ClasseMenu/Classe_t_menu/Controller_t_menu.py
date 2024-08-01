@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import ServiceMenu
+from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import Service_t_Menu
 
 t_menu_controller = Blueprint('menu', __name__)
-service_menu = ServiceMenu()
+service_menu = Service_t_Menu()
 
 @t_menu_controller.route('/get_all', methods=['GET'])
 @jwt_required()

@@ -94,6 +94,10 @@ class Service_t_utenti:
     def do_logout(self, current_utente_public_id:str):
         return self.repository.do_logout(current_utente_public_id)
     
+    def do_logout_nuovo(self, id: int):
+        return self.repository.do_logout_nuovo(id)
+        
+    
     def current_user(self, public_id):
         return self.repository.current_user(public_id)
     

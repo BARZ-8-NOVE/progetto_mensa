@@ -1,7 +1,7 @@
 from Classi.ClasseReparti.Repository_t_reparti import RepositoryReparti
 from datetime import datetime
 
-class ServiceReparti:
+class Service_t_Reparti:
     def __init__(self):
         self.repository = RepositoryReparti()
 

@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import ServiceAlimenti
+from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import Service_t_Alimenti
 from werkzeug.exceptions import NotFound
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
 t_alimenti_controller = Blueprint('alimenti', __name__)
-service_alimenti = ServiceAlimenti()
+service_alimenti = Service_t_Alimenti()
 httpCodes = HttpCodes()
 
 @t_alimenti_controller.route('/get_all', methods=['GET'])

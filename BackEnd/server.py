@@ -58,7 +58,7 @@ from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 # Now you can import the FrontEnd module using the full package path
-from progetto_mensa.FrontEnd.Front_end import app_cucina
+# from progetto_mensa.FrontEnd.Front_end import app_cucina
 
 
 db = engine
@@ -93,7 +93,7 @@ app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
 app.register_blueprint(t_ordini_piatti_controller, url_prefix='/ordinipiatti')
 
-app.register_blueprint(app_cucina, url_prefix='/app_cucina')
+# app.register_blueprint(app_cucina, url_prefix='/app_cucina')
 
 #if __name__ == '__main__':
 #    app.run(debug=True)

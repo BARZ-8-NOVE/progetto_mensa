@@ -2,7 +2,7 @@ from Classi.ClasseAlimenti.Classe_t_alimenti.Repository_t_alimenti import Reposi
 from Classi.ClasseUtility.UtilitiAlimenti.UtilityAlimenti import UtilityAlimenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 
-class ServiceAlimenti:
+class Service_t_Alimenti:
 
     def __init__(self) -> None:
         self.repository = RepositoryAlimenti()

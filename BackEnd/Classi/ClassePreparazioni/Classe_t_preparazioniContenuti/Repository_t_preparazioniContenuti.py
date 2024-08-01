@@ -24,8 +24,13 @@ class Repository_t_preparazionicontenuti:
                 'dataCancellazione': result.dataCancellazione,
                 'utenteCancellazione': result.utenteCancellazione
             } for result in results]
+            
         except Exception as e:
             return {'Error': str(e)}, 500
+
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_preparazioni_contenuti_by_id(self, id):
         try:
@@ -47,6 +52,10 @@ class Repository_t_preparazionicontenuti:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 400
+        
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_preparazioni_contenuti_by_id_preparazione(self, fkPreparazione):
         try:
@@ -70,7 +79,9 @@ class Repository_t_preparazionicontenuti:
         
         except Exception as e:
             return {'Error': str(e)}, 500
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def create_preparazioni_contenuti(self, fkPreparazione, fkAlimento, quantita, fkTipoQuantita, note=None, dataInserimento=None, utenteInserimento=None, dataCancellazione=None, utenteCancellazione=None):
         try:
@@ -91,6 +102,9 @@ class Repository_t_preparazionicontenuti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def update_preparazioni_contenuti(self, id: int, fkPreparazione: int, fkAlimento: int, quantita: float,
                                       fkTipoQuantita: int, note: str, dataInserimento=None,
@@ -115,6 +129,10 @@ class Repository_t_preparazionicontenuti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def delete_preparazioni_contenuti(self, id):
         try:
@@ -129,3 +147,6 @@ class Repository_t_preparazionicontenuti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

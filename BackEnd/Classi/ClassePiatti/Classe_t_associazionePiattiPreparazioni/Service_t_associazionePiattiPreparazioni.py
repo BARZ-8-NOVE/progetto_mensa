@@ -1,6 +1,6 @@
 from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Repository_t_associazionePiattiPreparazioni import RepositoryAssociazionePiattiPreparazioni
 from datetime import datetime
-class ServiceAssociazionePiattiPreparazionie:
+class Service_t_AssociazionePiattiPreparazionie:
 
     def __init__(self) -> None:
         self.repository = RepositoryAssociazionePiattiPreparazioni()
@@ -10,6 +10,10 @@ class ServiceAssociazionePiattiPreparazionie:
 
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
+    
+    def get_by_id_ritorno_diz(self, id):
+        return self.repository.get_by_id_ritorno_diz(id)    
+    
     
     def create(self, fkPiatto, fkPreparazione, utenteInserimento , dataInserimento = None):
 

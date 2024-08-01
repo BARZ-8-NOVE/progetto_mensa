@@ -9,13 +9,21 @@ from Classi.ClassePiatti.Classe_t_piatti.Domain_t_piatti import TPiatti
 from Classi.ClasseServizi.Domani_t_servizi import TServizi
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
 
-from datetime import datetime 
+from datetime import datetime, date
 from sqlalchemy import and_
 class RepositoryMenu:
 
     def __init__(self) -> None:
         Session = sessionmaker(bind=engine)
         self.session = Session()
+
+    def __enter__(self):
+        self.session = self.Session()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            self.session.close()
 
     def get_all(self):
         try:
@@ -71,7 +79,9 @@ class RepositoryMenu:
         except Exception as e:
             logging.error(f"Error getting menu by month: {e}")
             return {'Error': str(e)}, 500
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()  
 
 
 
@@ -93,9 +103,20 @@ class RepositoryMenu:
         except Exception as e:
             logging.error(f"Error getting menu by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()  
 
-    def create(self, data, fkTipoMenu,  utenteInserimento):
+    def create(self, data, fkTipoMenu, utenteInserimento):
         try:
+            # Controlla se un elemento con data e fkTipoMenu esiste già
+            existing_menu = self.session.query(TMenu).filter_by(data=data, fkTipoMenu=fkTipoMenu).first()
+            
+            if existing_menu:
+                # Se esiste, restituisce un messaggio di errore
+                return {'Error': 'Elemento già esistente'}, 400
+            
+            # Se non esiste, crea un nuovo elemento
             menu = TMenu(
                 data=data,
                 fkTipoMenu=fkTipoMenu,
@@ -108,6 +129,9 @@ class RepositoryMenu:
             self.session.rollback()
             logging.error(f"Error creating menu: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()  
 
     def update(self, id, data, fkTipoMenu, dataInserimento, utenteInserimento):
         try:
@@ -125,6 +149,15 @@ class RepositoryMenu:
             self.session.rollback()
             logging.error(f"Error updating menu with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()  
+            
+    def get_by_date_and_type(self, year, month, day, fkTipoMenu):
+        target_date = date(year, month, day)
+        return self.session.query(TMenu).filter_by(data=target_date, fkTipoMenu=fkTipoMenu).first()
+    
+    
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -140,7 +173,9 @@ class RepositoryMenu:
             self.session.rollback()
             logging.error(f"Error deleting menu by ID {id}: {e}")
             return {'Error': str(e)}, 500
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()  
 
 
 
@@ -201,7 +236,7 @@ class RepositoryMenu:
             return datetime(year + 1, 1, 1)  # Primo giorno dell'anno successivo
         else:
             return datetime(year, month + 1, 1)  # Primo giorno del mese successivo
-        
+       
 
 
 

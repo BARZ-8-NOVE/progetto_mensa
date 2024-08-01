@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import ServiceMenuServizi
+from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import Service_t_MenuServizi
 
 t_menu_servizi_controller = Blueprint('menuservizi', __name__)
-service_menu_servizi = ServiceMenuServizi()
+service_menu_servizi = Service_t_MenuServizi()
 
 @t_menu_servizi_controller.route('/get_all', methods=['GET'])
 @jwt_required()
@@ -21,17 +21,16 @@ def get_by_id(id):
 @jwt_required()
 def create():
     dati = request.json
-    required_fields = ['fkMenu', 'fkServizio', 'note', 'dataInserimento', 'utenteInserimento']
+    required_fields = ['fkMenu', 'fkServizio', 'note', 'utenteInserimento']
     if not all(field in dati for field in required_fields):
         return jsonify({'Error': 'wrong keys!'}), 403
     try:
         fkMenu = int(dati['fkMenu'])
         fkServizio = int(dati['fkServizio'])
         note = dati['note']
-        dataInserimento = dati['dataInserimento']
         utenteInserimento = str(dati['utenteInserimento'])
 
-        return jsonify(service_menu_servizi.create(fkMenu, fkServizio, note, dataInserimento, utenteInserimento))
+        return jsonify(service_menu_servizi.create(fkMenu, fkServizio, note,  utenteInserimento))
 
     except ValueError as ve:
         return jsonify({'Error': str(ve)}), 403

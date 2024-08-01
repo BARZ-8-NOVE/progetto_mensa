@@ -1,0 +1,22 @@
+id,fkPadre,titolo,label,icon,link,ordinatore,target,dataCancellazione
+1,NULL,Home,home,icon-home,home,20,_self,NULL
+2,NULL,Ordini,ordini,icon-ordini,ordini,30,_self,NULL
+3,NULL,Configurazione,configurazione,icon-configurazione,NULL,40,_self,NULL
+4,NULL,Sistema,sistema,icon-sistema,NULL,50,_self,NULL
+5,NULL,Contatti,contatti,icon-contatti,contatti,60,_self,NULL
+6,3,Alimenti,alimenti,icon-alimenti,NULL,70,_self,NULL
+7,3,Piatti,piatti,icon-piatti,NULL,80,_self,NULL
+8,3,Menu,menu,icon-menu,NULL,90,_self,NULL
+9,3,Programmazione,programmazione,NULL,NULL,100,_self,NULL
+10,3,Configurazioni,configurazioni,NULL,NULL,110,_self,NULL
+11,4,Sicurezza,sicurezza,icon-sicurezza,sicurezza,120,_self,NULL
+12,4,Qualifiche,qualifiche,icon-qualifiche,qualifiche,130,_self,NULL
+13,6,Alimenti,alimenti,icon-alimenti,alimenti,140,_self,NULL
+14,6,Preparazioni,preparazioni,icon-preparazioni,preparazioni,150,_self,NULL
+15,7,"Tipologia Piatti",tipologia_piatti,icon-tipologia-piatti,tipologia_piatti,160,_self,NULL
+16,7,Piatti,piatti,icon-piatti,piatti,170,_self,NULL
+17,7,"Associazione Piatti Preparazioni",associazione_piatti_preparazioni,icon-associazione-piatti-preparazioni,associazione_piatti_preparazioni,180,_self,NULL
+18,8,"Tipologia Menu",tipologia_menu,icon-tipologia-menu,tipologia_menu,190,_self,NULL
+19,9,Menu,menu,icon-menu,menu,200,_self,NULL
+20,10,Reparti,reparti,icon-reparti,reparti,210,_self,NULL
+21,10,Servizi,servizi,icon-servizi,servizi,220,_self,NULL

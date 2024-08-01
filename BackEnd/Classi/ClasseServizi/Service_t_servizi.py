@@ -1,6 +1,6 @@
 from Classi.ClasseServizi.Repository_t_servizi import RepositoryTServizi
 
-class ServiceTServizi:
+class Service_t_Servizi:
     def __init__(self) -> None:
         self.repository = RepositoryTServizi()
 

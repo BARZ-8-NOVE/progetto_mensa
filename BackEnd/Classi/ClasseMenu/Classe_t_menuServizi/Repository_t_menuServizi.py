@@ -29,13 +29,19 @@ class RepositoryMenuServizi:
         except Exception as e:
             logging.error(f"Error getting all menu servizi: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
+        
+    def get_all_by_menu_id(self, menu_id):
+         return self.session.query(TMenuServizi).filter(TMenuServizi.fkMenu.in_(menu_id)).all()
 
     def get_all_by_menu_ids(self, menu_ids):
         try:
             # Assicurati che menu_ids sia una lista
             if not isinstance(menu_ids, list):
-                raise ValueError("menu_ids deve essere una lista di ID")
+                menu_ids = [menu_ids]
 
             # Filtra i record con fkMenu in menu_ids
             results = self.session.query(TMenuServizi).filter(
@@ -58,7 +64,9 @@ class RepositoryMenuServizi:
         except Exception as e:
             logging.error(f"Error getting menu services by menu ids: {e}")
             return {'Error': str(e)}, 500
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -79,23 +87,29 @@ class RepositoryMenuServizi:
         except Exception as e:
             logging.error(f"Error getting menu servizi by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
-    def create(self, fkMenu, fkServizio, note, dataInserimento, utenteInserimento):
+    def create(self, fkMenu, fkServizio, utenteInserimento, note = None):
         try:
             menu_servizi = TMenuServizi(
                 fkMenu=fkMenu,
                 fkServizio=fkServizio,
-                note=note,
-                dataInserimento=dataInserimento,
-                utenteInserimento=utenteInserimento
+                utenteInserimento=utenteInserimento,
+                note=note
+
             )
             self.session.add(menu_servizi)
             self.session.commit()
-            return {'menu_servizi': 'added!'}, 200
+            return menu_servizi.id
         except Exception as e:
             self.session.rollback()
             logging.error(f"Error creating menu servizi: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def update(self, id, fkMenu, fkServizio, note, dataInserimento, utenteInserimento):
         try:
@@ -114,6 +128,9 @@ class RepositoryMenuServizi:
             self.session.rollback()
             logging.error(f"Error updating menu servizi with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -129,7 +146,9 @@ class RepositoryMenuServizi:
             self.session.rollback()
             logging.error(f"Error deleting menu servizi by ID {id}: {e}")
             return {'Error': str(e)}, 500
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
 
     def get_all_by_menu_ids_con_servizio(self, menu_id, fkServizio):
@@ -158,3 +177,6 @@ class RepositoryMenuServizi:
         except Exception as e:
             logging.error(f"Error getting menu services by menu id and service type: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

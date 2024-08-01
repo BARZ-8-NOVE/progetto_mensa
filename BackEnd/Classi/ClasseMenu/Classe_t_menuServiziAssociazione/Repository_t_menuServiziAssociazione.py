@@ -41,6 +41,11 @@ class RepositoryMenuServiziAssociazion:
         except Exception as e:
             logging.error(f"Error getting menu associations by menu service ids: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
+
 
     def get_by_id(self, id):
         try:
@@ -51,13 +56,20 @@ class RepositoryMenuServiziAssociazion:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 400
-        
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
     def get_by_fk_menu_servizio(self, fkMenuServizio):
         try:
             results = self.session.query(TMenuServiziAssociazione).filter_by(fkMenuServizio=fkMenuServizio, dataCancellazione=None).all()
             return [{'id': result.fkAssociazione} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def create(self, fkMenuServizio, fkAssociazione, utenteInserimento, dataInserimento=None):
         try:
@@ -73,7 +85,10 @@ class RepositoryMenuServiziAssociazion:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
-        
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
     def update(self, id, fkMenuServizio, fkAssociazione, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
         try:
             associazione = self.session.query(TMenuServiziAssociazione).filter_by(id=id).first()
@@ -91,6 +106,9 @@ class RepositoryMenuServiziAssociazion:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -105,18 +123,33 @@ class RepositoryMenuServiziAssociazion:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
-        
-    def populate_from_csv(self, csv_file):
-        df = pd.read_csv(csv_file)
-
-        for index, row in df.iterrows():
-            response = self.create(
-                fkMenuServizio=row['fkMenuServizio'],
-                fkAssociazione=row['fkAssociazione'],
-                utenteInserimento='BARZ',  # Imposta un valore di default se vuoto
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
             
-            )
-            print(response)
-    
-    def close(self):
-        self.session.close()
+    def delete_per_menu(self, fkMenuServizio, utenteCancellazione):
+        try:
+            # Ottieni tutte le associazioni corrispondenti a fkMenuServizio
+            associazioni = self.session.query(TMenuServiziAssociazione).filter_by(fkMenuServizio=fkMenuServizio).all()
+            
+            # Se non ci sono associazioni, restituisci un errore
+            if not associazioni:
+                return {'Error': f'No match found for fkMenuServizio: {fkMenuServizio}'}, 404
+            
+            # Esegui la soft delete per ciascuna associazione
+            for associazione in associazioni:
+                associazione.dataCancellazione = datetime.now()
+                associazione.utenteCancellazione = utenteCancellazione
+            
+            # Commit le modifiche
+            self.session.commit()
+            return {'associazione': 'soft deleted!'}, 200
+            
+        except Exception as e:
+            # Esegui il rollback in caso di errore
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+

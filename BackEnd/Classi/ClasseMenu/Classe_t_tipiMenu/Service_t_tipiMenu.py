@@ -1,7 +1,7 @@
 from Classi.ClasseMenu.Classe_t_tipiMenu.Repository_t_tipiMenu import RepositoryTipiMenu
 from datetime import datetime
 
-class ServiceTipiMenu:
+class Service_t_TipiMenu:
     def __init__(self) -> None:
         self.repository = RepositoryTipiMenu()
 

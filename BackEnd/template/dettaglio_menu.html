@@ -1,0 +1,78 @@
+{% extends "index.html" %}
+
+{% block title %}
+Modifica Menu - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+    <h1>Dettaglio Menu</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            <label for="piatti">Piatti</label><br>
+            {% for piatto in piatti %}
+                <div>
+                    <input 
+                        type="checkbox" 
+                        id="piatto-{{ piatto.id }}" 
+                        name="piatti" 
+                        value="{{ piatto.id }}"
+                        {% if piatto.id in piatti_to_preparazioni and piatti_to_preparazioni[piatto.id] %} checked {% endif %}>
+                    <label for="piatto-{{ piatto.id }}">{{ piatto.titolo }}</label>
+                    <div id="preparazioni-container-{{ piatto.id }}" style="display:none;">
+                        <select id="preparazioni-{{ piatto.id }}" name="preparazioni-{{ piatto.id }}"  multiple style="width: 500px;">
+                            {% for preparazione in prep_per_piatto %}
+                                {% if preparazione['piatto']['id'] == piatto.id %}
+                                    {% for p in preparazione['preparazioni'] %}
+                                        <option value="{{ p['fkPreparazione'] }}" 
+                                                {% if piatto.id in piatti_to_preparazioni and p['fkPreparazione'] in piatti_to_preparazioni[piatto.id] %} selected {% endif %}>
+                                            {{ preparazioni_map[p['fkPreparazione']] }}
+                                        </option>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div>
+            <button type="submit">Aggiungi Menu</button>
+        </div>
+    </form>
+
+    <script>
+        // Stampa i dati per il debug
+        console.log('piattiToPreparazioni:', {{ piatti_to_preparazioni | tojson }});
+        console.log('prep_associate_a_piatto:', {{ prep_per_piatto | tojson }});
+        
+        const piattiToPreparazioni = {{ piatti_to_preparazioni | tojson }};
+        const prep_associate_a_piatto = {{ prep_per_piatto | tojson }};
+
+        function updatePreparazioni() {
+            console.log('Updating preparazioni visibility...');
+            
+            // Trova tutti i piatti selezionati
+            const selectedPiatti = Array.from(document.querySelectorAll('input[name="piatti"]:checked')).map(cb => parseInt(cb.value));
+            console.log('Selected Piatti:', selectedPiatti);
+
+            // Mostra i contenitori per i piatti selezionati e nascondi quelli non selezionati
+            document.querySelectorAll('div[id^="preparazioni-container-"]').forEach(container => {
+                const piattoId = container.id.split('-')[2];
+                if (selectedPiatti.includes(parseInt(piattoId))) {
+                    container.style.display = 'block'; // Mostra il contenitore per i piatti selezionati
+                } else {
+                    container.style.display = 'none'; // Nascondi i contenitori per i piatti non selezionati
+                }
+            });
+        }
+
+        // Associa l'evento change ai checkbox
+        document.querySelectorAll('input[name="piatti"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updatePreparazioni);
+        });
+
+        // Chiama updatePreparazioni al caricamento della pagina per visualizzare i contenitori appropriati
+        updatePreparazioni();
+    </script>
+{% endblock %}
