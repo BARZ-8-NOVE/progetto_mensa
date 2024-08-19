@@ -263,3 +263,164 @@ li {
     margin: 5px 0;
 }
 
+.rotated-header {
+    position: relative;
+    height: 200px; /* Altezza della cella, modifica se necessario */
+    width: 20px; /* Larghezza della cella, modifica se necessario */
+    text-align: center; /* Centra il testo */
+    vertical-align: middle; /* Allinea verticalmente il testo */
+    overflow: hidden; /* Nasconde il testo che esce dai bordi */
+}
+
+.rotated-header span {
+    display: inline-block;
+    transform: rotate(90deg);
+    transform-origin: left bottom;
+    white-space: nowrap;
+    position: absolute;
+    left: 35px; /* Modifica il posizionamento a tuo piacimento */
+    top: 10px; /* Modifica il posizionamento a tuo piacimento */
+    color: #333; /* Colore del testo, modifica se necessario */
+}
+
+.btn-elimina {
+    width: 20px;
+    height: 20px;
+    background-color: rgb(245, 245, 245);
+    color: rgb(189, 0, 0);
+    border: none;
+    border-radius: 5px;
+    border: 1px solid black;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 20px; /* Allinea verticalmente il testo */
+    padding: 0;
+}
+.btn-elimina:hover {
+    color: rgb(255, 1, 1);
+}
+.popup {
+    width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popup-content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.popup-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    row-gap: 0; /* Rimuove lo spazio tra le righe verticalmente */
+    column-gap: 0; /* Rimuove lo spazio tra le colonne orizzontalmente */
+    margin: 0; /* Rimuove lo spazio tra gli elementi della griglia */
+}
+
+.popup-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    height: 80px;
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 0;
+     /* Elimina margini tra gli elementi della griglia */
+}
+
+.popup-item .item-id {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.popup-item .item-value {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.popup-item.yellow { background-color: #ffff99; }
+.popup-item.brown { background-color: #ffcc99; }
+.popup-item.green { background-color: #ccffcc; }
+.popup-item.pink { background-color: #ffccff; }
+.popup-item.selezionato { background-color: #00881d; }
+
+.popup-custom-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    text-align: center;
+
+    width: 150px; /* Aggiungi una larghezza fissa per la colonna personalizzata */
+}
+
+.popup-custom-column-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 120px; /* Larghezza fissa per gli elementi della colonna personalizzata */
+    height: 22px; /* Altezza fissa per gli elementi della colonna personalizzata */
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 0;
+
+}
+
+
+.popup-custom-column-item.yellow { background-color: #ffff99; }
+.popup-custom-column-item.brown { background-color: #ffcc99; }
+.popup-custom-column-item.green { background-color: #ccffcc; }
+.popup-custom-column-item.pink { background-color: #ffccff; }
+.popup-custom-column-item.grey { background-color: #d9d9d9; }
+.popup-custom-column-item.selezionato { background-color: #00881d; }
+
+
+
+.form-row-ordiniPiatti {
+    display: flex;
+    flex-wrap: wrap; /* Allows wrapping to the next line if needed */
+    gap: 15px; /* Space between the fields */
+}
+
+.form-group-ordiniPiatti {
+    flex: 1; /* Ensures the fields grow to fill available space */
+    min-width: 200px; /* Optional: Sets a minimum width for each field */
+}
+
+.form-label-ordiniPiatti {
+    display: block; /* Ensures the label is on its own line above the field */
+    margin-bottom: 5px; /* Adds space below the label */
+}
+
+.form-control-ordiniPiatti {
+    width: 100%; /* Ensures the input fields fill their container */
+}
+
+.btn-ordiniPiatti {
+    margin-top: 15px; /* Adds space above the button */
+}
+
+.popup-item-ordiniPiatti.selezionato {
+    background-color: #00881d;
+    color: white; /* Optional: to ensure text is readable on the selected background */
+}
+
+.popup-custom-column-item-ordiniPiatti.selezionato {
+    background-color: #00881d;
+    color: white; /* Optional: to ensure text is readable on the selected background */
+}

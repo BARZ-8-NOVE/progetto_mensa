@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
-from Classi.ClasseDiete.Classe_t_tipiAlimentazione.Domain_t_tipAlimentazione import TTipiAlimentazione
+from Classi.ClasseDiete.Classe_t_tipiAlimentazione.Domain_t_tipiAlimentazione import TTipiAlimentazione
 from datetime import datetime
 
 class RepositoryTipiAlimentazione:

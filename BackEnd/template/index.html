@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Gestione Cucina e Mensa Ospedaliera{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
 </head>
@@ -27,7 +28,7 @@
                     <div class="dropdown-content">
                         {% for figlio in padre['figli'] %}
                             <div class="dropdown">
-                                <a href="{{ figlio['link'] }}">{{ figlio['titolo'] }}</a>
+                                <a href= "#">{{ figlio['titolo'] }}</a>
                                 <div class="dropdown-subcontent">
                                     {% for nipote in figlio['nipoti'] %}
                                         <a href="{{ nipote['link'] }}">{{ nipote['titolo'] }}</a>

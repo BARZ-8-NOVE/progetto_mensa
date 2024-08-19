@@ -1,0 +1,441 @@
+{% extends "index.html" %}
+
+{% block title %}
+Aggiungi Alimento - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+            <select id="searchType">
+                <option value="">Seleziona tipo Preparazione</option>
+                {% for tipoPreparazione in tipiPreparazioni %}
+                <option value="{{ tipoPreparazione.id }}">{{ tipoPreparazione.descrizione }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="showAddPreparazioniForm()">Aggiungi Preparazione</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+
+                
+
+                <th></th>
+                <th>Descrizione</th>
+                <th>Tipo Preparazione</th>
+                <th>Estivo</th>
+                <th>Invernale</th>
+                <th>Immagine</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="preparazioniTableBody">
+            {% for preparazione in preparazioni %}
+
+            <tr>
+                <td><button class="btn btn-secondary" onclick="window.location='{{ url_for('app_cucina.preparazione_dettagli', id_preparazione=preparazione.id) }}'">Modifica</button></td>
+                <td>{{ preparazione.descrizione }}</td>
+                <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
+                <td>
+                    <input type="checkbox" disabled {% if preparazione.isEstivo %}checked{% endif %}>
+                </td>
+                <td>
+                    <input type="checkbox" disabled {% if preparazione.isInvernale %}checked{% endif %}>
+                </td>
+                <td>
+                    {% if preparazione.immagine %}
+                    <img src="{{ url_for('static', filename='images/' ~ preparazione.immagine) }}" alt="Immagine" />
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Default Immagine" />
+                    {% endif %}
+                </td>
+                <td><button class="btn btn-elimina" onclick="elimina({{ preparazione.id }})">X</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Structure -->
+<div id="ingredientsModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Ingredienti</h2>
+        <div id="ingredientsList"></div>
+    </div>
+</div>
+
+<!-- Modal Structure -->
+<div id="preparazioneModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Aggiungi Preparazione</h5>
+                    <button type="button" class="close" onclick="closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Existing fields for preparazione details -->
+                    <div class="form-group">
+                        {{ form.fkTipoPreparazione.label(class="form-label") }}
+                        {{ form.fkTipoPreparazione(class="form-control", id="fkTipoPreparazioneSelect") }}
+                        {% for error in form.fkTipoPreparazione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ piattiform.titolo.label(class="form-label") }}
+                        {{ piattiform.titolo(class="form-control", id="titoloSelect") }}
+                        {% for error in piattiform.titolo.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+
+                    <div class="form-group">
+                        {{ form.descrizione.label(class="form-label") }}
+                        {{ form.descrizione(class="form-control") }}
+                        {% for error in form.descrizione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.isEstivo.label(class="form-check-label") }}
+                        {{ form.isEstivo(class="form-check-input") }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.isInvernale.label(class="form-check-label") }}
+                        {{ form.isInvernale(class="form-check-input") }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.inizio.label(class="form-label") }}
+                        {{ form.inizio(class="form-control", type="date") }}
+                        {% for error in form.inizio.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.fine.label(class="form-label") }}
+                        {{ form.fine(class="form-control", type="date") }}
+                        {% for error in form.fine.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.immagine.label(class="form-label") }}
+                        {{ form.immagine(class="form-control-file") }}
+                        {% for error in form.immagine.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Single ingredient input section -->
+                    <div class="form-group">
+                        {{ alimform.fkAlimento.label(class="form-label") }}
+                        {{ alimform.fkAlimento(class="form-control") }}
+                        {% for error in alimform.fkAlimento.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.quantita.label(class="form-label") }}
+                        {{ alimform.quantita(class="form-control") }}
+                        {% for error in alimform.quantita.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.fkTipoQuantita.label(class="form-label") }}
+                        {{ alimform.fkTipoQuantita(class="form-control") }}
+                        {% for error in alimform.fkTipoQuantita.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+
+                        {{ alimform.note.label(class="form-label") }}
+                        {{ alimform.note(class="form-control") }}
+                        {% for error in alimform.note.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="addAlimento()">Aggiungi Alimento</button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Ingredient list section -->
+                    <h5>Ingredienti Aggiunti</h5>
+                    <ul id="ingredientList" class="list-group"></ul>
+                    <input type="hidden" id="ingredientListInput" name="ingredientList">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Aggiungi</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modale -->>
+<div class="modal fade" id="dettagliModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Dettagli Preparazione</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <p><strong>Descrizione:</strong> <span id="preparazioneDescrizione"></span></p>
+                <!-- Altri dettagli qui -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function showAddPreparazioniForm() {
+        const form = document.getElementById('preparazioniForm');
+        form.action = 'preparazioni';
+        document.getElementById('modalTitle').textContent = 'Aggiungi Preparazione';
+        document.getElementById('submitButton').textContent = 'Aggiungi';
+        resetForm(form);
+        document.getElementById('SchedaModal').style.display = 'block';
+    }
+
+    function elimina(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            // Ottieni il token CSRF dal meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`preparazioni/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record eliminato con successo.');
+                    // Ricarica o aggiorna la pagina dopo l'eliminazione
+                    location.reload(); // O usa `window.location.href` se non vuoi ricaricare l'intera pagina
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore di rete durante l\'eliminazione del record.');
+            });
+        }
+    }
+
+
+
+
+function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataInserimento, immagine) {
+    document.getElementById('preparazioneDescrizione').innerText = descrizione;
+    // Imposta altri dettagli
+}
+
+    let ingredientList = [];
+
+    // Mappa degli alimenti
+    const alimento_map = {
+        {% for alimento in alimenti %}
+        {{ alimento.id }}: "{{ alimento.alimento }}",
+        {% endfor %}
+    };
+    
+    // Mappa dei tipi di quantità
+    const tipo_map = {
+        {% for tipo in tipi_quantita %}
+        {{ tipo.id }}: "{{ tipo.tipo }}",
+        {% endfor %}
+    };
+    
+    // Funzione per aggiungere un alimento
+    function addAlimento() {
+        const fkAlimento = parseInt(document.querySelector('select[name="fkAlimento"]').value);
+        const quantita = parseFloat(document.querySelector('input[name="quantita"]').value); // Assicurati che sia float
+        const fkTipoQuantita = parseInt(document.querySelector('select[name="fkTipoQuantita"]').value);
+        const note = document.querySelector('input[name="note"]').value;
+    
+        // Controllo per campi vuoti
+        if (!fkAlimento || isNaN(quantita) || !fkTipoQuantita) {
+            alert('Per favore, riempi tutti i campi richiesti.');
+            return;
+        }
+    
+        // Aggiungi l'ingrediente alla lista
+        ingredientList.push({
+            fkAlimento: fkAlimento,
+            quantita: quantita,
+            fkTipoQuantita: fkTipoQuantita,
+            note: note
+        });
+    
+        // Aggiorna la lista visualizzata
+        updateIngredientList();
+    }
+    
+    // Funzione per aggiornare la lista degli ingredienti
+    function updateIngredientList() {
+        const ingredientListElement = document.getElementById('ingredientList');
+        ingredientListElement.innerHTML = '';
+    
+        ingredientList.forEach((ingredient, index) => {
+            const alimentoName = alimento_map[ingredient.fkAlimento]; // Ottieni il nome dell'alimento
+            const quantita = ingredient.quantita;
+            const tipoQuantita = tipo_map[ingredient.fkTipoQuantita]; // Mappa anche il tipo di quantità
+    
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+            listItem.innerHTML = `
+                ${alimentoName} - ${quantita} ${tipoQuantita} - ${ingredient.note}
+                <button class="btn btn-danger btn-sm float-right" onclick="removeAlimento(${index})">Elimina</button>
+            `;
+            ingredientListElement.appendChild(listItem);
+        });
+    
+        // Passa la lista al server
+        document.getElementById('ingredientListInput').value = JSON.stringify(ingredientList);
+    }
+    
+    // Funzione per rimuovere un alimento dalla lista
+    function removeAlimento(index) {
+        ingredientList.splice(index, 1);
+        updateIngredientList();
+    }
+    
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchNameInput = document.getElementById('searchName');
+        const searchTypeSelect = document.getElementById('searchType');
+        const preparazioniTableBody = document.getElementById('preparazioniTableBody');
+
+
+
+        function filterTable() {
+            const searchName = searchNameInput.value.toLowerCase();
+            const searchType = searchTypeSelect.value;
+
+            const rows = preparazioniTableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const descrizione = row.cells[0].textContent.toLowerCase();
+                const tipo = row.cells[1].textContent;
+
+                const matchesName = descrizione.includes(searchName);
+                const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
+
+                if (matchesName && matchesType) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+            /* eslint-disable */
+        // Crea una mappa per le tipologie
+        const searchTypeMap = {};
+        {% for tipoPreparazione in tipiPreparazioni %}
+        searchTypeMap["{{ tipoPreparazione.id }}"] = "{{ tipoPreparazione.descrizione }}";
+        {% endfor %}
+            /* eslint-enable */       
+        // Event listener per i filtri
+        searchNameInput.addEventListener('input', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
+    });
+
+
+    function showAddPreparazioniForm() {
+        document.getElementById('preparazioneModal').style.display = 'block';
+    }
+    
+    function closeModal() {
+        document.getElementById('preparazioneModal').style.display = 'none';
+    }
+    
+    // Close the modal when clicking outside of it
+    window.onclick = function(event) {
+        const modal = document.getElementById("preparazioneModal");
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+    
+    // Optional: Close the modal with the Escape key
+    window.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeModal();
+        }
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var fkTipoPreparazioneSelect = document.getElementById('fkTipoPreparazioneSelect');
+        var titoloSelect = document.getElementById('titoloSelect');
+        var form = document.querySelector('form'); // Assumi che ci sia solo un form nel template
+    
+        fkTipoPreparazioneSelect.addEventListener('change', function() {
+            var selectedTipoPreparazione = fkTipoPreparazioneSelect.value;
+    
+            // Chiamata Ajax per ottenere i titoli dei piatti per il tipo di preparazione selezionato
+            fetch('get_tipi_piatti/' + selectedTipoPreparazione)
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    // Pulisci le opzioni correnti
+                    titoloSelect.innerHTML = '';
+    
+                    // Aggiungi le nuove opzioni
+                    data.forEach(function(piatto) {
+                        var option = document.createElement('option');
+                        option.value = piatto.id;
+                        option.textContent = piatto.titolo;
+                        titoloSelect.appendChild(option);
+                    });
+                })
+                .catch(function(error) {
+                    console.error('Error fetching piatti:', error);
+                });
+        });
+    
+        // Aggiungi un evento al submit del form per assicurarti che il valore di titolo venga inviato
+        form.addEventListener('submit', function(event) {
+            // Controlla se un valore è stato selezionato
+            var selectedPiatto = titoloSelect.value;
+            if (!selectedPiatto) {
+                event.preventDefault();
+                alert('Per favore seleziona un tipo piatto.');
+            }
+        });
+    });
+        </script>
+        
+
+{% endblock %}

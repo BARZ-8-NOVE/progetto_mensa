@@ -12,6 +12,7 @@ class TTipiAlimentazione(Base):
     ordinatore = Column(Integer, default=0, nullable=False)
     
     # Definizione della relazione con TTipiDiete
-    tipo_dieta = relationship('TTipiDiete', backref='tipi_alimentazione')
+    schede = relationship('TSchede', back_populates='tipo_alimentazione')
+    tipi_dieta = relationship('TTipiDiete', back_populates='tipi_alimentazione')
 
   

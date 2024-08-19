@@ -13,5 +13,6 @@ class TServizi(Base):
     inMenu = Column(TINYINT, nullable=True)
 
     # Relazione con TMenuServizi
-    ordini = relationship("TOrdini", back_populates="servizi", uselist=True)
+    ordiniSchede = relationship("TOrdiniSchede", back_populates="servizi", uselist=True)
     menu_servizi = relationship("TMenuServizi", back_populates="servizi", uselist=True)
+    schede_piatti = relationship('TSchedePiatti', back_populates='servizi')

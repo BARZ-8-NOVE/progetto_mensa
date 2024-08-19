@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired, Optional, Length
 from wtforms.validators import StopValidation
+from datetime import datetime
 
 class MultiCheckboxField(SelectMultipleField):
     widget = widgets.ListWidget(html_tag='ol', prefix_label=False)
@@ -17,6 +18,9 @@ class MultiCheckboxAtLeastOne():
         if len(field.data) == 0:
             raise StopValidation(self.message)
 
+class CustomSelectField(SelectField):
+    def pre_validate(self, form):
+        pass  # Bypassare la validazione delle scelte
 
 class LogoutFormNoCSRF(FlaskForm):
     submit = SubmitField('Logout')
@@ -55,20 +59,18 @@ class PreparazioniForm(FlaskForm):
     fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     immagine = FileField('Immagine', validators=[Optional()])
 
-    alimenti = FieldList(FormField(AlimentoForm), min_entries=1)  # Initialize FieldList with a minimum of 1
-
     submit = SubmitField('Aggiungi')
+
 
 class PiattiForm(FlaskForm):
     fkTipoPiatto = SelectField('Tipo piatto', coerce=int, validators=[DataRequired()])
     codice = StringField('Codice', validators=[DataRequired()])
-    titolo = StringField('Nome Piatto', validators=[DataRequired()])
-    descrizione = StringField('Descrizione', validators=[Optional()])
-    inMenu = BooleanField('In Menu', validators=[Optional()])
+    titolo = StringField('Tipo Piatto', validators=[DataRequired()])
+    descrizione = StringField('Descrizione', validators=[DataRequired()])
+    inMenu = BooleanField('In Menu', validators=[DataRequired()])
     ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
 
     submit = SubmitField('Aggiungi')
-
 
 class MenuForm(FlaskForm):
     # piatto_categoria = RadioField('Categoria', choices=[], validators=[DataRequired()], coerce=int)
@@ -76,3 +78,30 @@ class MenuForm(FlaskForm):
     preparazioni = SelectMultipleField('Preparazioni', choices=[], coerce=int)
 
     submit = SubmitField('Aggiungi Menu')
+
+
+class schedaForm(FlaskForm):
+
+    fkTipoAlimentazione = SelectField('Tipo alimentazione', coerce=int, validators=[DataRequired()])
+    fkTipoMenu = SelectField('correlata al menu', coerce=int, validators=[DataRequired()])
+    nome = StringField('Nome', validators=[Optional(), Length(max=50)])
+    titolo = StringField('Titolo', validators=[Optional(), Length(max=100)])
+    sottotitolo = StringField('Sottotitolo', validators=[Optional(), Length(max=100)])
+    descrizione = StringField('Descrizione', validators=[Optional(), Length(max=50)])
+    backgroundColor = StringField('Colore di Sfondo', validators=[Optional(), Length(max=7)],
+                                  render_kw={"type": "color"})
+    dipendente = BooleanField('Dipendente', default=False, validators=[Optional()])
+    note = TextAreaField('Note', validators=[Optional()])
+    inizio = DateField('Inizio', format='%Y-%m-%d', validators=[Optional()], default=datetime.today().date())
+    fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
+    nominativa = BooleanField('scheda nominativa', default=False, validators=[Optional()])
+    submit = SubmitField('Aggiungi Scheda')
+
+
+class ordineSchedaForm(FlaskForm):
+
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
+    cognome = StringField('Cognome', validators=[DataRequired(), Length(max=50)])
+    letto = StringField('Letto', validators=[DataRequired(), Length(max=5)])
+    note = TextAreaField('Note', validators=[Optional()])
+    submit = SubmitField('Salva e conferma')

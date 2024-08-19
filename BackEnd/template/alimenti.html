@@ -33,6 +33,7 @@
                 <th>Grassi Saturi (g)</th>
                 <th>Allergeni</th>
                 <th>Tipologia</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="alimentiTableBody">
@@ -52,6 +53,7 @@
                     {% endfor %}
                 </td>
                 <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
+                <td><button class="btn btn-elimina" onclick="eliminaAlimento({{ alimento.id }})">X</button></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -101,7 +103,34 @@
 </div>
 
 <script>
-    
+
+    function eliminaAlimento(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            // Ottieni il token CSRF dal meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`alimenti/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record eliminato con successo.');
+                    // Ricarica o aggiorna la pagina dopo l'eliminazione
+                    location.reload(); // O usa `window.location.href` se non vuoi ricaricare l'intera pagina
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore di rete durante l\'eliminazione del record.');
+            });
+        }
+    }
     
 
     document.addEventListener('DOMContentLoaded', function() {

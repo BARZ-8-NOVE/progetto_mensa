@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, Date, DateTime, SmallInteger, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from Classi.ClasseDB.db_connection import Base
 
 class TSchede(Base):
@@ -20,14 +21,16 @@ class TSchede(Base):
     inizio = Column(Date, nullable=True)
     fine = Column(Date, nullable=True)
     ordinatore = Column(Integer, default=0, nullable=False)
-    dataInserimento = Column(DateTime(timezone=True), nullable=True)
+    dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
-    dataCancellazione = Column(DateTime(timezone=True), nullable=True)
+    dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
     nominativa = Column(SmallInteger, default=1, nullable=False)
 
     # Definizione delle relazioni
-    tipo_alimentazione = relationship('TTipiAlimentazione', backref='schede')
-    tipo_menu = relationship('TTipiMenu', backref='schede')
+    tipo_alimentazione = relationship('TTipiAlimentazione', back_populates='schede')
+    tipo_menu = relationship('TTipiMenu', back_populates='schede')
+    schede_piatti = relationship('TSchedePiatti', back_populates='scheda')
+    ordiniSchede = relationship("TOrdiniSchede", back_populates="schede")
 
 

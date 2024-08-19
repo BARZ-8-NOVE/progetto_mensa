@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, SmallInteger, ForeignKey
 from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
+from sqlalchemy.sql import func
 
 class TSchedePiatti(Base):
     __tablename__ = 't_schedepiatti'
@@ -13,14 +14,14 @@ class TSchedePiatti(Base):
     riga = Column(Integer, default=0, nullable=False)
     note = Column(String(50), nullable=True)
     ordinatore = Column(Integer, default=0, nullable=False)
-    dataInserimento = Column(DateTime(timezone=True), nullable=True)
+    dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime(timezone=True), nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
 
     # Definizione delle relazioni
-    scheda = relationship('TSchede', backref='schede_piatti')
-    servizio = relationship('TServizi', backref='schede_piatti')
-    piatto = relationship('TPiatti', backref='schede_piatti')
+    scheda = relationship('TSchede', back_populates='schede_piatti')
+    servizi = relationship('TServizi', back_populates='schede_piatti')
+    piatto = relationship('TPiatti', back_populates='schede_piatti')
 
 

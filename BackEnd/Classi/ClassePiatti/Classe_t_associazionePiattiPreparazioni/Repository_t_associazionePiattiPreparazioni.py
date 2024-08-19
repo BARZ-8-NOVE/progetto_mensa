@@ -31,6 +31,27 @@ class RepositoryAssociazionePiattiPreparazioni:
             # Chiudi sempre la sessione
             self.session.close()
 
+    def get_id_piatto_by_preparazione(self, fkPreparazione):
+            try:
+                result = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPreparazione=fkPreparazione, dataCancellazione=None).first()
+                return {'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} 
+            except Exception as e:
+                return {'Error': str(e)}, 500
+            finally:
+                # Chiudi sempre la sessione
+                self.session.close()
+
+    def get_piatti_by_preparazione(self, fkPreparazione):
+            try:
+                results = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPreparazione=fkPreparazione, dataCancellazione=None).all()
+                return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
+            except Exception as e:
+                return {'Error': str(e)}, 500
+            finally:
+                # Chiudi sempre la sessione
+                self.session.close()
+
+
 
     def get_id_by_preparazione_e_piatto(self, fkPiatto, fkPreparazione):
         try:
@@ -105,7 +126,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             )
             self.session.add(associazione)
             self.session.commit()
-            return {'associazione': 'added!'}, 200
+            return associazione.id
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
@@ -128,6 +149,26 @@ class RepositoryAssociazionePiattiPreparazioni:
                 return {'associazione': 'updated!'}, 200
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
+
+    
+    def delete_associazione(self, fkPreparazione, utenteCancellazione):
+        try:
+            preparazione_contenuto = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPreparazione=fkPreparazione).all()
+            if preparazione_contenuto:
+                for contenuto in preparazione_contenuto:
+                    contenuto.dataCancellazione = datetime.now()
+                    contenuto.utenteCancellazione = utenteCancellazione  
+                self.session.commit()
+                return {'preparazioni_contenuti': 'soft deleted!'}, 200
+            else:
+                return {'Error': f'No match found for this fkPreparazione: {fkPreparazione}'}, 404
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500

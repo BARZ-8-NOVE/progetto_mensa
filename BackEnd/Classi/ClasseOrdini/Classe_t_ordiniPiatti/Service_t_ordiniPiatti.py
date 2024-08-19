@@ -1,7 +1,7 @@
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Repository_t_ordiniPiatti import RepositoryOrdiniPiatti
 
 
-class ServiceOrdiniPiatti:
+class Service_t_OrdiniPiatti:
     def __init__(self):
         self.repository = RepositoryOrdiniPiatti()
 

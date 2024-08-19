@@ -16,4 +16,5 @@ class TTipiMenu(Base):
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
 
-    menu = relationship("TMenu", back_populates="tipi_menu")
+    menu = relationship("TMenu", back_populates="tipi_menu",uselist=True)
+    schede = relationship("TSchede", back_populates="tipi_menu",uselist=True)

@@ -28,5 +28,5 @@ class Service_t_preparazionicontenuti:
             utenteInserimento, dataCancellazione, utenteCancellazione
         )
 
-    def delete_preparazioni_contenuti(self, id):
-        return self.repository.delete_preparazioni_contenuti(id)
+    def delete_preparazioni_contenuti(self, fkPreparazione, utenteCancellazione):
+        return self.repository.delete(fkPreparazione, utenteCancellazione)

@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import relationship
 from Classi.ClasseDB.db_connection import Base
 
 class TTipiDiete(Base):
@@ -8,3 +9,5 @@ class TTipiDiete(Base):
     descrizione = Column(String(50), nullable=True)
     note = Column(Text, nullable=True)
 
+
+    tipi_alimentazione = relationship('TTipiAlimentazione', back_populates='tipi_dieta')

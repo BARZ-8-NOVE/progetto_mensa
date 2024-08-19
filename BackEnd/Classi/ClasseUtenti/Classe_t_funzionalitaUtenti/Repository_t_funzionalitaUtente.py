@@ -44,4 +44,5 @@ class TFunzionalitaUtenteRepository:
                 .join(TFunzionalitaUtente, TTipiUtenti.id == TFunzionalitaUtente.fkTipoUtente)
                 .join(TFunzionalita, TFunzionalitaUtente.fkFunzionalita == TFunzionalita.id)
                 .filter(TUtenti.id == user_id)
+                .order_by(TFunzionalita.ordinatore)  
                 .all())

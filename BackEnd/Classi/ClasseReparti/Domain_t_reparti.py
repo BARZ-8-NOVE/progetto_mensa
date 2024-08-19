@@ -22,4 +22,4 @@ class TReparti(Base):
     dataCancellazione = Column(DateTime, nullable=True)
     utenteCancellazione = Column(String(20), nullable=True)
 
-    ordini = relationship("TOrdini", back_populates="reparti", uselist=True)
+    ordiniSchede = relationship("TOrdiniSchede", back_populates="reparti", uselist=True)

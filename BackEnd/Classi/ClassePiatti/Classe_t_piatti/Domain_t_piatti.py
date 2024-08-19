@@ -21,3 +21,4 @@ class TPiatti(Base):
 
     # Definizione delle relazioni
     tipo_piatto = relationship("TTipiPiatti", back_populates="piatti")
+    schede_piatti = relationship('TSchedePiatti', back_populates='piatto')

@@ -134,16 +134,17 @@ class Repository_t_preparazionicontenuti:
             self.session.close()
 
 
-    def delete_preparazioni_contenuti(self, id):
+    def delete(self, fkPreparazione, utenteCancellazione):
         try:
-            preparazione_contenuto = self.session.query(TPreparazioniContenuti).filter_by(id=id).first()
+            preparazione_contenuto = self.session.query(TPreparazioniContenuti).filter_by(fkPreparazione=fkPreparazione).all()
             if preparazione_contenuto:
-                preparazione_contenuto.dataCancellazione = datetime.now()
-                preparazione_contenuto.utenteCancellazione = 'nome_utente'  # Sostituisci con il nome utente appropriato o la fonte dell'azione di cancellazione
+                for contenuto in preparazione_contenuto:
+                    contenuto.dataCancellazione = datetime.now()
+                    contenuto.utenteCancellazione = utenteCancellazione  
                 self.session.commit()
                 return {'preparazioni_contenuti': 'soft deleted!'}, 200
             else:
-                return {'Error': f'No match found for this id: {id}'}, 404
+                return {'Error': f'No match found for this fkPreparazione: {fkPreparazione}'}, 404
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500

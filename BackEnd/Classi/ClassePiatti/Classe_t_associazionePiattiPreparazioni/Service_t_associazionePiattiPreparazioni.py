@@ -26,8 +26,17 @@ class Service_t_AssociazionePiattiPreparazionie:
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)
     
+
+    def delete_associazione(self, fkPreparazione , utenteCancellazione):
+        return self.repository.delete_associazione(fkPreparazione, utenteCancellazione)
+    
     def get_preparazione_by_piatto(self, fkPiatto):
         return self.repository.get_preparazione_by_piatto(fkPiatto)
+    
+    
+
+    def get_id_piatto_by_preparazione(self, fkPreparazione):
+        return self.repository.get_id_piatto_by_preparazione(fkPreparazione)
     
     def get_id_by_preparazione_e_piatto(self, fkPiatto, fkpreparazione):
         return self.repository.get_id_by_preparazione_e_piatto(fkPiatto, fkpreparazione)

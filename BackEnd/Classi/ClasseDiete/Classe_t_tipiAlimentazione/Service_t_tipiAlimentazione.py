@@ -1,4 +1,4 @@
-from Classi.ClasseDiete.Classe_t_tipiAlimentazione.Repository_t_tipAlimentazione import RepositoryTipiAlimentazione
+from Classi.ClasseDiete.Classe_t_tipiAlimentazione.Repository_t_tipiAlimentazione import RepositoryTipiAlimentazione
 
 class Service_t_TipiAlimentazione:
 

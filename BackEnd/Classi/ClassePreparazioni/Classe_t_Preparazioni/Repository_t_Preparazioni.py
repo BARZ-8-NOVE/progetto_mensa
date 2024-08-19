@@ -90,16 +90,19 @@ class Repository_t_preparazioni:
             except Exception as e:
                 return {'Error': str(e)}, 400
 
-    def delete_preparazione(self, id):
+    def delete(self, id, utenteCancellazione):
         try:
-            preparazione = self.session.query(TPreparazioni).filter_by(id=id).first()
-            if preparazione:
-                preparazione.dataCancellazione = datetime.now()
-                preparazione.utenteCancellazione = 'nome_utente'  # Sostituisci con il nome utente appropriato o la fonte dell'azione di cancellazione
+            menu = self.session.query(TPreparazioni).filter_by(id=id).first()
+            if menu:
+                menu.dataCancellazione = datetime.now()
+                menu.utenteCancellazione = utenteCancellazione
                 self.session.commit()
-                return {'preparazione': 'soft deleted!'}, 200
+                return {'menu': 'deleted!'}, 200
             else:
-                return {'Error': f'No match found for this id: {id}'}, 404
+                return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close() 

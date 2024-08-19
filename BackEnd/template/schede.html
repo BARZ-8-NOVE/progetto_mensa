@@ -1,0 +1,266 @@
+{% extends "index.html" %}
+
+{% block title %}
+Creazione Schede - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="search-container mb-3">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome..." class="form-control">
+        </div>
+        <button class="btn btn-primary" onclick="showAddSchedaForm()">Aggiungi Scheda</button>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Colore</th>
+                <th>Modifica</th>
+                <th>Mod Piatti</th>
+                <th>Tipo</th>
+                <th>Nome</th>
+                <th>Scheda</th>
+                <th>Menu</th>
+                <th>Descrizione</th>
+                <th>Dipendente</th>
+                <th>Inizio</th>
+                <th>Fine</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="schedeTableBody">
+            {% for scheda in schede %}
+            <tr>
+                <td>
+                    <div style="width: 20px; height: 20px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black;"></div>
+                </td>
+                <td><button class="btn btn-secondary" onclick="showModificaSchedaForm({{ scheda.id }})">Modifica</button></td>
+                <td><button class="btn btn-secondary" onclick="showAddSchedaPiattiForm({{ scheda.id }})">Modifica <br> piatti</button></td>
+                <td>{{ tipi_alimentazione_map[scheda.fkTipoAlimentazione] }}</td>
+                <td>{{ scheda.nome }}</td>
+                <td>{{ scheda.titolo }}</td>
+                <td>{{ tipi_menu_map[scheda.fkTipoMenu] }}</td>
+                <td>{{ scheda.descrizione }}</td>
+                <td>{{ 'Sì' if scheda.dipendente else 'No' }}</td>
+                <td>{{ scheda.inizio.strftime('%Y-%m-%d') if scheda.inizio else '' }}</td>
+                <td>{{ scheda.fine.strftime('%Y-%m-%d') if scheda.fine else '' }}</td>
+                <td><button class="btn btn-elimina" onclick="eliminaPiatti({{ scheda.id }})">X</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modale per aggiungere/modificare scheda -->
+<div id="SchedaModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="schedaForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Aggiungi Scheda</h5>
+                    <button type="button" class="close" onclick="closeModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.backgroundColor.label(class="form-label") }}
+                        {{ form.backgroundColor(class="form-control") }}
+                        {% for error in form.backgroundColor.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.fkTipoAlimentazione.label(class="form-label") }}
+                        {{ form.fkTipoAlimentazione(class="form-control") }}
+                        {% for error in form.fkTipoAlimentazione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.fkTipoMenu.label(class="form-label") }}
+                        {{ form.fkTipoMenu(class="form-control") }}
+                        {% for error in form.fkTipoMenu.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.nome.label(class="form-label") }}
+                        {{ form.nome(class="form-control") }}
+                        {% for error in form.nome.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.titolo.label(class="form-label") }}
+                        {{ form.titolo(class="form-control") }}
+                        {% for error in form.titolo.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.sottotitolo.label(class="form-label") }}
+                        {{ form.sottotitolo(class="form-control") }}
+                        {% for error in form.sottotitolo.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.descrizione.label(class="form-label") }}
+                        {{ form.descrizione(class="form-control") }}
+                        {% for error in form.descrizione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.dipendente.label(class="form-check-label") }}
+                        {{ form.dipendente(class="form-check-input") }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.nominativa.label(class="form-check-label") }}
+                        {{ form.nominativa(class="form-check-input") }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.inizio.label(class="form-label") }}
+                        {{ form.inizio(class="form-control") }}
+                        {% for error in form.inizio.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.fine.label(class="form-label") }}
+                        {{ form.fine(class="form-control") }}
+                        {% for error in form.fine.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.note.label(class="form-label") }}
+                        {{ form.note(class="form-control") }}
+                        {% for error in form.note.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                    <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showAddSchedaForm() {
+        const form = document.getElementById('schedaForm');
+        form.action = 'schede';
+        document.getElementById('modalTitle').textContent = 'Aggiungi Scheda';
+        document.getElementById('submitButton').textContent = 'Aggiungi';
+        resetForm(form);
+        document.getElementById('SchedaModal').style.display = 'block';
+    }
+
+
+    function eliminaPiatti(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            // Ottieni il token CSRF dal meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`schede/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record eliminato con successo.');
+                    // Ricarica o aggiorna la pagina dopo l'eliminazione
+                    location.reload(); // O usa `window.location.href` se non vuoi ricaricare l'intera pagina
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore di rete durante l\'eliminazione del record.');
+            });
+        }
+    }
+    
+    
+    function showModificaSchedaForm(id) {
+        fetch(`schede/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                const form = document.getElementById('schedaForm');
+                form.action = `schede/${id}`;
+                document.getElementById('modalTitle').textContent = 'Modifica Scheda';
+                document.getElementById('submitButton').textContent = 'Salva Modifiche';
+
+                form.elements['backgroundColor'].value = data.backgroundColor;
+                form.elements['fkTipoAlimentazione'].value = data.fkTipoAlimentazione;
+                form.elements['fkTipoMenu'].value = data.fkTipoMenu;
+                form.elements['nome'].value = data.nome;
+                form.elements['titolo'].value = data.titolo;
+                form.elements['sottotitolo'].value = data.sottotitolo;
+                form.elements['descrizione'].value = data.descrizione;
+                form.elements['dipendente'].checked = data.dipendente;
+                form.elements['nominativa'].checked = data.nominativa;
+                form.elements['inizio'].value = data.inizio;
+                form.elements['fine'].value = data.fine;
+                form.elements['note'].value = data.note;
+
+                document.getElementById('SchedaModal').style.display = 'block';
+            });
+    }
+    
+    function closeModal() {
+        document.getElementById('SchedaModal').style.display = 'none';
+    }
+
+    function resetForm(form) {
+        form.reset();
+        Array.from(form.elements).forEach(element => {
+            if (element.type === 'checkbox') {
+                element.checked = false;
+            }
+        });
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById("SchedaModal");
+        if (event.target === modal) {
+            closeModal();
+        }
+    }
+
+    window.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeModal();
+        }
+    });
+
+    function showAddSchedaPiattiForm(schedaId) {
+        window.location.href = `schede_piatti/${schedaId}`;
+    }
+</script>
+
+{% endblock %}

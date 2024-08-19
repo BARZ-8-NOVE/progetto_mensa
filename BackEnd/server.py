@@ -49,7 +49,7 @@ from Classi.ClasseMenu.Classe_t_menu.Controller_t_menu import t_menu_controller
 
 from Classi.ClasseReparti.Controller_t_reparti import t_reparti_controller
 
-from Classi.ClasseOrdini.Classe_t_ordini.Controller_t_ordini import t_ordini_controller
+from Classi.ClasseOrdini.Classe_t_ordiniSchede.Controller_t_ordiniSchede import t_ordiniSchede_controller
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Controller_t_ordiniPiatti import t_ordini_piatti_controller
 
 
@@ -90,7 +90,7 @@ app.register_blueprint(t_menu_controller, url_prefix='/menu')
 
 app.register_blueprint(t_reparti_controller, url_prefix='/reparti')
 
-app.register_blueprint(t_ordini_controller, url_prefix='/ordini')
+app.register_blueprint(t_ordiniSchede_controller, url_prefix='/ordiniSchede')
 app.register_blueprint(t_ordini_piatti_controller, url_prefix='/ordinipiatti')
 
 # app.register_blueprint(app_cucina, url_prefix='/app_cucina')

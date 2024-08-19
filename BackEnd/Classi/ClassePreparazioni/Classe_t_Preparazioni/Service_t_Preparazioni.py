@@ -20,5 +20,5 @@ class Service_t_preparazioni:
     def get_last_id(self):
         return self.repository.get_last_id()
 
-    def delete_preparazione(self, id):
-        return self.repository.delete_preparazione(id)
+    def delete_preparazione(self, id, utenteCancellazione):
+        return self.repository.delete(id, utenteCancellazione)

@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 class TPreparazioni(Base):
     __tablename__ = 't_preparazioni'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     fkTipoPreparazione = Column(Integer, ForeignKey('t_tipipreparazioni.id'), nullable=False)
     descrizione = Column(String(100), nullable=False)
     isEstivo = Column(Boolean, nullable=False)

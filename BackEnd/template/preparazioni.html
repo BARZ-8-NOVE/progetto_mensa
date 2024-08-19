@@ -21,24 +21,20 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 
     <table>
         <thead>
-            <tr>
-
-                
-
-
+            <th></th>
                 <th>Descrizione</th>
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
                 <th>Invernale</th>
-                <th>Data Inserimento</th> 
                 <th>Immagine</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
 
-            <tr onclick="window.location='{{ url_for('app_cucina.preparazione_dettagli', id_preparazione=preparazione.id) }}'">
-
+            <tr>
+                <td><button class="btn btn-secondary" onclick="showModificaPreparazioneForm({{ preparazione.id }})">Modifica</button></td>
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
                 <td>
@@ -47,7 +43,6 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                 <td>
                     <input type="checkbox" disabled {% if preparazione.isInvernale %}checked{% endif %}>
                 </td>
-                <td>{{ preparazione.dataInserimento }}</td>
                 <td>
                     {% if preparazione.immagine %}
                     <img src="{{ url_for('static', filename='images/' ~ preparazione.immagine) }}" alt="Immagine" />
@@ -55,7 +50,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                     <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Default Immagine" />
                     {% endif %}
                 </td>
-                
+                <td><button class="btn btn-elimina" onclick="elimina({{ preparazione.id }})">X</button></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -75,7 +70,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 <div id="preparazioneModal" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form method="POST" enctype="multipart/form-data">
+            <form id="PreparazioniForm"method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
                 <div class="modal-header">
@@ -397,6 +392,59 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             }
         });
     });
+
+    
+
+    function elimina(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            // Ottieni il token CSRF dal meta tag
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`preparazioni/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record eliminato con successo.');
+                    // Ricarica o aggiorna la pagina dopo l'eliminazione
+                    location.reload(); // O usa `window.location.href` se non vuoi ricaricare l'intera pagina
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore di rete durante l\'eliminazione del record.');
+            });
+        }
+    }
+
+
+
+    function showModificaPreparazioneForm(id) {
+        fetch(`preparazioni/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                const form = document.getElementById('PreparazioniForm');
+                form.action = `preparazioni/${id}`;
+
+
+                form.elements['fkTipoPreparazione'].value = data.fkTipoPreparazione;
+                form.elements['titoloSelect'].value = data.fkPiatto;
+                form.elements['descrizione'].value = data.descrizione;
+                form.elements['isEstivo'].checked = data.isEstivo;
+                form.elements['isInvernale'].checked = data.isInvernale;
+                form.elements['inizio'].value = data.inizio;
+                form.elements['fine'].value = data.fine;
+                form.elements['immagine'].value = data.immagine;
+
+                document.getElementById('preparazioneModal').style.display = 'block';
+            });
+    }
     
         </script>
         

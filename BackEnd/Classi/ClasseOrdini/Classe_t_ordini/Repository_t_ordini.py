@@ -4,20 +4,19 @@ from Classi.ClasseOrdini.Classe_t_ordini.Domain_t_ordini import TOrdini
 from datetime import datetime
 
 class RepositoryOrdini:
-    def __init__(self) -> None:
+    def __init__(self):
         Session = sessionmaker(bind=engine)
         self.session = Session()
 
     def get_all(self):
         try:
-            results = self.session.query(TOrdini).filter(TOrdini.dataCancellazione.is_(None)).all()
+            results = self.session.query(TOrdini).all()
         except Exception as e:
             return {'Error': str(e)}, 500
-        return [{'id': result.id, 'fkReparto': result.fkReparto, 'data': result.data, 
-                 'fkServizio': result.fkServizio, 'cognome': result.cognome, 'nome': result.nome, 
-                 'letto': result.letto, 'dataInserimento': result.dataInserimento, 
-                 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 
-                 'utenteCancellazione': result.utenteCancellazione} for result in results]
+        return [{'id': result.id, 
+                'data': result.data, 
+                 'fkServizio': result.fkServizio
+                 } for result in results]
 
     def get_by_id(self, id):
         try:
@@ -25,63 +24,47 @@ class RepositoryOrdini:
         except Exception as e:
             return {'Error': str(e)}, 400
         if result:
-            return {'id': result.id, 'fkReparto': result.fkReparto, 'data': result.data, 
-                    'fkServizio': result.fkServizio, 'cognome': result.cognome, 'nome': result.nome, 
-                    'letto': result.letto, 'dataInserimento': result.dataInserimento, 
-                    'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 
-                    'utenteCancellazione': result.utenteCancellazione}
+            return {'id': result.id, 
+                    'data': result.data, 
+                    'fkServizio': result.fkServizio
+                    }
         else:
             return {'Error': f'No match found for this id: {id}'}, 404
+        
 
-    def create(self, fkReparto, data, fkServizio, cognome, nome, letto, dataInserimento, utenteInserimento):
+    def existing_Ordine(self, data, fkServizio):
         try:
+            result = self.session.query(TOrdini).filter_by(data=data, fkServizio=fkServizio).first()
+            if result:
+                return {'id': result.id, 
+                        'data': result.data, 
+                        'fkServizio': result.fkServizio
+                    }
+            else:
+                return None  # Restituisce None se l'ordine non esiste
+        except Exception as e:
+            return {'Error': str(e)}, 400
+
+
+    def create(self, data, fkServizio):
+        try:
+
+            if self.existing_Ordine(data, fkServizio):
+                # Se esiste, restituisce un messaggio di errore
+                return {'Error': 'Elemento già esistente'}, 400
+                
             ordine = TOrdini(
-                fkReparto=fkReparto, 
+
                 data=data, 
-                fkServizio=fkServizio, 
-                cognome=cognome, 
-                nome=nome, 
-                letto=letto, 
-                dataInserimento=dataInserimento, 
-                utenteInserimento=utenteInserimento
+                fkServizio=fkServizio
+
             )
             self.session.add(ordine)
             self.session.commit()
-            return {'ordine': 'added!'}, 200
+            return ordine.id
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
 
-    def update(self, id, fkReparto, data, fkServizio, cognome, nome, letto, dataInserimento, utenteInserimento):
-        try:
-            ordine = self.session.query(TOrdini).filter_by(id=id).first()
-            if ordine:
-                ordine.fkReparto = fkReparto
-                ordine.data = data
-                ordine.fkServizio = fkServizio
-                ordine.cognome = cognome
-                ordine.nome = nome
-                ordine.letto = letto
-                ordine.dataInserimento = dataInserimento
-                ordine.utenteInserimento = utenteInserimento
-                self.session.commit()
-                return {'ordine': 'updated!'}, 200
-            else:
-                return {'Error': f'No match found for this id: {id}'}, 404
-        except Exception as e:
-            self.session.rollback()
-            return {'Error': str(e)}, 500
 
-    def delete(self, id, utenteCancellazione):
-        try:
-            ordine = self.session.query(TOrdini).filter_by(id=id).first()
-            if ordine:
-                ordine.dataCancellazione = datetime.now()
-                ordine.utenteCancellazione = utenteCancellazione
-                self.session.commit()
-                return {'ordine': 'deleted!'}, 200
-            else:
-                return {'Error': f'No match found for this id: {id}'}, 404
-        except Exception as e:
-            self.session.rollback()
-            return {'Error': str(e)}, 500
+

@@ -7,7 +7,7 @@ from Classi.ClasseUtility.UtilityCSV.CSV_Utils import populate_from_csv_with_ids
 from Classi.ClasseServizi.Domani_t_servizi import TServizi
 from Classi.ClasseMenu.Classe_t_menuServizi.Domain_t_menuServizi import TMenuServizi
 
-from Classi.ClasseOrdini.Classe_t_ordini.Domain_t_ordini import TOrdini
+from Classi.ClasseOrdini.Classe_t_ordiniSchede.Domain_t_ordiniSchede import TOrdiniSchede
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Domain_t_ordiniPiatti import TOrdiniPiatti
 
 from Classi.ClasseAlimenti.Classe_t_alimenti.Domani_t_alimenti import TAlimenti
@@ -53,7 +53,7 @@ def initialize_database():
         populate_from_csv_with_ids(session, TMenu, 'DBMS/file_dati_statici/t_menu.csv')    
         populate_from_csv_with_ids(session, TMenuServizi, 'DBMS/file_dati_statici/t_menuservizi.csv')   
         populate_from_csv_with_ids(session, TAssociazionePiattiPreparazioni, 'DBMS/file_dati_statici/t_associazionepiattipreparazioni.csv')
-        populate_from_csv_with_ids(session, TOrdini, 'DBMS/file_dati_statici/t_ordini.csv')
+        populate_from_csv_with_ids(session, TOrdiniSchede, 'DBMS/file_dati_statici/t_ordini.csv')
         populate_from_csv_with_ids(session, TOrdiniPiatti, 'DBMS/file_dati_statici/t_ordinipiatti.csv')
 
     except Exception as e:

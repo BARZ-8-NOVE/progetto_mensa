@@ -1,0 +1,112 @@
+{% extends "index.html" %}
+
+{% block title %}
+schedePiatti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="popup">
+    <div class="popup-header">
+        <h2>
+            {{ info_servizio.descrizione }}, {{ info_reparto.codiceAreas }}, {{ info_reparto.descrizione }}
+        </h2>
+        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+            {{ tipi_menu_map[scheda.fkTipoMenu] }}
+        </h2>
+    </div>
+    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
+        {{ form.hidden_tag() }}
+
+        <div class="form-row-ordiniPiatti">
+            <div class="form-group-ordiniPiatti">
+                {{ form.nome.label(class="form-label-ordiniPiatti") }}
+                {{ form.nome(class="form-control-ordiniPiatti") }}
+            </div>
+
+            <div class="form-group-ordiniPiatti">
+                {{ form.cognome.label(class="form-label-ordiniPiatti") }}
+                {{ form.cognome(class="form-control-ordiniPiatti") }}
+            </div>
+
+            <div class="form-group-ordiniPiatti">
+                {{ form.letto.label(class="form-label-ordiniPiatti") }}
+                {{ form.letto(class="form-control-ordiniPiatti") }}
+            </div>
+
+            <div class="form-group-ordiniPiatti">
+                {{ form.note.label(class="form-label-ordiniPiatti") }}
+                {{ form.note(class="form-control-ordiniPiatti") }}
+            </div>
+        </div>
+
+        <div class="popup-content">
+            <div class="popup-grid">
+                {% for scheda_piatto in schedePiatti %}
+                {% if scheda_piatto.fkPiatto in piatti_map %}
+                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                <div class="popup-item" onclick="toggleSelection(this, {{ piatto.id }})">
+                    <span class="item-id">{{ piatto.codice }}</span>
+                    <div class="item-name">{{ piatto.titolo }}</div>
+                </div>       
+                {% else %}
+                <div class="popup-item unknown"></div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="popup-custom-column">
+                {% for scheda_piatto in schedeDolci %}
+                {% if scheda_piatto.fkPiatto in piatti_map %}
+                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                <div class="popup-custom-column-item" onclick="toggleSelection(this, {{ piatto.id }})">
+                    <span class="item-id">{{ piatto.codice }}</span>
+                    <div class="item-name">{{ piatto.titolo }}</div>
+                </div>       
+                {% else %}
+                <div class="popup-custom-column-item unknown"></div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div>
+            {{ form.submit() }}
+        </div>
+        <input type="hidden" id="piattiList" name="piattiList">
+    </form>
+</div>
+
+<script>
+    const selectedItems = [];
+
+    function toggleSelection(element, piattoId) {
+        console.log('Piatto ID:', piattoId); // Debugging statement
+
+        element.classList.toggle('selezionato');
+        const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
+
+        if (index > -1) {
+            // L'elemento è già selezionato, lo rimuove
+            selectedItems.splice(index, 1);
+        } else {
+            // L'elemento non è selezionato, lo aggiunge
+            selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" });
+        }
+
+        console.log('Selected Items:', selectedItems); // Debugging statement
+        updateHiddenField();
+    }
+
+    function updateHiddenField() {
+        const piattiList = JSON.stringify(selectedItems);
+        console.log('Updated piattiList:', piattiList); // Debugging statement
+        document.getElementById('piattiList').value = piattiList;
+    }
+
+    function saveChanges() {
+        // Avvia la sottomissione del form
+        document.querySelector('form').submit();
+    }
+
+</script>
+{% endblock %}

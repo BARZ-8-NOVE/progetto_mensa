@@ -33,11 +33,16 @@ from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni impo
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Service_t_preparazioniContenuti import Service_t_preparazionicontenuti
 
+from Classi.ClasseDiete.Classe_t_tipiAlimentazione.Service_t_tipiAlimentazione import Service_t_TipiAlimentazione
+
 from Classi.ClasseServizi.Service_t_servizi import Service_t_Servizi
 from Classi.ClasseReparti.Service_t_reparti import Service_t_Reparti
 
-from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import ServiceOrdini
-from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import ServiceOrdiniPiatti
+from Classi.ClasseSchede.Classe_t_schede.Service_t_schede import Service_t_Schede
+from Classi.ClasseSchede.Classe_t_schedePiatti.Service_t_schedePiatti import Service_t_SchedePiatti
+from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import Service_t_Ordini
+from Classi.ClasseOrdini.Classe_t_ordiniSchede.Service_t_ordiniSchede import Service_t_OrdiniSchede
+from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import Service_t_OrdiniPiatti
 from Classi.ClasseUtility import *
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -57,7 +62,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -92,7 +97,13 @@ service_t_tipoquantita = Service_t_tipoquantita()
 service_t_Menu = Service_t_Menu()
 service_t_MenuServizi = Service_t_MenuServizi()
 service_t_MenuServiziAssociazione = Service_t_MenuServiziAssociazione()
+service_t_TipiAlimentazione = Service_t_TipiAlimentazione()
+service_t_Schede = Service_t_Schede()
+service_t_Ordini = Service_t_Ordini()
+service_t_OrdiniSchede = Service_t_OrdiniSchede()
+service_t_OrdiniPiatti = Service_t_OrdiniPiatti()
 
+service_t_SchedePiatti = Service_t_SchedePiatti()
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
 
@@ -310,6 +321,26 @@ def alimenti():
     else:
         return redirect(url_for('app_cucina.login'))
 
+
+@app_cucina.route('/alimenti/<int:id>', methods=['DELETE'])
+def elimina_alimento(id):
+    if 'authenticated' in session:
+
+        print(f"Request to delete Alimento with ID: {id}")  # Aggiungi questo log
+        try:
+            service_t_Alimenti.delete(id=id)
+            flash('Alimento eliminata con successo!', 'success')
+            return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+        except Exception as e:
+            print(f"Error deleting scheda: {e}")  # Log per l'errore
+            flash('Errore durante l\'eliminazione dell\'Alimento', 'danger')
+            return '', 400  # Status code 400 Bad Request per errori
+       
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
 @app_cucina.route('/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
 def get_by_fkTipoPreparazione(fkTipoPreparazione):
     piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
@@ -326,10 +357,6 @@ def get_piatti_fktipo_piatto(tipo_piatto):
 def get_preparazioni_e_associazione(tipo_piatto): 
     preparazione = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
     return jsonify(preparazione)
-
-
-
-
 
 
 
@@ -447,52 +474,89 @@ def preparazioni():
 
 
 
-@app_cucina.route('/preparazioni/<int:id_preparazione>', methods=['GET'])
+        
+@app_cucina.route('/preparazioni/<int:id_preparazione>', methods=['GET', 'POST', 'DELETE'])
 def preparazione_dettagli(id_preparazione):
-    # Recupera la preparazione basata sull'ID fornito
-    preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
-    
-    if not preparazione:
-        flash('Preparazione non trovata.', 'danger')
-        return redirect(url_for('app_cucina.preparazioni'))
+    if 'authenticated' in session:
+        
+        if request.method == 'GET':
+            # Recupera la preparazione basata sull'ID fornito
+            preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)
+            
+            if not preparazione:
+                flash('Preparazione non trovata.', 'danger')
+                return redirect(url_for('app_cucina.preparazioni'))
 
+            tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
+            alimenti = service_t_Alimenti.get_all()
+            alimentiPerPrep = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
+            associazione = service_t_AssociazionePiattiPreparazionie.get_id_piatto_by_preparazione(id_preparazione)
+            tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
+            
+            form = PreparazioniForm(obj=preparazione)
+            alimform = AlimentoForm(obj=preparazione)
 
-    # Recupera tutti i tipi di preparazione disponibili
-    tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
-    
-    # Recupera tutti gli alimenti disponibili
-    alimenti = service_t_Alimenti.get_all()
-    
-    # Recupera tutti i contenuti di preparazione per l'ID preparazione specificato
-    alimentiPerPrep = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
-    
-    # Recupera tutti i tipi di quantità disponibili
-    tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
+            # Riempie le possibili scelte dei form
+            form.fkTipoPreparazione.choices = [
+                (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
+            ]
 
-    # Costruisci il mapping degli alimenti per ID
-    alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
-    
-    # Costruisci il mapping dei tipi di preparazione per ID
-    TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
-    
-    # Costruisci il mapping dei tipi di quantità per ID
-    tipo_map = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
-    
-    # Costruisci il mapping dei contenuti di preparazione per ID di alimento
-    prep_map = {int(contenuto['fkAlimento']): alimento_map[int(contenuto['fkAlimento'])] for contenuto in alimentiPerPrep}
+            alimform.fkAlimento.choices = [
+                (alimento['id'], alimento['alimento']) for alimento in alimenti
+            ]
 
-    # Passa i dati al template
-    return render_template('dettaglio_preparazione.html', 
-                           alimentiPerPrep=alimentiPerPrep,
-                           preparazione=preparazione,
-                           TipoPreparazione_map=TipoPreparazione_map,
-                           alimento_map=alimento_map,
-                           prep_map=prep_map,
-                           tipo_map=tipo_map)
+            alimform.fkTipoQuantita.choices = [
+                (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
+            ]
 
+            # Restituisce i dettagli della preparazione e gli ingredienti
+            return jsonify({
+                'preparazione': {
+                    'fkTipoPreparazione': preparazione.get('fkTipoPreparazione'),
+                    'fkTipoPiatto': associazione.get('fkPiatto'),
+                    'descrizione': preparazione.get('descrizione'),
+                    'estivo': preparazione.get('estivo'),
+                    'invernale': preparazione.get('invernale'),
+                    'inizio': preparazione.get('inizio').strftime('%Y-%m-%d') if preparazione.get('inizio') else '',
+                    'fine': preparazione.get('fine').strftime('%Y-%m-%d') if preparazione.get('fine') else '',
+                    'immagine': preparazione.get('immagine')
+                },
+                'ingredienti': [
+                    {
+                        'fkAlimento': ingrediente.get('fkAlimento'),
+                        'quantita': ingrediente.get('quantita'),
+                        'fkTipoQuantita': ingrediente.get('fkTipoQuantita'),
+                        'note': ingrediente.get('note')
+                    } for ingrediente in alimentiPerPrep
+                ],
+                'scelte': {
+                    'tipiPreparazioni': [(tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni],
+                    'alimenti': [(alimento['id'], alimento['alimento']) for alimento in alimenti],
+                    'tipiQuantita': [(tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita]
+                }
+            })
 
+        if request.method == 'POST':
+            # Logica per gestire il POST
+            pass
 
+        if request.method == 'DELETE':
+            print(f"Request to delete preparazione with ID: {id_preparazione}")  # Log per la richiesta di cancellazione
+            try:
+                service_t_AssociazionePiattiPreparazionie.delete_associazione(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
+                service_t_preparazionicontenuti.delete_preparazioni_contenuti(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
+                service_t_preparazioni.delete_preparazione(id=id_preparazione, utenteCancellazione=get_username())
+                
+                flash('Preparazione eliminata con successo!', 'success')
+                return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+            except Exception as e:
+                print(f"Error deleting scheda: {e}")  # Log per l'errore
+                flash('Errore durante l\'eliminazione della preparazione.', 'danger')
+                return '', 400  # Status code 400 Bad Request per errori
 
+    else:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('app_cucina.login'))
 
 
 
@@ -713,26 +777,6 @@ def menu():
     else:
         return redirect(url_for('app_cucina.login'))
 
-@app_cucina.route('/set_menu_id/<int:menuServizio_id>')
-def set_menu_id(menuServizio_id):
-    session['menu_id'] = menuServizio_id
-
-    associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menuServizio_id)
-
-    # Crea una lista per accumulare gli oggetti prep
-    preps = []
-
-    for associazione in associazioni:
-        piatto_id = associazione['id']
-        prep = service_t_AssociazionePiattiPreparazionie.get_by_id(piatto_id)
-        preps.append(prep)  # Aggiungi l'oggetto prep alla lista
-
-    # Restituisci la risposta JSON con la lista di oggetti prep
-    return jsonify({
-        'menu_id': menuServizio_id,
-        'associazion': preps  # Invia l'array di oggetti
-    })
-
 
 @app_cucina.route('/menu/dettagli/<int:id_menu>', methods=['GET', 'POST'])
 def menu_dettagli(id_menu):
@@ -840,30 +884,323 @@ def menu_dettagli(id_menu):
         return redirect(url_for('app_cucina.login'))
 
 
-@app_cucina.route('/get_menu_details', methods=['GET'])
-def get_menu_details():
-    menu_servizio = session.get('menu_id')
+@app_cucina.route('/schede', methods=['GET', 'POST'])
+def schede():
+    if 'authenticated' in session:
+        schede = service_t_Schede.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_alimentazione = service_t_TipiAlimentazione.get_all()
 
-    if menu_servizio is None:
-        return jsonify({'error': 'ID del menu servizio non trovato nella sessione'}), 400
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        tipi_alimentazione_map = {int(tipi_alimentazione['id']): tipi_alimentazione['descrizione'] for tipi_alimentazione in tipi_alimentazione}
 
-    associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio)
-    preparazioni = service_t_preparazioni.get_all_preparazioni() 
-    piatti = service_t_Piatti.get_all()
+        form = schedaForm()
 
-    piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
-    preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
-    dettagli_menu = []
-    for associazione in associazioni:
-        piatto_id = associazione['id']
-        preparazioni = service_t_AssociazionePiattiPreparazionie.get_by_id_ritorno_diz(piatto_id)
-        dettagli_menu.append({
-            'piatto': piatti_map.get(piatto_id, 'Sconosciuto'),
-            'preparazione': preparazioni_map.get(preparazioni['fkPreparazione'], 'Sconosciuto')
-        })
+        form.fkTipoAlimentazione.choices = [(tipo_alimentazione['id'], tipo_alimentazione['descrizione']) for tipo_alimentazione in tipi_alimentazione]
+        form.fkTipoMenu.choices = [(tipo_menu['id'], tipo_menu['descrizione']) for tipo_menu in tipi_menu]
 
-    return jsonify(dettagli_menu)
+        if form.validate_on_submit():
 
+            # Inserimento dei dati nel database
+            service_t_Schede.create(
+                fkTipoAlimentazione=form.fkTipoAlimentazione.data,
+                fkTipoMenu=form.fkTipoMenu.data,
+                nome=form.nome.data,
+                titolo=form.titolo.data,
+                sottotitolo=form.sottotitolo.data,
+                descrizione=form.descrizione.data,
+                backgroundColor=form.backgroundColor.data,
+                dipendente=form.dipendente.data,
+                note=form.note.data,
+                inizio=form.inizio.data,
+                fine=form.fine.data,
+                nominativa=form.nominativa.data,
+                utenteInserimento=get_username()
+            )
+
+            flash('Scheda aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.schede'))
+
+        return render_template('schede.html',
+                               schede=schede,
+                               tipi_menu_map=tipi_menu_map,
+                               tipi_alimentazione_map=tipi_alimentazione_map,
+                               form=form,
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/schede/<int:id>', methods=['GET', 'POST', 'DELETE'])
+def modifica_scheda(id):
+    if 'authenticated' in session:
+
+        
+        if request.method == 'GET':
+            scheda = service_t_Schede.get_by_id(id)
+            if not scheda:
+                flash('Scheda non trovata!', 'danger')
+                return redirect(url_for('app_cucina.schede'))
+            
+            tipi_menu = service_t_TipiMenu.get_all()
+            tipi_alimentazione = service_t_TipiAlimentazione.get_all()
+            form = schedaForm(obj=scheda)
+            
+
+            form.fkTipoAlimentazione.choices = [(tipo_alimentazione['id'], tipo_alimentazione['descrizione']) for tipo_alimentazione in tipi_alimentazione]
+            form.fkTipoMenu.choices = [(tipo_menu['id'], tipo_menu['descrizione']) for tipo_menu in tipi_menu]
+
+            return jsonify({
+                'backgroundColor': scheda.get('backgroundColor'),
+                'fkTipoAlimentazione': scheda.get('fkTipoAlimentazione'),
+                'fkTipoMenu': scheda.get('fkTipoMenu'),
+                'nome': scheda.get('nome'),
+                'titolo': scheda.get('titolo'),
+                'sottotitolo': scheda.get('sottotitolo'),
+                'descrizione': scheda.get('descrizione'),
+                'dipendente': scheda.get('dipendente'),
+                'nominativa': scheda.get('nominativa'),
+                'inizio': scheda.get('inizio').strftime('%Y-%m-%d') if scheda.get('inizio') else '',
+                'fine': scheda.get('fine').strftime('%Y-%m-%d') if scheda.get('fine') else '',
+                'note': scheda.get('note')
+            })
+        
+        if request.method == 'POST':
+            # Aggiornamento dei dati nel database
+
+            form = schedaForm()
+            service_t_Schede.update(
+                id=id,
+                fkTipoAlimentazione=form.fkTipoAlimentazione.data,
+                fkTipoMenu=form.fkTipoMenu.data,
+                nome=form.nome.data,
+                titolo=form.titolo.data,
+                sottotitolo=form.sottotitolo.data,
+                descrizione=form.descrizione.data,
+                backgroundColor=form.backgroundColor.data,
+                dipendente=form.dipendente.data,
+                note=form.note.data,
+                inizio=form.inizio.data,
+                fine=form.fine.data,
+                nominativa=form.nominativa.data,
+                utenteInserimento=get_username()
+            )
+
+            flash('Scheda aggiornata con successo!', 'success')
+            return redirect(url_for('app_cucina.schede'))
+        
+
+    if request.method == 'DELETE':
+        print(f"Request to delete scheda with ID: {id}")  # Aggiungi questo log
+        try:
+            service_t_Schede.delete(id=id, utenteCancellazione=get_username())
+            flash('Scheda eliminata con successo!', 'success')
+            return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+        except Exception as e:
+            print(f"Error deleting scheda: {e}")  # Log per l'errore
+            flash('Errore durante l\'eliminazione della scheda.', 'danger')
+            return '', 400  # Status code 400 Bad Request per errori
+
+
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+@app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
+def ordine_schede_piatti(id, servizio, reparto, scheda):
+    if 'authenticated' in session:
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
+        get_data = service_t_Ordini.get_by_id(id)
+        scheda = service_t_Schede.get_by_id(scheda)
+        piatti = service_t_Piatti.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        info_servizio = service_t_Servizi.get_servizio_by_id(servizio)
+        info_reparto = service_t_Reparti.get_by_id(reparto)
+        tipi_piatti = service_t_TipiPiatti.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+
+        form = ordineSchedaForm()
+
+        piatti_map = {int(piatto['id']): {'id': piatto['id'], 'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+
+        if form.validate_on_submit():
+            # Inserimento dei dati nel database
+            new_scheda_ordine = service_t_OrdiniSchede.create(
+                fkOrdine=id,
+                fkReparto=reparto,
+                data=get_data['data'],
+                fkServizio=servizio,
+                fkScheda=scheda['id'],
+                cognome=form.cognome.data,
+                nome=form.nome.data,
+                letto=form.letto.data,          
+                utenteInserimento=get_username()
+            )
+
+
+            piatti_list = json.loads(request.form['piattiList'])
+            print (piatti_list)
+            for piatto in piatti_list:
+                try:
+                    # Save ingredient
+                    service_t_OrdiniPiatti.create(
+                        fkOrdineScheda=new_scheda_ordine,
+                        fkPiatto=int(piatto['fkPiatto']),
+                        quantita=int(piatto['quantita']),
+                        note=str(piatto['note']),
+                    )
+                    print(f"ordine piatti saved: {piatto}")
+                except (ValueError, KeyError) as e:
+                    print(f"Error processing ordine piatti: {piatto}, error: {e}")
+
+            flash('Preparazione aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.ordini'))  # Redirect to the list of preparations
+
+        return render_template('ordine_schede_piatti.html',
+                               id=id,
+                               scheda=scheda,
+                               piatti=piatti,
+                               schedePiatti=schedePiatti,
+                               tipi_piatti=tipi_piatti,
+                               piatti_map=piatti_map,
+                               tipi_menu_map=tipi_menu_map,
+                               schedeDolci=schedeDolci,
+                               info_reparto=info_reparto,
+                               info_servizio=info_servizio,
+                               form=form)
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/schede_piatti/<int:id>', methods=['GET', 'POST'])
+def schede_piatti(id):
+    if 'authenticated' in session:
+        servizio_corrente = request.args.get('servizio', '1')
+        scheda = service_t_Schede.get_by_id(id)
+        piatti = service_t_Piatti.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(id,servizio_corrente)
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(id,servizio_corrente)
+        servizi = service_t_Servizi.get_all_servizi()
+        tipi_piatti = service_t_TipiPiatti.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+
+        piatti_map = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+
+        return render_template('schede_piatti.html',
+                               scheda=scheda,
+                               piatti=piatti,
+                               servizi=servizi,
+                               schedePiatti=schedePiatti,
+                               tipi_piatti=tipi_piatti,
+                               piatti_map=piatti_map,
+                               tipi_menu_map=tipi_menu_map,
+                               schedeDolci=schedeDolci)
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+    
+@app_cucina.route('/ordini', methods=['GET', 'POST'])
+def ordini():
+    if 'authenticated' in session:
+        year = request.args.get('year', datetime.now().year, type=int)
+        month = request.args.get('month', datetime.now().month, type=int)
+        day = request.args.get('day', datetime.now().day, type=int)
+        servizio_corrente = request.args.get('servizio', '1')
+        
+ 
+        data = f'{year}-{month}-{day}'
+
+
+        servizio = service_t_Servizi.get_all_servizi()
+        schede = service_t_Schede.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_alimentazione = service_t_TipiAlimentazione.get_all()
+        reparti = service_t_Reparti.get_all()
+        ordiniSchede = service_t_OrdiniSchede.get_all_by_day(year, month, day, servizio_corrente)
+        schede_attive = service_t_Schede.get_all_attivi_pazienti()
+
+        schede_count, reparti_totals, schede_totals, total_general = service_t_OrdiniSchede.get_ordini_data(
+            year, month, day, servizio_corrente, reparti, schede_attive
+        )
+
+        ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
+        print (ordine_esistente)
+        # Se non esiste, crea un nuovo ordine
+        if not ordine_esistente:
+            service_t_Ordini.create(data, servizio_corrente)
+            return redirect(url_for('app_cucina.ordini',servizio_corrente=servizio_corrente, year=year, month=month, day=day))
+        
+
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        tipi_alimentazione_map = {int(tipo_alimentazione['id']): tipo_alimentazione['descrizione'] for tipo_alimentazione in tipi_alimentazione}
+        schede_map = {int(scheda['id']): tipi_menu_map[int(scheda['fkTipoMenu'])] for scheda in schede}
+        reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
+
+        form = ordineSchedaForm()
+
+
+        return render_template('ordini.html',
+                               year=year,
+                               month=month,
+                               day=day,
+                               schede_count=schede_count,
+                               servizio_corrente=servizio_corrente,
+                               servizio=servizio,
+                               schede=schede,
+                               tipi_menu_map=tipi_menu_map,
+                               tipi_alimentazione_map=tipi_alimentazione_map,
+                               reparti=reparti,
+                               reparti_map=reparti_map,
+                               schede_map=schede_map,
+                               ordiniSchede=ordiniSchede,
+                               schede_count_totali=schede_count,
+                               reparti_totals=reparti_totals,
+                               schede_totals=schede_totals,
+                               total_general=total_general,
+                               schede_attive=schede_attive,
+                               ordine_esistente=ordine_esistente,
+                               form=form
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+# @app_cucina.route('/ordini/<int:id_ordine>, <int:id_reparto>, <int:id_scheda>', methods=['GET', 'POST', 'DELETE'])
+# def ordini_schede(id_ordine,id_servizio, id_reparto,id_scheda ):
+
+#     if 'authenticated' in session:
+
+#         form = ordineSchedaForm()
+
+#         if request.method == 'GET':
+
+
+#             ordineScheda = service_t_OrdiniSchede.get_by_ordine_reparto_scheda(id_ordine,id_reparto,id_scheda)
+#             if not ordineScheda:
+#                 flash('Scheda non trovata!', 'danger')
+#                 return redirect(url_for('app_cucina.schede'))
+
+#             return jsonify({
+#                 'fkOrdine': ordineScheda.get('fkOrdine'),
+#                 'fkReparto': ordineScheda.get('fkReparto'),
+#                 'data': ordineScheda.get('data').strftime('%Y-%m-%d'),
+#                 'fkServizio': ordineScheda.get('fkServizio'),
+#                 'fkScheda': ordineScheda.get('fkScheda'),
+#                 'cognome': ordineScheda.get('cognome'),
+#                 'nome': ordineScheda.get('nome'),
+#                 'letto': ordineScheda.get('letto'),
+#                 'dataInserimento': ordineScheda.get('dataInserimento'),
+#                 'utenteInserimento': ordineScheda.get('utenteInserimento')
+
+
+#             })
+        
+
+
+#     else:
+#         return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/do_logout', methods=['POST'])
@@ -874,31 +1211,6 @@ def do_logout():
         session.clear()
         return jsonify({'message': 'Successfully logged out.'}), 200
     return jsonify({'error': 'Invalid request.'}), 400
-
-# @app_cucina.route('/do_logout_vecchio', methods=['POST'])
-# @jwt_required()
-# def do_logout_veccio():
-#     try:
-#         current_utente_public_id = get_jwt_identity()
-#         service_t_utenti.do_logout(current_utente_public_id)
-#         session.clear()
-#         return jsonify({'message': 'Successfully logged out.'}), 200 
-#     except NotFound as e:
-#         return jsonify({'Error': str(e)}), 404
-#     except KeyError as e:
-#         return jsonify({'Error': str(e)}), 400   
-#     except Forbidden as e:
-#         return jsonify({
-#             'Error': str(e),
-#             'redirect': url_for('app_cucina.login')
-#         }), 403
-#     except jwt.ExpiredSignatureError:
-#         return jsonify({
-#             'Error': 'Token has expired. You will be redirected to the login page.',
-#             'redirect': url_for('app_cucina.login')
-#         }), 403
-#     except Exception as e:
-#         return jsonify({'Error': str(e)}), 500
 
 
 

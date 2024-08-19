@@ -1,0 +1,106 @@
+{% extends "index.html" %}
+
+{% block title %}
+Modifica Scheda - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.backgroundColor.label(class="form-label") }}
+            {{ form.backgroundColor(class="form-control") }}
+            {% for error in form.backgroundColor.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.fkTipoAlimentazione.label(class="form-label") }}
+            {{ form.fkTipoAlimentazione(class="form-control") }}
+            {% for error in form.fkTipoAlimentazione.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.fkTipoMenu.label(class="form-label") }}
+            {{ form.fkTipoMenu(class="form-control") }}
+            {% for error in form.fkTipoMenu.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.nome.label(class="form-label") }}
+            {{ form.nome(class="form-control") }}
+            {% for error in form.nome.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.titolo.label(class="form-label") }}
+            {{ form.titolo(class="form-control") }}
+            {% for error in form.titolo.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.sottotitolo.label(class="form-label") }}
+            {{ form.sottotitolo(class="form-control") }}
+            {% for error in form.sottotitolo.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.descrizione.label(class="form-label") }}
+            {{ form.descrizione(class="form-control") }}
+            {% for error in form.descrizione.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.dipendente.label(class="form-check-label") }}
+            {{ form.dipendente(class="form-check-input") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.nominativa.label(class="form-check-label") }}
+            {{ form.nominativa(class="form-check-input") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.inizio.label(class="form-label") }}
+            {{ form.inizio(class="form-control") }}
+            {% for error in form.inizio.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.fine.label(class="form-label") }}
+            {{ form.fine(class="form-control") }}
+            {% for error in form.fine.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.note.label(class="form-label") }}
+            {{ form.note(class="form-control") }}
+            {% for error in form.note.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salva modifiche</button>
+        <a href="{{ url_for('app_cucina.schede') }}" class="btn btn-secondary">Annulla</a>
+    </form>
+</div>
+{% endblock %}
