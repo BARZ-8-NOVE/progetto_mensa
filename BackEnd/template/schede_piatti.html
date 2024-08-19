@@ -1,0 +1,81 @@
+{% extends "index.html" %}
+
+{% block title %}
+schedePiatti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="popup">
+    <div class="popup-header">
+        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+            {{ tipi_menu_map[scheda.fkTipoMenu] }}
+        </h2>
+        <select id="servizio-select">
+            {% for servizio in servizi %}
+            <option value="{{ servizio.id }}" {% if request.args.get('servizio', '1') == servizio.id|string %}selected{% endif %}>
+                {{ servizio.descrizione }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <button class="btn btn-primary" onclick="addPiatto()">+ Nuovo piatto</button>
+
+    <div class="popup-content">
+        <div class="popup-grid">
+            {% for scheda_piatto in schedePiatti %}
+            {% if scheda_piatto.fkPiatto in piatti_map %}
+            {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+            <div class="popup-item 
+                {% if piatto.fkTipoPiatto == 1 %}yellow
+                {% elif piatto.fkTipoPiatto == 2 %}brown
+                {% elif piatto.fkTipoPiatto == 3 %}green
+                {% elif piatto.fkTipoPiatto == 4 %}pink
+                {% elif piatto.fkTipoPiatto == 5 %}grey
+                {% endif %}">
+                <span class="item-id">{{ piatto.codice }}</span>
+                <div class="item-name">{{ piatto.titolo }}</div>
+            </div>       
+            {% else %}
+            <div class="popup-item unknown"></div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="popup-custom-column">
+            {% for scheda_piatto in schedeDolci %}
+            {% if scheda_piatto.fkPiatto in piatti_map %}
+            {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+            <div class="popup-custom-column-item 
+                {% if piatto.fkTipoPiatto == 1 %}yellow
+                {% elif piatto.fkTipoPiatto == 2 %}brown
+                {% elif piatto.fkTipoPiatto == 3 %}green
+                {% elif piatto.fkTipoPiatto == 4 %}pink
+                {% elif piatto.fkTipoPiatto == 5 %}grey
+                {% endif %}">
+                <span class="item-id">{{ piatto.codice }}</span>
+                <div class="item-name">{{ piatto.titolo }}</div>
+            </div>       
+            {% else %}
+            <div class="popup-custom-column-item unknown"></div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <button class="btn btn-secondary" onclick="saveChanges()">Salva</button>
+</div>
+
+<script>
+    function removePiatto(id) {
+        // Implement the logic to remove a dish
+    }
+
+    function addPiatto() {
+        // Implement the logic to add a new dish
+    }
+
+    function saveChanges() {
+        // Implement the logic to save changes
+    }
+</script>
+{% endblock %}

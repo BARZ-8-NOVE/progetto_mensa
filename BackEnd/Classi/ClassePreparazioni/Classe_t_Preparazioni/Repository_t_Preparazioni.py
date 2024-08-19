@@ -31,6 +31,19 @@ class Repository_t_preparazioni:
         except Exception as e:
             return {'Error': str(e)}, 500
 
+
+    def  get_descrizione_by_id(self, id):
+        try:
+            result = self.session.query(TPreparazioni).filter_by(id=id).first()
+            if result:
+                return result.descrizione
+
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        except Exception as e:
+            return {'Error': str(e)}, 400
+
+
     def get_preparazione_by_id(self, id):
         try:
             result = self.session.query(TPreparazioni).filter_by(id=id).first()

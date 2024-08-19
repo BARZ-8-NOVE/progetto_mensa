@@ -42,7 +42,8 @@ class Service_t_Menu:
         new_year = year - 1
         return self.repository.get_by_date_and_type(new_year, month, day, fkTipoMenu)
 
-
+    def get_by_data(self, data, fkTipoMenu):
+        return self.repository.get_by_data(data, fkTipoMenu)
 
     def get_menu_details(self, year: int, month: int, tipo_menu: int = None, id_menu: int = None):
         return self.repository.get_menu_details( year, month, tipo_menu, id_menu)

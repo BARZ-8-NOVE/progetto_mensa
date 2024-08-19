@@ -1005,9 +1005,11 @@ def modifica_scheda(id):
     else:
         return redirect(url_for('app_cucina.login'))
 
+
 @app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
 def ordine_schede_piatti(id, servizio, reparto, scheda):
     if 'authenticated' in session:
+        # Recupera i dati necessari
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
         get_data = service_t_Ordini.get_by_id(id)
@@ -1017,14 +1019,72 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
         info_servizio = service_t_Servizi.get_servizio_by_id(servizio)
         info_reparto = service_t_Reparti.get_by_id(reparto)
         tipi_piatti = service_t_TipiPiatti.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
+
+        # Costruisci una mappa delle preparazioni
+        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
+
+
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+
+        ordine_data = get_data['data']
+        year = ordine_data.year
+        month = ordine_data.month
+        day = ordine_data.day
+
+        id_menu = service_t_Menu.get_by_data(ordine_data, scheda['fkTipoMenu'])
+        if 'Error' in id_menu:
+            print("Error retrieving menu:", id_menu)
+        else:
+            menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(id_menu['id'], servizio)
+            
+            if isinstance(menu_servizio, dict) and 'id' in menu_servizio:
+                menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
+                
+                preparazioni_map = {}  # Inizializza la mappa
+                print('preparazioni_map inizializzata:', preparazioni_map)
+                
+                for assoc in menu_associazioni:
+                    print("Associazione (type):", type(assoc))  # Stampa il tipo di `assoc`
+                    print("Associazione (content):", assoc)  # Stampa il contenuto di `assoc`
+                    
+                    # Assicurati che `assoc` sia un intero (ID)
+                    if isinstance(assoc, dict) and 'id' in assoc:
+                        assoc_id = assoc['id']
+                    else:
+                        assoc_id = assoc  # Supponiamo che assoc sia già l'ID
+                    
+                    fk_associazione_result = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
+                    print("fk_associazione_result: ", fk_associazione_result)
+
+                    if isinstance(fk_associazione_result, tuple):
+                        fk_associazione = fk_associazione_result[0]
+                    else:
+                        fk_associazione = fk_associazione_result
+
+                    if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
+                        fk_piatto = fk_associazione['fkPiatto']
+                        fk_preparazione = fk_associazione.get('fkPreparazione')
+                        descrizione_preparazione = preparazioni_map.get(fk_piatto,service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
+                        preparazioni_map[fk_piatto] = descrizione_preparazione
+                    else:
+                        print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa l'errore per il debug
+
+                print('preparazioni_map dopo il loop: ', preparazioni_map)  # Stampa la mappa popolata per il debug
 
         form = ordineSchedaForm()
 
-        piatti_map = {int(piatto['id']): {'id': piatto['id'], 'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+        piatti_map = {}
+        for piatto in piatti:
+            piatto_id = int(piatto['id'])
+            piatti_map[piatto_id] = {
+                'id': piatto['id'],
+                'titolo': preparazioni_map.get(piatto_id, piatto['titolo']),  # Usa la descrizione della preparazione se disponibile
+                'codice': piatto['codice'],
+                'fkTipoPiatto': piatto['fkTipoPiatto']
+            }
 
         if form.validate_on_submit():
-            # Inserimento dei dati nel database
             new_scheda_ordine = service_t_OrdiniSchede.create(
                 fkOrdine=id,
                 fkReparto=reparto,
@@ -1037,12 +1097,9 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                 utenteInserimento=get_username()
             )
 
-
             piatti_list = json.loads(request.form['piattiList'])
-            print (piatti_list)
             for piatto in piatti_list:
                 try:
-                    # Save ingredient
                     service_t_OrdiniPiatti.create(
                         fkOrdineScheda=new_scheda_ordine,
                         fkPiatto=int(piatto['fkPiatto']),
@@ -1054,7 +1111,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                     print(f"Error processing ordine piatti: {piatto}, error: {e}")
 
             flash('Preparazione aggiunta con successo!', 'success')
-            return redirect(url_for('app_cucina.ordini'))  # Redirect to the list of preparations
+
+            return redirect(url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio))
 
         return render_template('ordine_schede_piatti.html',
                                id=id,
@@ -1070,6 +1128,9 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                                form=form)
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
 
 
 

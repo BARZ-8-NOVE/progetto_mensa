@@ -8,6 +8,7 @@ from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Domain_t_associ
 from Classi.ClassePiatti.Classe_t_piatti.Domain_t_piatti import TPiatti
 from Classi.ClasseServizi.Domani_t_servizi import TServizi
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
+from sqlalchemy.exc import SQLAlchemyError
 
 from datetime import datetime, date
 from sqlalchemy import and_
@@ -157,8 +158,46 @@ class RepositoryMenu:
         target_date = date(year, month, day)
         return self.session.query(TMenu).filter_by(data=target_date, fkTipoMenu=fkTipoMenu).first()
     
-    
 
+    def get_by_data(self, data, fkTipoMenu):
+        try:
+            # Effettua la query per ottenere il menu per la data e tipo di menu specificati
+            result = self.session.query(TMenu).filter_by(
+                data=data,
+                fkTipoMenu=fkTipoMenu
+            ).filter(TMenu.dataCancellazione.is_(None)).first()
+            
+            if result:
+                # Restituisce i dettagli del menu come dizionario
+                return {
+                    'id': result.id,
+                    'data': result.data,
+                    'fkTipoMenu': result.fkTipoMenu,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione,
+                }
+            else:
+                # Restituisce un messaggio di errore se non ci sono risultati
+                return {'Error': f'No match found for data: {data}'}, 404
+
+        except SQLAlchemyError as e:
+            # Gestione degli errori specifici di SQLAlchemy
+            logging.error(f"SQLAlchemy error getting menu by date {data}: {e}")
+            return {'Error': 'Database error occurred'}, 500
+
+        except Exception as e:
+            # Gestione di altri errori generali
+            logging.error(f"Unexpected error getting menu by date {data}: {e}")
+            return {'Error': str(e)}, 400
+
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+    
     def delete(self, id, utenteCancellazione):
         try:
             menu = self.session.query(TMenu).filter_by(id=id).first()
