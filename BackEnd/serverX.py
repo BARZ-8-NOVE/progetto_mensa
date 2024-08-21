@@ -1182,34 +1182,89 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
 
 
-@app_cucina.route('/print_schede/<int:id>', methods=['GET', 'POST'])
-def print_schede(id):
+@app_cucina.route('/print_ordini/<int:id>', methods=['GET', 'POST'])
+def print_ordini(id):
     if 'authenticated' in session:
         # Recupera tutti gli ordini associati all'ID fornito
         tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine(id)
 
-        print(tutti_gli_ordini)
-        # Prepara i dati per ogni scheda
-        schede = []
-        for ordine in tutti_gli_ordini:
-            scheda_id = ordine['scheda_id']  # Adatta a come recuperi l'ID della scheda
-            scheda = {
-                'info_servizio': service_t_Servizi.get_servizio_by_id(ordine['servizio']),
-                'info_reparto': service_t_Reparti.get_by_id(ordine['reparto']),
-                'scheda': service_t_Schede.get_by_id(scheda_id),
-                'piatti_map': {piatto['id']: piatto for piatto in service_t_Piatti.get_all()},
-                'schedePiatti': service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda_id, ordine['servizio']),
-                'schedeDolci': service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda_id, ordine['servizio']),
-                'tipi_menu_map': {tipo_menu['id']: tipo_menu['descrizione'] for tipo_menu in service_t_TipiMenu.get_all()},
-            }
-            schede.append(scheda)
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
 
-        return render_template('print_schede.html', schede=schede)
+        ordini_data = []
+
+        for ordine in tutti_gli_ordini:
+            # Resetta la lista dei piatti per ogni ordine
+            Lista_piatti = []
+
+            schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(ordine['fkScheda'], ordine['fkServizio'])
+            schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(ordine['fkScheda'], ordine['fkServizio'])
+            scheda = service_t_Schede.get_by_id(ordine['fkScheda'])
+            info_reparto = service_t_Reparti.get_by_id(ordine['fkReparto'])
+            piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine['id'])
+
+            # Aggiunge i piatti ordinati alla lista dei piatti
+            for p in piatti_ordinati:
+                piatti = service_t_Piatti.get_by_id(p['fkPiatto'])
+                Lista_piatti.append(piatti)
+
+            # Ottieni il menu e i servizi associati
+            id_menu = service_t_Menu.get_by_data(ordine['data'], scheda['fkTipoMenu'])
+            if 'Error' in id_menu:
+                print("Error retrieving menu:", id_menu)
+                continue  # Salta questo ordine se c'è un errore
+            else:
+                menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(id_menu['id'], ordine['fkServizio'])
+                
+                if isinstance(menu_servizio, dict) and 'id' in menu_servizio:
+                    menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
+                    
+                    preparazioni_map = {}  # Inizializza la mappa per ogni ordine
+
+                    for assoc in menu_associazioni:
+                        assoc_id = assoc['id'] if isinstance(assoc, dict) else assoc
+                        fk_associazione = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
+
+                        if isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
+                            fk_piatto = fk_associazione['fkPiatto']
+                            fk_preparazione = fk_associazione.get('fkPreparazione')
+                            descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))
+                            preparazioni_map[fk_piatto] = descrizione_preparazione
+                        else:
+                            print(f"Errore nella fk_associazione: {fk_associazione}")
+
+            # Crea una mappa per i piatti
+            piatti_map = {}
+            for piatto in Lista_piatti:
+                piatto_id = int(piatto['id'])
+                piatti_map[piatto_id] = {
+                    'id': piatto['id'],
+                    'titolo': preparazioni_map.get(piatto_id, piatto['titolo']),
+                    'codice': piatto['codice'],
+                    'fkTipoPiatto': piatto['fkTipoPiatto']
+                }
+
+            # Aggiunge le informazioni dell'ordine ai dati finali
+            ordini_data.append({
+                'ordine': ordine,
+                'scheda': scheda,
+                'info_reparto': info_reparto,
+                'piatti_ordinati': piatti_ordinati,
+                'nome': ordine['nome'],
+                'cognome': ordine['cognome'],
+                'letto': ordine['letto'],
+                'schedePiatti': schedePiatti,
+                'schedeDolci': schedeDolci,
+                'piatti_map': piatti_map
+            })
+
+        return render_template('print_ordini.html', 
+                               ordini_data=ordini_data,
+                               tipi_menu_map=tipi_menu_map)
     else:
         return redirect(url_for('app_cucina.login'))
-
-
-
 
 
 
