@@ -1007,7 +1007,8 @@ def modifica_scheda(id):
 
 
 @app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
-def ordine_schede_piatti(id, servizio, reparto, scheda):
+@app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
+def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
         # Recupera i dati necessari
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
@@ -1023,8 +1024,6 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
 
         # Costruisci una mappa delle preparazioni
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
-
-
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
 
         ordine_data = get_data['data']
@@ -1042,20 +1041,14 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                 menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
                 
                 preparazioni_map = {}  # Inizializza la mappa
-                print('preparazioni_map inizializzata:', preparazioni_map)
-                
+
                 for assoc in menu_associazioni:
-                    print("Associazione (type):", type(assoc))  # Stampa il tipo di `assoc`
-                    print("Associazione (content):", assoc)  # Stampa il contenuto di `assoc`
-                    
-                    # Assicurati che `assoc` sia un intero (ID)
                     if isinstance(assoc, dict) and 'id' in assoc:
                         assoc_id = assoc['id']
                     else:
                         assoc_id = assoc  # Supponiamo che assoc sia già l'ID
                     
                     fk_associazione_result = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
-                    print("fk_associazione_result: ", fk_associazione_result)
 
                     if isinstance(fk_associazione_result, tuple):
                         fk_associazione = fk_associazione_result[0]
@@ -1065,15 +1058,12 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                     if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
                         fk_piatto = fk_associazione['fkPiatto']
                         fk_preparazione = fk_associazione.get('fkPreparazione')
-                        descrizione_preparazione = preparazioni_map.get(fk_piatto,service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
+                        descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
                         preparazioni_map[fk_piatto] = descrizione_preparazione
                     else:
                         print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa l'errore per il debug
 
-                print('preparazioni_map dopo il loop: ', preparazioni_map)  # Stampa la mappa popolata per il debug
-
         form = ordineSchedaForm()
-
         piatti_map = {}
         for piatto in piatti:
             piatto_id = int(piatto['id'])
@@ -1084,18 +1074,69 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                 'fkTipoPiatto': piatto['fkTipoPiatto']
             }
 
+        # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
+        dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
+
+        # Lista di tutti gli ID disponibili
+        lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine]
+        print("Lista ID disponibili:", lista_id_disponibili)
+
+        lista_id_disponibili.insert(0, 0)
+
+        print("Lista ID disponibili:", lista_id_disponibili)
+
+        if ordine_id is None or ordine_id == 0:
+                # Se non c'è un ordine_id valido o è "new", prepara una scheda vuota
+            info_utente = {
+                    'nome': '',
+                    'cognome': '',
+                    'letto': '',
+                    'note': ''
+                }
+            info_piatti = []
+            prev_order_id = None
+            next_order_id = lista_id_disponibili[1] if len(lista_id_disponibili) > 1 else None
+
+
+        if len(lista_id_disponibili) > 0:
+            if ordine_id is None or ordine_id not in lista_id_disponibili:
+                # Se non c'è un ordine_id valido, seleziona il primo ordine come ordine_id predefinito
+                ordine_id = lista_id_disponibili[0]
+
+            # Trova l'indice dell'ordine corrente
+            current_index = lista_id_disponibili.index(ordine_id)
+            prev_order_id = lista_id_disponibili[current_index - 1] if current_index > 0 else None
+            next_order_id = lista_id_disponibili[current_index + 1] if current_index < len(lista_id_disponibili) - 1 else None
+        
+            info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
+             
+            info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+
+        
+        else:
+            prev_order_id, next_order_id = None, None
+
+
         if form.validate_on_submit():
+            ordine_id = request.form.get('ordine_id', default=None, type=int)
+        
+
+            if ordine_id != 0:
+
+                service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
+                service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
+                    # Creazione di un nuovo ordine
             new_scheda_ordine = service_t_OrdiniSchede.create(
-                fkOrdine=id,
-                fkReparto=reparto,
-                data=get_data['data'],
-                fkServizio=servizio,
-                fkScheda=scheda['id'],
-                cognome=form.cognome.data,
-                nome=form.nome.data,
-                letto=form.letto.data,          
-                utenteInserimento=get_username()
-            )
+                        fkOrdine=id,
+                        fkReparto=reparto,
+                        data=get_data['data'],
+                        fkServizio=servizio,
+                        fkScheda=scheda['id'],
+                        cognome=form.cognome.data,
+                        nome=form.nome.data,
+                        letto=form.letto.data,          
+                        utenteInserimento=get_username()
+                    )
 
             piatti_list = json.loads(request.form['piattiList'])
             for piatto in piatti_list:
@@ -1105,29 +1146,70 @@ def ordine_schede_piatti(id, servizio, reparto, scheda):
                         fkPiatto=int(piatto['fkPiatto']),
                         quantita=int(piatto['quantita']),
                         note=str(piatto['note']),
-                    )
+                        )
                     print(f"ordine piatti saved: {piatto}")
                 except (ValueError, KeyError) as e:
                     print(f"Error processing ordine piatti: {piatto}, error: {e}")
 
             flash('Preparazione aggiunta con successo!', 'success')
-
             return redirect(url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio))
 
+
         return render_template('ordine_schede_piatti.html',
-                               id=id,
-                               scheda=scheda,
-                               piatti=piatti,
-                               schedePiatti=schedePiatti,
-                               tipi_piatti=tipi_piatti,
-                               piatti_map=piatti_map,
-                               tipi_menu_map=tipi_menu_map,
-                               schedeDolci=schedeDolci,
-                               info_reparto=info_reparto,
-                               info_servizio=info_servizio,
-                               form=form)
+            id=id,
+            scheda=scheda,
+            piatti=piatti,
+            schedePiatti=schedePiatti,
+            tipi_piatti=tipi_piatti,
+            piatti_map=piatti_map,
+            tipi_menu_map=tipi_menu_map,
+            schedeDolci=schedeDolci,
+            info_reparto=info_reparto,
+            info_servizio=info_servizio,
+            form=form,
+            servizio=servizio,
+            prev_order_id=prev_order_id,
+            next_order_id=next_order_id,
+            reparto=reparto,
+            dettagli_ordine=dettagli_ordine,
+            info_utente=info_utente,
+            info_piatti=info_piatti,
+            ordine_id=ordine_id
+        )
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
+
+@app_cucina.route('/print_schede/<int:id>', methods=['GET', 'POST'])
+def print_schede(id):
+    if 'authenticated' in session:
+        # Recupera tutti gli ordini associati all'ID fornito
+        tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine(id)
+
+        print(tutti_gli_ordini)
+        # Prepara i dati per ogni scheda
+        schede = []
+        for ordine in tutti_gli_ordini:
+            scheda_id = ordine['scheda_id']  # Adatta a come recuperi l'ID della scheda
+            scheda = {
+                'info_servizio': service_t_Servizi.get_servizio_by_id(ordine['servizio']),
+                'info_reparto': service_t_Reparti.get_by_id(ordine['reparto']),
+                'scheda': service_t_Schede.get_by_id(scheda_id),
+                'piatti_map': {piatto['id']: piatto for piatto in service_t_Piatti.get_all()},
+                'schedePiatti': service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda_id, ordine['servizio']),
+                'schedeDolci': service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda_id, ordine['servizio']),
+                'tipi_menu_map': {tipo_menu['id']: tipo_menu['descrizione'] for tipo_menu in service_t_TipiMenu.get_all()},
+            }
+            schede.append(scheda)
+
+        return render_template('print_schede.html', schede=schede)
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
 
 
 

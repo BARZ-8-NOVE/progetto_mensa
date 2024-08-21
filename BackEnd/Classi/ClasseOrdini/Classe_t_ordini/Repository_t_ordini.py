@@ -46,6 +46,15 @@ class RepositoryOrdini:
             return {'Error': str(e)}, 400
 
 
+
+    def get_ordini_by_data(self, data, fkServizio):
+        try:
+            results = self.session.query(TOrdini).filter_by(data=data, fkServizio=fkServizio).all()
+            return [{'id': result.id, 'data': result.data, 'fkServizio': result.fkServizio} for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 400
+
+
     def create(self, data, fkServizio):
         try:
 

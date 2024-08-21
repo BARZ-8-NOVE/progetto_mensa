@@ -10,6 +10,9 @@ class Service_t_OrdiniPiatti:
 
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
+    
+    def get_all_by_ordine_scheda(self, fkOrdineScheda):
+         return self.repository.get_all_by_ordine_scheda(fkOrdineScheda)
 
     def create(self, fkOrdineScheda, fkPiatto, quantita, note):       
         return self.repository.create(fkOrdineScheda, fkPiatto, quantita, note)
@@ -19,3 +22,6 @@ class Service_t_OrdiniPiatti:
 
     def delete(self, id):
         return self.repository.delete(id)
+    
+    def delete_by_fkOrdine(self, fkOrdineScheda):
+        return self.repository.delete_by_fkOrdine(fkOrdineScheda)

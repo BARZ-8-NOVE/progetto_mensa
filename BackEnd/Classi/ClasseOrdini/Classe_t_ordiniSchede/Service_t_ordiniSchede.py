@@ -8,6 +8,9 @@ class Service_t_OrdiniSchede:
     def get_all_by_day(self, year: int, month: int, day: int, servizio: int):
         return self.repository.get_all_by_day(year, month, day, servizio)
     
+    def get_all_by_ordine(self, ordine):
+        return self.repository.get_all_by_ordine(ordine)
+    
     def get_count_filtrati(self, year: int, month: int, day: int, servizio: int, fkReparto = None, fkScheda = None):
         return self.repository.get_count_filtrati(year, month, day, servizio, fkReparto, fkScheda)
     
@@ -25,6 +28,9 @@ class Service_t_OrdiniSchede:
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)
+    
+    def get_all_by_day_and_reparto(self, data, fkReparto, servizio, scheda):
+         return self.repository.get_all_by_day_and_reparto(data, fkReparto, servizio, scheda)
 
     # services.py
 

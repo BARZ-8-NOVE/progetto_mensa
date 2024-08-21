@@ -20,22 +20,22 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         <div class="form-row-ordiniPiatti">
             <div class="form-group-ordiniPiatti">
                 {{ form.nome.label(class="form-label-ordiniPiatti") }}
-                {{ form.nome(class="form-control-ordiniPiatti") }}
+                {{ form.nome(class="form-control-ordiniPiatti", value=info_utente.nome if info_utente else '') }}
             </div>
 
             <div class="form-group-ordiniPiatti">
                 {{ form.cognome.label(class="form-label-ordiniPiatti") }}
-                {{ form.cognome(class="form-control-ordiniPiatti") }}
+                {{ form.cognome(class="form-control-ordiniPiatti", value=info_utente.cognome if info_utente else '') }}
             </div>
 
             <div class="form-group-ordiniPiatti">
                 {{ form.letto.label(class="form-label-ordiniPiatti") }}
-                {{ form.letto(class="form-control-ordiniPiatti") }}
+                {{ form.letto(class="form-control-ordiniPiatti", value=info_utente.letto if info_utente else '') }}
             </div>
 
             <div class="form-group-ordiniPiatti">
                 {{ form.note.label(class="form-label-ordiniPiatti") }}
-                {{ form.note(class="form-control-ordiniPiatti") }}
+                {{ form.note(class="form-control-ordiniPiatti", value=info_utente.note if info_utente else '') }}
             </div>
         </div>
 
@@ -44,7 +44,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% for scheda_piatto in schedePiatti %}
                 {% if scheda_piatto.fkPiatto in piatti_map %}
                 {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-item" onclick="toggleSelection(this, {{ piatto.id }})">
+                <div class="popup-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
                     <span class="item-id">{{ piatto.codice }}</span>
                     <div class="item-name">{{ piatto.titolo }}</div>
                 </div>       
@@ -58,7 +58,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% for scheda_piatto in schedeDolci %}
                 {% if scheda_piatto.fkPiatto in piatti_map %}
                 {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-custom-column-item" onclick="toggleSelection(this, {{ piatto.id }})">
+                <div class="popup-custom-column-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
                     <span class="item-id">{{ piatto.codice }}</span>
                     <div class="item-name">{{ piatto.titolo }}</div>
                 </div>       
@@ -68,16 +68,37 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% endfor %}
             </div>
         </div>
+        
+        <div class="navigation-buttons">
 
-        <div>
+
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}">
+                <button type="button">Precedente</button>
+            </a>
+            
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}">
+                <button type="button">Successivo</button>
+            </a>
+
+            
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
+                <button type="button">nuova scheda</button>
+            </a>
             {{ form.submit() }}
         </div>
+
         <input type="hidden" id="piattiList" name="piattiList">
+        <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
     </form>
 </div>
 
 <script>
+    // Popola selectedItems con i dati di info_piatti
     const selectedItems = [];
+
+    {% for piatto in info_piatti %}
+        selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
+    {% endfor %}
 
     function toggleSelection(element, piattoId) {
         console.log('Piatto ID:', piattoId); // Debugging statement
@@ -104,9 +125,26 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
     }
 
     function saveChanges() {
+        // Imposta il valore dell'ID dell'ordine
+        var ordineId = getOrdineId(); // Funzione che ottiene l'ID dell'ordine se esiste
+        document.getElementById('ordineId').value = ordineId;
+        
         // Avvia la sottomissione del form
         document.querySelector('form').submit();
     }
+    
+    function getOrdineId() {
+        // Ottieni l'ID dell'ordine se è impostato
+        return document.getElementById('ordineId').value || ''; // Usa il valore del campo nascosto se presente
+    }
 
+
+    // Seleziona gli elementi che erano già presenti in info_piatti
+    document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
+        const piattoId = parseInt(item.getAttribute('data-id'));
+        if (selectedItems.find(item => item.fkPiatto === piattoId)) {
+            item.classList.add('selezionato');
+        }
+    });
 </script>
 {% endblock %}

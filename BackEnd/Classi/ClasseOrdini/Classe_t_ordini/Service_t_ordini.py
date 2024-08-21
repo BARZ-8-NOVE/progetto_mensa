@@ -16,3 +16,7 @@ class Service_t_Ordini:
     
     def existing_Ordine(self, data, fkServizio):     
         return self.repository.existing_Ordine(data, fkServizio)
+
+
+    def get_ordini_by_data(self, data, fkServizio):
+        return self.repository.get_ordini_by_data(data, fkServizio)

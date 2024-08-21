@@ -36,14 +36,17 @@ class RepositoryOrdiniSchede:
         except Exception as e:
             return {'Error': str(e)}, 500
         
-    def get_all_by_ordine(self,fkOrdine , servizio: int):
-        """Recupera tutti i record da TOrdiniSchede per un giorno specifico e che non sono stati cancellati."""
+
+    def get_all_by_day_and_reparto(self, data, fkReparto: int, servizio: int, scheda: int):
+        """Recupera tutti i record da TOrdiniSchede per un giorno e un reparto specifico e che non sono stati cancellati."""
         try:
-            
+
 
             results = self.session.query(TOrdiniSchede).filter(
-                TOrdiniSchede.fkOrdine == fkOrdine,
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.fkReparto == fkReparto,
                 TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.fkScheda == scheda,
                 TOrdiniSchede.dataCancellazione.is_(None)
             ).all()
             return [{
@@ -52,6 +55,34 @@ class RepositoryOrdiniSchede:
                 'fkReparto': result.fkReparto,
                 'data': result.data,
                 'fkServizio': result.fkServizio,
+                'fkScheda': result.fkScheda,
+                'cognome': result.cognome,
+                'nome': result.nome,
+                'letto': result.letto,
+                'dataInserimento': result.dataInserimento,
+                'utenteInserimento': result.utenteInserimento,
+                'dataCancellazione': result.dataCancellazione,
+                'utenteCancellazione': result.utenteCancellazione
+            } for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+    def get_all_by_ordine(self,fkOrdine):
+        """Recupera tutti i record da TOrdiniSchede per un giorno specifico e che non sono stati cancellati."""
+        try:
+            
+
+            results = self.session.query(TOrdiniSchede).filter(
+                TOrdiniSchede.fkOrdine == fkOrdine,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).all()
+            return [{
+                'id': result.id,
+                'fkOrdine': result.fkOrdine,
+                'fkReparto': result.fkReparto,
+                'data': result.data,
+                'fkServizio': result.fkServizio,
+                'fkScheda': result.fkScheda,
                 'cognome': result.cognome,
                 'nome': result.nome,
                 'letto': result.letto,

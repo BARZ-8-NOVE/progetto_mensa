@@ -424,3 +424,17 @@ li {
     background-color: #00881d;
     color: white; /* Optional: to ensure text is readable on the selected background */
 }
+
+.controls-container {
+    display: flex;
+    gap: 10px; /* Spazio tra gli elementi */
+    align-items: center; /* Allinea verticalmente al centro */
+    margin-bottom: 20px; /* Spazio sotto il contenitore */
+}
+
+.controls-container form,
+.controls-container button {
+    margin: 0; /* Rimuove margini predefiniti */
+}
+
+

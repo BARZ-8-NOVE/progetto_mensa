@@ -6,11 +6,11 @@ Ordini - Gestione Cucina
 {% block content %}
 <h1>Ordini del giorno {{ day }}/{{ month }}/{{ year }}  </h1>
 
+<!-- Contenitore per i pulsanti e i form -->
+<div class="controls-container">
     <!-- Pulsanti di navigazione del giorno -->
     <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
         <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
-
-        <!-- Pulsante giorno precedente -->
         {% set prev_day = day - 1 %}
         {% set prev_month = month %}
         {% set prev_year = year %}
@@ -40,8 +40,6 @@ Ordini - Gestione Cucina
 
     <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
         <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
-
-        <!-- Pulsante giorno successivo -->
         {% set next_day = day + 1 %}
         {% set next_month = month %}
         {% set next_year = year %}
@@ -98,11 +96,12 @@ Ordini - Gestione Cucina
         <button type="submit">Giorno Successivo</button>
     </form>
 
-    <label for="servizio">Filtra per servizio:</label>
+    <!-- Filtra per servizio -->
     <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
         <input type="hidden" name="day" value="{{ day }}">
         <input type="hidden" name="year" value="{{ year }}">
         <input type="hidden" name="month" value="{{ month }}">
+        <label for="servizio">Filtra per servizio:</label>
         <select id="servizio" name="servizio" onchange="this.form.submit()">
             {% for servizio in servizio %}
             <option value="{{ servizio.id }}" {% if request.args.get('servizio', '1') == servizio.id|string %}selected{% endif %}>
@@ -112,47 +111,50 @@ Ordini - Gestione Cucina
         </select>
     </form>
 
-    <table>
-        <thead>
-            <thead>
-                <tr>
-                    <th class="rotated-header"> Reparto</th>
-                    {% for scheda in schede_attive %}
-                    <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
-                        <span>{{ scheda.titolo }}</span>
-                    </th>
-                    {% endfor %}
-                    <th class="rotated-header"> totali reparti</th>
-                </tr>
-            </thead>
-            
-        </thead>
-        <tbody id="schedeTableBody">
-            {% for reparto in reparti %}
-            <tr>
-                <td>{{ reparto.descrizione }}</td>
-
-                {% for scheda in schede_attive %}
-                <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
-                    {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
-                </td>
-                {% endfor %}
-                <td>{{ reparti_totals[reparto.id] }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td>Totali Schede</td>
-                {% for scheda in schede_attive %}
-                <td>{{ schede_totals[scheda.id] }}</td>
-                {% endfor %}
-                <td>{{ total_general }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Calendario FullCalendar -->
-    <div id="calendar"></div>
+    <!-- Pulsante Stampa -->
+    <button type="button" onclick="printPage({{ ordine_esistente.id }})">Stampa</button>
 </div>
+
+<table>
+    <thead>
+        <thead>
+            <tr>
+                <th class="rotated-header"> Reparto</th>
+                {% for scheda in schede_attive %}
+                <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
+                    <span>{{ scheda.titolo }}</span>
+                </th>
+                {% endfor %}
+                <th class="rotated-header"> totali reparti</th>
+            </tr>
+        </thead>
+        
+    </thead>
+    <tbody id="schedeTableBody">
+        {% for reparto in reparti %}
+        <tr>
+            <td>{{ reparto.descrizione }}</td>
+
+            {% for scheda in schede_attive %}
+            <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
+                {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
+            </td>
+            {% endfor %}
+            <td>{{ reparti_totals[reparto.id] }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td>Totali Schede</td>
+            {% for scheda in schede_attive %}
+            <td>{{ schede_totals[scheda.id] }}</td>
+            {% endfor %}
+            <td>{{ total_general }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Calendario FullCalendar -->
+<div id="calendar"></div>
 
 <script>
     function showForm(ordineId, servizioId, repartoId, schedaId) {
@@ -161,8 +163,18 @@ Ordini - Gestione Cucina
         window.location.href = url;
     }
     
+    function printPage(ordineId) {
+        // Costruisci l'URL per la pagina di stampa
+        var url = '/app_cucina/print_ordini/' + ordineId;
+    
+        // Apri una nuova finestra con la pagina di stampa
+        var printWindow = window.open(url, '_blank', 'width=800,height=600');
+        
+        // Attendere che la finestra venga caricata
+        printWindow.onload = function() {
+            printWindow.print();
+        };
+    }
 </script>
-
-
 
 {% endblock %}

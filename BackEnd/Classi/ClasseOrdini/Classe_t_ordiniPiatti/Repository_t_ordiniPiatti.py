@@ -13,6 +13,16 @@ class RepositoryOrdiniPiatti:
             return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        
+
+    def get_all_by_ordine_scheda(self, fkOrdineScheda):
+        try:
+            results = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
+            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+
 
     def get_by_id(self, id):
         try:
@@ -59,6 +69,25 @@ class RepositoryOrdiniPiatti:
                 return {'ordine_piatto': 'deleted!'}, 200
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        
+
+    def delete_by_fkOrdine(self, fkOrdineScheda):
+        try:
+            # Trova tutti i record associati a fkOrdineScheda
+            ordine_piatto = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
+            
+            if ordine_piatto:
+                # Elimina ogni record trovato
+                for record in ordine_piatto:
+                    self.session.delete(record)
+                
+                self.session.commit()
+                return {'ordine_piatto': 'deleted!'}, 200
+            else:
+                return {'Error': f'No match found for fkOrdineScheda: {fkOrdineScheda}'}, 404
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500

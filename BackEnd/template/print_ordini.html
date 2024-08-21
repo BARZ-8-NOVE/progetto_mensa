@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stampa Schede</title>
+    <style>
+        @media print {
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+            .popup {
+                margin-bottom: 20px;
+                padding: 10px;
+                border: 1px solid #000;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            .popup-header {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            .popup-content {
+                font-size: 14px;
+            }
+            .popup-item, .popup-custom-column-item {
+                padding: 5px;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% for scheda in schede %}
+        <div class="popup">
+            <div class="popup-header">
+                <h2>
+                    {{ scheda.info_servizio.descrizione }}, {{ scheda.info_reparto.codiceAreas }}, {{ scheda.info_reparto.descrizione }}
+                </h2>
+                <h2 style="width: 400px; height: 30px; background-color: {{ scheda.scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+                    {{ scheda.tipi_menu_map[scheda.scheda.fkTipoMenu] }}
+                </h2>
+            </div>
+
+            <div class="popup-content">
+                <div class="popup-grid">
+                    {% for scheda_piatto in scheda.schedePiatti %}
+                        {% if scheda_piatto.fkPiatto in scheda.piatti_map %}
+                            {% set piatto = scheda.piatti_map[scheda_piatto.fkPiatto] %}
+                            <div class="popup-item">
+                                <span class="item-id">{{ piatto.codice }}</span>
+                                <div class="item-name">{{ piatto.titolo }}</div>
+                            </div>
+                        {% else %}
+                            <div class="popup-item unknown"></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="popup-custom-column">
+                    {% for scheda_piatto in scheda.schedeDolci %}
+                        {% if scheda_piatto.fkPiatto in scheda.piatti_map %}
+                            {% set piatto = scheda.piatti_map[scheda_piatto.fkPiatto] %}
+                            <div class="popup-custom-column-item">
+                                <span class="item-id">{{ piatto.codice }}</span>
+                                <div class="item-name">{{ piatto.titolo }}</div>
+                            </div>
+                        {% else %}
+                            <div class="popup-custom-column-item unknown"></div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="page-break"></div> <!-- Forza una nuova pagina nella stampa -->
+        </div>
+    {% endfor %}
+</body>
+</html>
