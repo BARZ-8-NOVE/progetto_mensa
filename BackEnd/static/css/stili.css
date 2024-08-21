@@ -71,7 +71,13 @@ nav ul li a {
     display: block;
 }
 
-.dropdown-content, .dropdown-subcontent {
+/* Assicurati che il contenitore dropdown sia posizionato relativamente */
+.dropdown {
+    position: relative;
+}
+
+/* Stile per il menu principale */
+.dropdown-content {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
@@ -80,6 +86,19 @@ nav ul li a {
     z-index: 1;
 }
 
+/* Stile per il sottomenu */
+.dropdown-subcontent {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 2; /* Assicurati che sia sopra il menu principale */
+    left: 100%; /* Posiziona il sottomenu direttamente a destra del menu principale */
+    top: 0; /* Allinea verticalmente con il menu principale */
+}
+
+/* Stili per i link nei menu */
 .dropdown-content a, .dropdown-subcontent a {
     color: #07437e;
     padding: 12px 16px;
@@ -87,18 +106,22 @@ nav ul li a {
     display: block;
 }
 
+/* Hover effects per i link */
 .dropdown-content a:hover, .dropdown-subcontent a:hover {
     background-color: #f1f1f1;
 }
 
-.dropdown:hover .dropdown-content, .dropdown-content .dropdown:hover .dropdown-subcontent {
+/* Mostra il menu principale al passaggio del mouse */
+.dropdown:hover .dropdown-content {
     display: block;
 }
 
-.dropdown-subcontent {
-    left: 100%;
-    top: 0;
+/* Mostra il sottomenu al passaggio del mouse */
+.dropdown:hover .dropdown-content .dropdown:hover .dropdown-subcontent {
+    display: block;
 }
+
+
 
 .container {
     max-width: 1200px;
@@ -438,3 +461,124 @@ li {
 }
 
 
+
+
+-----------------------------------------------------------------------------
+.stampa {
+    width: 100%; /* Adatta la larghezza della stampa all'intera pagina */
+    margin: 0;
+    padding: 10mm; /* Spazio interno per staccare i contenuti dai bordi */
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    box-sizing: border-box; /* Include il padding e i bordi nelle dimensioni */
+}
+
+.stampa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.stampa-content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stampa-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 colonne uguali */
+    gap: 0; /* Nessuno spazio tra le righe e le colonne */
+    margin: 0;
+}
+
+.stampa-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    height: 110px; /* Altezza fissa per i quadrati */
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 0; /* Rimuove i margini tra gli elementi della griglia */
+}
+
+.stampa-item .item-id {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.stampa-custom-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #ccc;
+    text-align: center;
+    width: 150px; /* Larghezza fissa per la colonna personalizzata */
+}
+
+.stampa-custom-column-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    width: 110px; /* Larghezza fissa */
+    height: 35px; /* Altezza fissa */
+    border: 1px solid #ccc;
+    text-align: center;
+    margin: 0;
+}
+
+.stampa-item.highlighted, .stampa-custom-column-item.highlighted {
+    background-color: #e0e0e0; /* Grigio chiaro */
+}
+
+@media print {
+    .stampa {
+        padding: 10mm; /* Assicura uno spazio interno di 10mm nella stampa */
+        box-sizing: border-box;
+    }
+
+    body, .stampa, .ordine-page {
+        margin: 0;
+        padding: 0;
+        width: 100%; /* Adattamento automatico alla larghezza della pagina di stampa */
+    }
+
+    .ordine-page {
+        page-break-after: always;
+        break-inside: avoid;
+        height: auto; /* Permette alla pagina di adattarsi all'altezza del contenuto */
+    }
+
+    .stampa-grid {
+        grid-template-columns: repeat(6, minmax(100px, 1fr)); /* Assicura che i quadrati si adattino */
+    }
+
+    .stampa-item.highlighted, .stampa-custom-column-item.highlighted {
+        background-color: #e0e0e0 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+
+    h2.custom-background {
+        background-color: {{ ordine_info.scheda.backgroundColor }} !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+
+    .stampa-item {
+        height: 110px; /* Mantiene l'altezza dei quadrati fissa nella stampa */
+    }
+
+    .stampa-custom-column-item {
+        height: 35px; /* Altezza fissa per gli elementi della colonna personalizzata */
+    }
+}
+
+@page {
+    margin: 10mm; /* Margine per staccare i contenuti dai bordi della pagina */
+}
