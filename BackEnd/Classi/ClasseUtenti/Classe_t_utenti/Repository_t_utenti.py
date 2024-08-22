@@ -175,6 +175,16 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
+
+    def update_utente_token(self, id: int):
+        utente: TUtenti = self.exists_utente_by_id(id)
+        if utente:
+            utente.expires = datetime.now()
+            self.session.commit()
+            return
+        else:
+            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        
     def delete_utente(self, id: int):
         result = self.exists_utente_by_id(id)
         if result:
@@ -216,17 +226,24 @@ class Repository_t_utenti:
 
 
     def do_logout_nuovo(self, id: int):
-        """
-        Logs out a user by updating their 'attivo' status to 0 if they are currently active.
+        # Trova l'utente nel database utilizzando l'user_id
+        utente = self.session.query(TUtenti).filter(TUtenti.id == id).first()
+        
+        if utente:
+            # Imposta il token come scaduto
+            utente.expires = None  # Imposta la scadenza del token alla data e ora attuale
+            utente.token = None  # Puoi anche rimuovere il token, se necessario
+            
+            # Imposta l'utente come inattivo (opzionale, dipende dal contesto)
+            utente.attivo = 0
+            
+            # Salva le modifiche nel database
+            self.session.commit()
+            
+            print(f"User {utente.username} has logged out and token has been invalidated.")
+        else:
+            print(f"User with ID {id} not found.")
 
-        :param id: The ID of the user to log out.
-        :return: A tuple containing a farewell message and an HTTP status code.
-        """
-        result = self.exists_utente_by_id(id)
-        if result:
-            if result.attivo == 1:
-                self.update_utente_attivo(result.id, 0)
-        return {'message': 'Ciao, alla prossima volta!'}, 200
 
 
     def do_logout(self, current_utente_public_id: str):
@@ -234,6 +251,7 @@ class Repository_t_utenti:
         if result:
             if result.attivo == 1:
                 self.update_utente_attivo(result.id, 0)
+                
                 return UtilityGeneral.getClassDictionaryOrList(result)
             else:
                 self.session.close()

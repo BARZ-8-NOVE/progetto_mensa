@@ -35,7 +35,17 @@ class RepositoryMenuServizi:
 
         
     def get_all_by_menu_id(self, menu_id):
-         return self.session.query(TMenuServizi).filter(TMenuServizi.fkMenu.in_(menu_id)).all()
+        try:
+            # Recupera tutti i record dalla tabella TMenuServizi basati su fkMenu
+            results = self.session.query(TMenuServizi).filter(TMenuServizi.fkMenu.in_(menu_id)).all()
+            return results
+        except Exception as e:
+            # Restituisce un messaggio di errore e un codice di stato 500 in caso di eccezione
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def get_all_by_menu_ids(self, menu_ids):
         try:

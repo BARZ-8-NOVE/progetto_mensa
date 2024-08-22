@@ -17,6 +17,10 @@ class RepositoryAlimenti:
         except Exception as e:
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -28,6 +32,10 @@ class RepositoryAlimenti:
         except Exception as e:
             logging.error(f"Error getting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
         
     def get_alimento_by_name(self, name):
         result = self.session.query(TAlimenti).filter(TAlimenti.alimento.ilike(f'%{name}%')).all()
@@ -35,7 +43,8 @@ class RepositoryAlimenti:
             return result
         else:
             raise NotFound(f'cannot find alimento for this name: {name}')
-        
+
+
     def get_alimenti_by_tipologia_alimento(self, tipologia_alimento):
         result = self.session.query(TAlimenti).filter_by(fkTipologiaAlimento=tipologia_alimento).all()
         if result:
@@ -63,6 +72,10 @@ class RepositoryAlimenti:
             self.session.rollback()
             logging.error(f"Error creating alimento: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def update(self, id, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento):
         try:
@@ -85,6 +98,10 @@ class RepositoryAlimenti:
             self.session.rollback()
             logging.error(f"Error updating alimento with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def delete(self, id):
         try:
@@ -99,3 +116,7 @@ class RepositoryAlimenti:
             self.session.rollback()
             logging.error(f"Error deleting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()

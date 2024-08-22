@@ -16,6 +16,10 @@ class RepositoryAllergeni:
         except Exception as e:
             logging.error(f"Error getting all allergeni: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -27,7 +31,11 @@ class RepositoryAllergeni:
         except Exception as e:
             logging.error(f"Error getting allergene by ID {id}: {e}")
             return {'Error': str(e)}, 400
-        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
     def create(self, nome):
         try:
             allergene = TAllergeni(nome=nome)
@@ -38,6 +46,10 @@ class RepositoryAllergeni:
             self.session.rollback()
             logging.error(f"Error creating allergene: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def update(self, id, nome):
         try:
@@ -52,6 +64,10 @@ class RepositoryAllergeni:
             self.session.rollback()
             logging.error(f"Error updating allergene with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def delete(self, id):
         try:
@@ -66,3 +82,7 @@ class RepositoryAllergeni:
             self.session.rollback()
             logging.error(f"Error deleting allergene by id {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()

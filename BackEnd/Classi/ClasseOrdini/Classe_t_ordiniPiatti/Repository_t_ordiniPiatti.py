@@ -13,6 +13,10 @@ class RepositoryOrdiniPiatti:
             return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
         
 
     def get_all_by_ordine_scheda(self, fkOrdineScheda):
@@ -21,6 +25,10 @@ class RepositoryOrdiniPiatti:
             return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
 
 
@@ -33,6 +41,10 @@ class RepositoryOrdiniPiatti:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def create(self, fkOrdineScheda, fkPiatto, quantita, note):
         try:
@@ -43,6 +55,10 @@ class RepositoryOrdiniPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def update(self, id, fkOrdineScheda, fkPiatto, quantita, note):
         try:
@@ -59,6 +75,10 @@ class RepositoryOrdiniPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def delete(self, id):
         try:
@@ -72,6 +92,10 @@ class RepositoryOrdiniPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
         
 
     def delete_by_fkOrdine(self, fkOrdineScheda):
@@ -91,3 +115,7 @@ class RepositoryOrdiniPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()

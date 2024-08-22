@@ -20,17 +20,25 @@ class RepositoryOrdini:
 
     def get_by_id(self, id):
         try:
+            # Esegui la query per recuperare il record con l'id specificato
             result = self.session.query(TOrdini).filter_by(id=id).first()
+            
+            # Verifica se è stato trovato un record
+            if result:
+                return {'id': result.id, 
+                        'data': result.data, 
+                        'fkServizio': result.fkServizio}
+            else:
+                # Restituisce un messaggio di errore se il record non è stato trovato
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            # Gestisci le eccezioni restituendo un messaggio di errore e un codice di stato 400
             return {'Error': str(e)}, 400
-        if result:
-            return {'id': result.id, 
-                    'data': result.data, 
-                    'fkServizio': result.fkServizio
-                    }
-        else:
-            return {'Error': f'No match found for this id: {id}'}, 404
-        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def existing_Ordine(self, data, fkServizio):
         try:
@@ -44,7 +52,10 @@ class RepositoryOrdini:
                 return None  # Restituisce None se l'ordine non esiste
         except Exception as e:
             return {'Error': str(e)}, 400
-
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
 
     def get_ordini_by_data(self, data, fkServizio):
@@ -53,7 +64,10 @@ class RepositoryOrdini:
             return [{'id': result.id, 'data': result.data, 'fkServizio': result.fkServizio} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 400
-
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def create(self, data, fkServizio):
         try:
@@ -75,5 +89,9 @@ class RepositoryOrdini:
             self.session.rollback()
             return {'Error': str(e)}, 500
 
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
 

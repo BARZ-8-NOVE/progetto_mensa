@@ -199,46 +199,6 @@ def login():
     return render_template('loginx.html', form=form)  # GET request
 
 
-
-
-        
-
-# @app_cucina.route('/login', methods=['GET', 'POST'])
-
-# def login():
-#     if request.method == 'POST':
-#         try:
-#             dati = request.form
-#             required_fields = ['username', 'password']
-#             UtilityGeneral.check_fields(dati, required_fields)
-            
-#             username = dati['username']
-#             password = dati['password']
-
-#             user = service_t_utenti.do_login(username, password)
-#             if user:
-#                 session['authenticated'] = True
-#                 session['user_id'] = user['id']
-#                 session['token'] = user['token']
-                
-#                 funzionalita_service = TFunzionalitaUtenteService()
-#                 menu_structure = funzionalita_service.build_menu_structure(user['id'])
-#                 session['menu_structure'] = menu_structure
-                
-#                 # Redirect to index with token in session
-#                 return redirect(url_for('app_cucina.index'))
-
-#             else:
-#                 flash('Invalid username or password', 'error')
-#                 return render_template('loginx.html')
-        
-#         except Exception as e:
-#             print(f"Error during login: {e}")
-#             flash('An error occurred during login. Please try again.', 'error')
-#             return render_template('loginx.html')
-    
-#     return render_template('loginx.html')  # GET request
-
 def get_username():
     user_id = session.get('user_id')
     user = service_t_utenti.get_utente_by_id(user_id)

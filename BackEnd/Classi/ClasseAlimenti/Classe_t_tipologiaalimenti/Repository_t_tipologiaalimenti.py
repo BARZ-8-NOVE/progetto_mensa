@@ -14,6 +14,10 @@ class Repository_t_tipologiaalimenti:
             return [{'id': result.id, 'nome': result.nome, 'fktipologiaConservazione': result.fktipologiaConservazione} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def get_tipologiaalimenti_by_id(self, id):
         try:
@@ -24,6 +28,10 @@ class Repository_t_tipologiaalimenti:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 400
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def create_tipologiaalimenti(self, nome, fktipologiaConservazione):
         try:
@@ -34,6 +42,10 @@ class Repository_t_tipologiaalimenti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def delete_tipologiaalimenti(self, id):
         try:
@@ -47,3 +59,7 @@ class Repository_t_tipologiaalimenti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()

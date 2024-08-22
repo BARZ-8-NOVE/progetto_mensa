@@ -15,3 +15,6 @@ class Service_t_funzionalita:
     
     def get_all_children(self, fkPadre):
         return self.repository.get_by_padre(fkPadre)
+    
+    def can_access(self, user_type_id, page_link):
+        return self.repository.can_access(user_type_id, page_link)

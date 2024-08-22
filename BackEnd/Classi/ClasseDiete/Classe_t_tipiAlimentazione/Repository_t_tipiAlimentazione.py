@@ -11,13 +11,21 @@ class RepositoryTipiAlimentazione:
     def get_all(self):
         try:
             results = self.session.query(TTipiAlimentazione).all()
+            # Trasformare i risultati in un formato JSON serializzabile
+            data = [{'id': result.id, 
+                    'fkTipoDieta': result.fkTipoDieta,
+                    'descrizione': result.descrizione,
+                    'note': result.note,
+                    'ordinatore': result.ordinatore} for result in results]
+            return data
         except Exception as e:
+            # Restituire un errore e un codice di stato 500
             return {'Error': str(e)}, 500
-        return [{'id': result.id, 
-                 'fkTipoDieta': result.fkTipoDieta,
-                 'descrizione': result.descrizione,
-                 'note': result.note,
-                 'ordinatore': result.ordinatore} for result in results]
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
     
 
 

@@ -43,7 +43,11 @@ class RepositoryMenu:
         except Exception as e:
             logging.error(f"Error getting all menu: {e}")
             return {'Error': str(e)}, 500
-        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def get_by_mese_corrente(self, year: int, month: int, fkTipoMenu: int = None):
         try:
@@ -156,8 +160,18 @@ class RepositoryMenu:
             
     def get_by_date_and_type(self, year, month, day, fkTipoMenu):
         target_date = date(year, month, day)
-        return self.session.query(TMenu).filter_by(data=target_date, fkTipoMenu=fkTipoMenu).first()
-    
+        try:
+            # Esegui la query per recuperare il record basato su data e fkTipoMenu
+            result = self.session.query(TMenu).filter_by(data=target_date, fkTipoMenu=fkTipoMenu).first()
+            return result
+        except Exception as e:
+            # Gestisci eventuali errori e restituisci un messaggio di errore
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def get_by_data(self, data, fkTipoMenu):
         try:

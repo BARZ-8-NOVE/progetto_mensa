@@ -93,6 +93,10 @@ class RepositoryOrdiniSchede:
             } for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500    
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
 
     
@@ -129,29 +133,43 @@ class RepositoryOrdiniSchede:
             return schede_count
         except Exception as e:
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
         
     def get_by_id(self, id):
         try:
+            # Esegui la query per recuperare il record con l'id specificato
             result = self.session.query(TOrdiniSchede).filter_by(id=id).first()
+            
+            if result:
+                # Restituisci i dati del record come dizionario
+                return {'id': result.id, 
+                        'fkOrdine': result.fkOrdine,
+                        'fkReparto': result.fkReparto, 
+                        'data': result.data, 
+                        'fkServizio': result.fkServizio,
+                        'fkScheda': result.fkScheda, 
+                        'cognome': result.cognome,
+                        'nome': result.nome, 
+                        'letto': result.letto,
+                        'dataInserimento': result.dataInserimento, 
+                        'utenteInserimento': result.utenteInserimento,
+                        'dataCancellazione': result.dataCancellazione, 
+                        'utenteCancellazione': result.utenteCancellazione}
+            else:
+                # Restituisci un errore se non viene trovato alcun record
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            # Gestisci eventuali errori restituendo un messaggio di errore e un codice di stato 400
             return {'Error': str(e)}, 400
-        if result:
-            return {'id': result.id, 
-                    'fkOrdine': result.fkOrdine,
-                    'fkReparto': result.fkReparto, 
-                    'data': result.data, 
-                    'fkServizio': result.fkServizio,
-                    'fkScheda' : result.fkScheda, 
-                    'cognome': result.cognome,
-                    'nome': result.nome, 
-                    'letto': result.letto,
-                    'dataInserimento': result.dataInserimento, 
-                    'utenteInserimento': result.utenteInserimento,
-                    'dataCancellazione': result.dataCancellazione, 
-                    'utenteCancellazione': result.utenteCancellazione}
-        else:
-            return {'Error': f'No match found for this id: {id}'}, 404
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def create(self, fkOrdine, fkReparto, data, fkServizio, fkScheda, cognome, nome, letto,  utenteInserimento):
         try:
@@ -172,6 +190,10 @@ class RepositoryOrdiniSchede:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def update(self, id, fkOrdine, fkReparto, data, fkServizio, fkScheda, cognome, nome, letto, utenteInserimento):
         try:
@@ -193,6 +215,10 @@ class RepositoryOrdiniSchede:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -207,6 +233,10 @@ class RepositoryOrdiniSchede:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                    if self.session:
+                        self.session.close()
 
 
 

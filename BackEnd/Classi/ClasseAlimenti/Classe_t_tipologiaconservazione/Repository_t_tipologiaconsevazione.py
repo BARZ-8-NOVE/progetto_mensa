@@ -16,6 +16,10 @@ class RepositoryTipologiaConservazioni:
         except Exception as e:
             logging.error(f"Error getting all conservazioni: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -27,7 +31,11 @@ class RepositoryTipologiaConservazioni:
         except Exception as e:
             logging.error(f"Error getting conservazione by id {id}: {e}")
             return {'Error': str(e)}, 400
-        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
     def create(self, nome):
         try:
             tipologia_conservazione = TTipologiaConservazioni(nome=nome)
@@ -38,7 +46,11 @@ class RepositoryTipologiaConservazioni:
             self.session.rollback()
             logging.error(f"Error creating tipologia conservazione: {e}")
             return {'Error': str(e)}, 500
-        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
     def update(self, id, nome):
         try:
             tipologia_conservazione = self.session.query(TTipologiaConservazioni).filter_by(id=id).first()
@@ -52,6 +64,10 @@ class RepositoryTipologiaConservazioni:
             self.session.rollback()
             logging.error(f"Error updating tipologia conservazione with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def delete(self, id):
         try:
@@ -66,3 +82,7 @@ class RepositoryTipologiaConservazioni:
             self.session.rollback()
             logging.error(f"Error deleting conservazione by id {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()

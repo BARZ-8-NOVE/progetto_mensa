@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_funzionalita.Domain_t_funzionalita import TFunzionalita
+from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Domain_t_funzionalitaUtente import TFunzionalitaUtente
 import json
 
 class TFunzionalitaRepository:
@@ -47,3 +48,32 @@ class TFunzionalitaRepository:
                 return {'Error': f'No match found for this fkPadre: {fkPadre}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 400
+        
+    def can_access(self, user_type_id, page_link):
+        try:
+            # Step 1: Trova la funzionalità corrispondente al link della pagina
+            funzionalita = self.session.query(TFunzionalita).filter(TFunzionalita.link == page_link).first()
+
+            if not funzionalita:
+                return False, "La funzionalità richiesta non esiste."
+
+            # Step 2: Controlla se l'utente ha il permesso di accedere alla funzionalità
+            funzionalita_utente = self.session.query(TFunzionalitaUtente).filter(
+                TFunzionalitaUtente.fkTipoUtente == user_type_id,
+                TFunzionalitaUtente.fkFunzionalita == funzionalita.id
+            ).first()
+
+            if not funzionalita_utente:
+                return False, "Accesso negato. Non hai permessi per questa funzionalità."
+
+            # Step 3: Restituisci il permesso dell'utente
+            if funzionalita_utente.permessi == 1:
+                return True, "Accesso con permesso di modifica."
+            else:
+                return True, "Accesso in sola lettura."
+        
+        except Exception as e:
+            return False, f"Errore durante il controllo dell'accesso: {str(e)}"
+
+    def close_session(self):
+        self.session.close()
