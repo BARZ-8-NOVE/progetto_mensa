@@ -175,15 +175,6 @@ class Repository_t_utenti:
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
-
-    def update_utente_token(self, id: int):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.expires = datetime.now()
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
     def delete_utente(self, id: int):
         result = self.exists_utente_by_id(id)

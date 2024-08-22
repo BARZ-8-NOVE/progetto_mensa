@@ -16,6 +16,36 @@ class TFunzionalitaRepository:
         except Exception as e:
             return json.dumps({'Error': str(e)}), 500
 
+
+    def get_menu_principale(self):
+        """
+        Recupera tutte le funzionalità che sono marcate come menu principale.
+
+        Returns:
+            List[Dict[str, Union[int, str, None]]]: Una lista di dizionari che rappresentano le voci di menu principale.
+            Dict[str, str]: Un dizionario contenente un messaggio di errore in caso di eccezione.
+        """
+        try:
+            results = self.session.query(TFunzionalita).filter_by(menuPrincipale=True).all()
+            return [
+                {
+                    'id': result.id,
+                    'fkPadre': result.fkPadre,
+                    'titolo': result.titolo,
+                    'label': result.label,
+                    'icon': result.icon,
+                    'link': result.link,
+                    'ordinatore': result.ordinatore,
+                    'target': result.target,
+                    'dataCancellazione': result.dataCancellazione
+                }
+                for result in results
+            ]
+        except Exception as e:
+            # Log dell'errore se necessario
+            return {'Error': str(e)}
+        
+
     def get_by_id(self, id):
         try:
             result = self.session.query(TFunzionalita).filter_by(id=id).first()

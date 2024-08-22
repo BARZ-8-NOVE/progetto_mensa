@@ -102,7 +102,7 @@ service_t_Schede = Service_t_Schede()
 service_t_Ordini = Service_t_Ordini()
 service_t_OrdiniSchede = Service_t_OrdiniSchede()
 service_t_OrdiniPiatti = Service_t_OrdiniPiatti()
-
+service_t_funzionalita = Service_t_funzionalita ()
 service_t_SchedePiatti = Service_t_SchedePiatti()
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
@@ -136,29 +136,49 @@ def login_required(f):
     return decorated_function
 
 
+def get_page_name_from_path(path):
+    return path.strip('/').split('/')[-1]
+
 @app_cucina.before_request
-def check_token():
-    # Elenco delle rotte esenti dal controllo del token
+def check_token_and_permissions():
     exempt_routes = ['app_cucina.login', 'app_cucina.index']
 
-    # Se la rotta corrente è esente, salta il controllo del token
+    # Se la rotta corrente è esente, salta il controllo del token e dei permessi
     if request.endpoint in exempt_routes:
         return
 
     # Verifica se l'utente è autenticato
-    if 'authenticated' not in session or session.get('authenticated') is False:
+    if 'authenticated' not in session or not session.get('authenticated'):
         return redirect(url_for('app_cucina.login'))
 
     # Verifica la validità del token JWT
     try:
         user_id = session.get('user_id')
-        # Controlla nel database se il token è ancora valido
-        if not service_t_utenti.is_token_valid(user_id, session.get('token')):
-            session['authenticated'] = False
+        if not user_id or not service_t_utenti.is_token_valid(user_id, session.get('token')):
+            session.clear()  # Cancella la sessione se il token non è valido
             return redirect(url_for('app_cucina.login'))
     except Exception as e:
-        session['authenticated'] = False
+        logging.error(f"Error verifying token for user_id {user_id}: {str(e)}")
+        session.clear()
         return redirect(url_for('app_cucina.login'))
+
+    # Verifica i permessi di accesso alla rotta corrente
+    try:
+        user_type_id = session.get('fkTipoUtente')
+        page_link = get_page_name_from_path(request.path)
+        print (page_link)
+        print (user_type_id)
+        # Chiamata al servizio per controllare i permessi
+        access_granted, message = service_t_funzionalita.can_access(user_type_id=user_type_id, page_link=page_link)
+        
+        if not access_granted:
+            logging.warning(f"Access denied for user_id {user_id} to {page_link}: {message}")
+            return redirect(url_for('app_cucina.login'))  # Rotta per accesso negato
+        
+    except Exception as e:
+        logging.error(f"Error checking permissions for user_id {user_id}: {str(e)}")
+        return redirect(url_for('app_cucina.login'))
+
 
 @app_cucina.before_request
 def check_csrf():
@@ -181,6 +201,7 @@ def login():
                 session['authenticated'] = True
                 session['user_id'] = user['id']
                 session['token'] = user['token']
+                session['fkTipoUtente'] = user['fkTipoUtente']
                 
                 funzionalita_service = TFunzionalitaUtenteService()
                 menu_structure = funzionalita_service.build_menu_structure(user['id'])
@@ -211,6 +232,7 @@ def inject_user_data():
     menu_structure = session.get('menu_structure', [])
     user_id = session.get('user_id')
     user = service_t_utenti.get_utente_by_id(user_id) if user_id else None
+    user_type = session.get('fkTipoUtente')
     
     username = user['username'] if user else "Utente"
     token = session.get('token')
@@ -221,6 +243,7 @@ def inject_user_data():
         menu_structure=menu_structure,
         username=username,
         token=token,
+        user_type=user_type,
         form=form
     )
 

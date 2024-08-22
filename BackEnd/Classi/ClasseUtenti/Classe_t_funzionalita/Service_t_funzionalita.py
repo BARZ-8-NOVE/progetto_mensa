@@ -9,6 +9,9 @@ class Service_t_funzionalita:
 
     def get_all_menus(self):
         return self.repository.get_all()
+    
+    def get_menu_principale(self):
+        return self.repository.get_menu_principale()
 
     def get_menu_by_id(self, menu_id):
         return self.repository.get_by_id(menu_id)
