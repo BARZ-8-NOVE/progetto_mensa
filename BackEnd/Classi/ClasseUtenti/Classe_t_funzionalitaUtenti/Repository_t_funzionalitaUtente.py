@@ -43,6 +43,8 @@ class TFunzionalitaUtenteRepository:
                 .join(TTipiUtenti, TUtenti.fkTipoUtente == TTipiUtenti.id)
                 .join(TFunzionalitaUtente, TTipiUtenti.id == TFunzionalitaUtente.fkTipoUtente)
                 .join(TFunzionalita, TFunzionalitaUtente.fkFunzionalita == TFunzionalita.id)
-                .filter(TUtenti.id == user_id)
+                .filter(TUtenti.id == user_id,
+                        TFunzionalita.menuPrincipale == True  # Filtro per menu principale
+                        )
                 .order_by(TFunzionalita.ordinatore)  
                 .all())

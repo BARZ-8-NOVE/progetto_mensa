@@ -3,6 +3,7 @@ from Classi.ClasseUtility.UtilityUtenti.UtilityUtenti import UtilityUtenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Repository_t_tipiUtenti import Repository_t_tipiUtente
 from werkzeug.security import generate_password_hash
+from datetime import datetime
 
 class Service_t_utenti:
 
@@ -20,22 +21,33 @@ class Service_t_utenti:
         UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_public_id(public_id)
     
-    def create_utente(self, username:str, nome:str, cognome:str, nomeTipoUtente,
-                    fkFunzCustom:str, reparti:str, email:str, password:str):
-        UtilityUtenti.checkUsername(username)
-        UtilityUtenti.checkNome(nome)
-        UtilityUtenti.checkCognome(cognome)
-        tipoUtente = Repository_t_tipiUtente()
-        fkTipoUtente = tipoUtente.exists_tipoUtente_by_nomeTipoUtente(nomeTipoUtente)
-        UtilityUtenti.checkFkTipoUtente(fkTipoUtente)
-        UtilityUtenti.checkFkFunzCustom(fkFunzCustom)
-        UtilityUtenti.checkReparti(reparti)
-        attivo = 0
-        inizio = UtilityGeneral.current_date()
-        UtilityUtenti.checkEmail(email)
-        UtilityUtenti.checkPassword(password)
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        return self.repository.create_utente(username, nome, cognome, fkTipoUtente, fkFunzCustom, reparti, attivo, inizio, email, hashed_password)
+  
+    def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: str,
+                    fkFunzCustom: str, reparti: str, email: str, password: str):
+        try:
+            # Imposta stato predefinito e data di inizio
+            attivo = 0
+            inizio = datetime.now()  # Usa datetime.now() per ottenere la data corrente
+            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+            # Creazione dell'utente nel repository
+            return self.repository.create_utente(
+                username=username,
+                nome=nome,
+                cognome=cognome,
+                fkTipoUtente=fkTipoUtente,  # Assicurati che questo sia l'ID corretto se necessario
+                fkFunzCustom=fkFunzCustom,
+                reparti=reparti,
+                attivo=attivo,
+                inizio=inizio,
+                email=email,
+                password=hashed_password
+            )
+
+        except Exception as e:
+            # Gestione degli errori
+            raise Exception(f"An error occurred while creating the user: {str(e)}")
+
     
     def update_utente_username(self, id:int, username:str):
         UtilityGeneral.checkId(id)

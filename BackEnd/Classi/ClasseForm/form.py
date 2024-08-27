@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
-from wtforms.validators import DataRequired, Optional, Length
+from wtforms.validators import DataRequired, Optional, Length,  Email
 from wtforms.validators import StopValidation
 from datetime import datetime
 
@@ -98,10 +98,29 @@ class schedaForm(FlaskForm):
     submit = SubmitField('Aggiungi Scheda')
 
 
+class schedaPiattiForm(FlaskForm):
+    
+    piatti = SelectField('Piatti', choices=[], coerce=int)
+    note = TextAreaField('Note', validators=[Optional()])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
+    submit = SubmitField('Aggiungi piatto')
+
 class ordineSchedaForm(FlaskForm):
 
     nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
     cognome = StringField('Cognome', validators=[DataRequired(), Length(max=50)])
     letto = StringField('Letto', validators=[DataRequired(), Length(max=5)])
     note = TextAreaField('Note', validators=[Optional()])
+    submit = SubmitField('Salva e conferma')
+
+
+class UtenteForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    nome = StringField('Nome', validators=[DataRequired()])
+    cognome = StringField('Cognome', validators=[DataRequired()])
+    fkTipoUtente = SelectField('Tipo Operatore', coerce=int, validators=[DataRequired()])
+    fkFunzCustom= MultiCheckboxField('funzionalità custom', choices=[], coerce=int, validators=[Optional()])
+    reparti = MultiCheckboxField('Reparti', choices=[], coerce=int, validators=[Optional()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Salva e conferma')

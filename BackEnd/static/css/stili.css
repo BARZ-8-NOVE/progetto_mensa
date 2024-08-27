@@ -139,12 +139,62 @@ nav ul li a {
     margin-bottom: 20px;
 }
 
+.search-container-select {
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    margin: 0 0 0 20px; /* Stesso margine sinistro dell'elemento <h2> */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 20 20'%3E%3Cpath fill='%23333' d='M0 0l10 10 10-10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 250px;
+    height: 40px; /* Altezza per allineare con l'elemento <h2> */
+    margin-top: 20px; /* Solleva il selettore */
+}
+
+.search-container-select:focus {
+    border-color: #86b7fe;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+
+
+
+
+
+
+
+
+
 .search-container input[type="text"],
 .search-container select {
     padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 5px;
     margin-right: 10px;
+}
+
+
+
+.styled-button {
+    padding: 10px 20px;
+    background-color: #07437e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 20px 0 20px auto;
+    transition: background-color 0.3s ease;
+}
+
+.styled-button:hover {
+    background-color: #002b5e;
 }
 
 .search-container button {
@@ -259,6 +309,10 @@ th {
     background-color: #002b5e;
 }
 
+.radio-inline {
+    display: inline-block;
+    margin-right: 10px;
+}
 
 .calendar {
     border-collapse: collapse;
@@ -305,6 +359,10 @@ li {
     top: 10px; /* Modifica il posizionamento a tuo piacimento */
     color: #333; /* Colore del testo, modifica se necessario */
 }
+
+
+
+
 
 .btn-elimina {
     width: 20px;
@@ -360,8 +418,9 @@ li {
     border: 1px solid #ccc;
     text-align: center;
     margin: 0;
-     /* Elimina margini tra gli elementi della griglia */
+    position: relative; /* Ensure this is positioned relative to contain absolutely positioned child elements */
 }
+
 
 .popup-item .item-id {
     font-size: 20px;
@@ -371,6 +430,16 @@ li {
 .popup-item .item-value {
     font-size: 14px;
     margin-bottom: 10px;
+}
+
+
+.popup-item .item-ordinatore {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #008b3f;/* Text color */
+    padding: 2px 4px; /* Padding around the text */
+    font-size: 0.8em; /* Adjust font size as needed */
 }
 
 .popup-item.yellow { background-color: #ffff99; }
@@ -401,7 +470,47 @@ li {
     border: 1px solid #ccc;
     text-align: center;
     margin: 0;
+    position: relative; /* Ensure this is positioned relative to contain absolutely positioned child elements */
+}
 
+
+.popup-item, .popup-custom-column-item {
+    position: relative; /* Ensure positioning context for the button */
+}
+
+.btn-elimina_schede {
+    position: absolute;
+    top: 3px; /* Adjust as needed */
+    left: 3px; /* Adjust as needed */
+    width: 14px; /* Adjust size as needed */
+    height: 14px; /* Adjust size as needed */
+    background-color: transparent; /* Transparent background */
+    color: rgb(189, 0, 0); /* Red color for the cross */
+    border: none;
+    border-radius: 50%; /* Round shape for the button */
+    font-size: 12px; /* Size of the cross */
+    font-weight: bold;
+    text-align: center;
+    line-height: 14px; /* Align text vertically */
+    cursor: pointer; /* Indicate it’s clickable */
+    padding: 0;
+
+}
+
+.btn-elimina_schede:hover {
+    color: rgb(255, 1, 1); /* Darker red on hover */
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background on hover */
+}
+
+
+
+.popup-custom-column-item .item-ordinatore {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #008b3f;/* Text color */
+    padding: 2px 4px; /* Padding around the text */
+    font-size: 0.8em; /* Adjust font size as needed */
 }
 
 
@@ -460,10 +569,6 @@ li {
     margin: 0; /* Rimuove margini predefiniti */
 }
 
-
-
-
------------------------------------------------------------------------------
 .stampa {
     width: 100%; /* Adatta la larghezza della stampa all'intera pagina */
     margin: 0;

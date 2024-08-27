@@ -1,0 +1,140 @@
+{% extends "index.html" %}
+
+{% block title %}
+Reparti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
+            <select id="searchType" onchange="filterTable()">
+                <option value="">Seleziona tipologia</option>
+                {% for tipologia in tipologieUtente %}
+                <option value="{{ tipologia.id }}">{{ tipologia.nomeTipoUtente }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="showAddUtenteForm()">Aggiungi nuovo utente</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>User Name</th>
+                <th>Cognome</th>
+                <th>Nome</th>
+                <th>Ruolo</th>
+                <th>Inizio</th>
+                <th>Fine</th>
+                <th>Abilitazioni</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="utentiTableBody">
+            {% for utente in utenti %}
+            <tr>
+                <td><button>modifica</button></td>
+                <td>{{ utente.username }}</td>
+                <td>{{ utente.cognome }}</td>
+                <td>{{ utente.nome }}</td>
+                <td>{{ tipologieUtente_map[utente.fkTipoUtente] }}</td>
+                <td>{{ utente.inizio }}</td>
+                <td>{{ utente.fine }}</td>
+                <td>
+                    {% set abilitazioni_ids = utente.reparti.split(',') %}
+                    {% for id in abilitazioni_ids %}
+                    {{ reparti_map[id.strip()] }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td><button>imp</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for Adding Utente -->
+<div id="addUtenteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddUtenteForm()">&times;</span>
+        <h2>Aggiungi Utente</h2>
+        <form method="POST" action="{{ url_for('app_cucina.sicurezza') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                {{ form.username.label }} {{ form.username(size=32) }}
+            </div>
+            <div>
+                {{ form.cognome.label }} {{ form.cognome() }}
+            </div>
+            <div>
+                {{ form.nome.label }} {{ form.nome() }}
+            </div>
+            <div>
+                {{ form.fkTipoUtente.label }} {{ form.fkTipoUtente() }}
+            </div>
+            <div>
+                {{ form.fkFunzCustom.label }} {{ form.fkFunzCustom() }}
+            </div>
+            <div>
+                {{ form.reparti.label }} {{ form.reparti() }}
+            </div>
+            <div>
+                {{ form.email.label }} {{ form.email() }}
+            </div>
+            <div>
+                {{ form.password.label }} {{ form.password() }}
+            </div>
+            <div>
+                {{ form.submit() }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showAddUtenteForm() {
+        document.getElementById('addUtenteModal').style.display = 'block';
+    }
+
+    function closeAddUtenteForm() {
+        document.getElementById('addUtenteModal').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchNameInput = document.getElementById('searchName');
+        const searchTypeSelect = document.getElementById('searchType');
+        const utentiTableBody = document.getElementById('utentiTableBody');
+    
+        function filterTable() {
+            const searchName = searchNameInput.value.toLowerCase();
+            const searchType = searchTypeSelect.value;
+    
+            const rows = utentiTableBody.getElementsByTagName('tr');
+    
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const username = row.cells[1].textContent.toLowerCase(); // Nome nella seconda colonna
+                const fkTipoUtente = row.cells[4].textContent; // Ruolo nella quinta colonna
+    
+                const matchesName = username.includes(searchName);
+                const matchesType = searchType === '' || fkTipoUtente === searchTypeSelect.options[searchTypeSelect.selectedIndex].text;
+    
+                if (matchesName && matchesType) {
+                    row.style.display = ''; // Mostra la riga
+                } else {
+                    row.style.display = 'none'; // Nascondi la riga
+                }
+            }
+        }
+
+        // Aggiungi eventi ai campi di ricerca
+        searchNameInput.addEventListener('keyup', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
+    });
+</script>
+
+
+{% endblock %}

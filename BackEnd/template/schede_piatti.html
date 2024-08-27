@@ -5,20 +5,29 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
+
+<!-- Include scheda.id as a data attribute in the body tag -->
+<body data-scheda-id="{{ scheda.id }}">
+
 <div class="popup">
     <div class="popup-header">
-        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 20px auto 0 0;">
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
         </h2>
-        <select id="servizio-select">
-            {% for servizio in servizi %}
-            <option value="{{ servizio.id }}" {% if request.args.get('servizio', '1') == servizio.id|string %}selected{% endif %}>
-                {{ servizio.descrizione }}
-            </option>
-            {% endfor %}
-        </select>
+        
+         <!-- Filtra per servizio -->
+         <form method="GET" action="{{ url_for('app_cucina.schede_piatti', id=scheda.id, servizio=scheda.servizio) }}">
+            <select class="search-container-select" id="servizio" name="servizio" onchange="this.form.submit()">
+                {% for servizio in servizi %}
+                <option  value="{{ servizio.id }}" {% if request.args.get('servizio', '1') == servizio.id|string %}selected{% endif %}>
+                    {{ servizio.descrizione }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+        
     </div>
-    <button class="btn btn-primary" onclick="addPiatto()">+ Nuovo piatto</button>
+    <button class="styled-button" onclick="showPiattoModal()">Aggiungi Piatto</button>
 
     <div class="popup-content">
         <div class="popup-grid">
@@ -31,16 +40,21 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% elif piatto.fkTipoPiatto == 3 %}green
                 {% elif piatto.fkTipoPiatto == 4 %}pink
                 {% elif piatto.fkTipoPiatto == 5 %}grey
-                {% endif %}">
+                {% endif %}" onclick="showPiattoModal({{ scheda_piatto.id }})">
+                <button class="btn-elimina_schede" onclick="showCustomConfirmationModal({{ scheda_piatto.id }}); event.stopPropagation();">&times;</button>
                 <span class="item-id">{{ piatto.codice }}</span>
                 <div class="item-name">{{ piatto.titolo }}</div>
+                <div class="item-ordinatore">{{ scheda_piatto.ordinatore }}</div>
             </div>       
             {% else %}
-            <div class="popup-item unknown"></div>
+            <div class="popup-item unknown" onclick="showPiattoModal({{ scheda_piatto.id }})">
+                <button class="btn-elimina_schede" onclick="showCustomConfirmationModal({{ scheda_piatto.id }}); event.stopPropagation();">&times;</button>
+                <div class="item-ordinatore">{{ scheda_piatto.ordinatore }}</div>
+            </div>
             {% endif %}
             {% endfor %}
         </div>
-
+    
         <div class="popup-custom-column">
             {% for scheda_piatto in schedeDolci %}
             {% if scheda_piatto.fkPiatto in piatti_map %}
@@ -51,31 +65,160 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% elif piatto.fkTipoPiatto == 3 %}green
                 {% elif piatto.fkTipoPiatto == 4 %}pink
                 {% elif piatto.fkTipoPiatto == 5 %}grey
-                {% endif %}">
+                {% endif %}" onclick="showPiattoModal({{ scheda_piatto.id }})">
+                <button class="btn-elimina_schede" onclick="showCustomConfirmationModal({{ scheda_piatto.id }}); event.stopPropagation();">&times;</button>
                 <span class="item-id">{{ piatto.codice }}</span>
                 <div class="item-name">{{ piatto.titolo }}</div>
+                <div class="item-ordinatore">{{ scheda_piatto.ordinatore }}</div>
             </div>       
             {% else %}
-            <div class="popup-custom-column-item unknown"></div>
+            <div class="popup-custom-column-item unknown" onclick="showPiattoModal({{ scheda_piatto.id }})">
+                <button class="btn-elimina_schede" onclick="showCustomConfirmationModal({{ scheda_piatto.id }}); event.stopPropagation();">&times;</button>
+                <div class="item-ordinatore">{{ scheda_piatto.ordinatore }}</div>
+            </div>
             {% endif %}
             {% endfor %}
         </div>
     </div>
+    
 
-    <button class="btn btn-secondary" onclick="saveChanges()">Salva</button>
+    <div>
+        <button type="button" class="styled-button" onclick="redirectToSchede()">torna a schede</button>
+    </div>
+</div>
+
+<!-- Modal for Creating and Editing Dish -->
+<div class="modal" id="piattoModal">
+    <div class="modal-content">
+        <span class="close" onclick="closePiattoModal()">&times;</span>
+        <h2 id="piattoModalTitle">Aggiungi Nuovo Piatto</h2>
+        <form id="piattoForm" method="POST">
+            <input type="hidden" id="piattoId" name="piatto_id">
+            <input type="hidden" id="servizioId" name="servizio_id" value="{{ request.args.get('servizio', '1') }}">
+            {{ form.hidden_tag() }}
+            <div>
+                <label for="piatti">{{ form.piatti.label }}</label>
+                {{ form.piatti() }}
+            </div>
+        
+            <div>
+                <label for="ordinatore">{{ form.ordinatore.label }}</label>
+                {{ form.ordinatore() }}
+            </div>
+        
+            <div>
+                <label for="note">{{ form.note.label }}</label>
+                {{ form.note() }}
+            </div>
+            
+            <div>
+                <input type="submit" value="Salva">
+            </div>
+        </form>
+        
+    </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="modal" id="customConfirmationModal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeCustomConfirmationModal()">&times;</span>
+        <h2>Seleziona un'azione</h2>
+        <button class="btn btn-danger" onclick="handleCustomAction('delete')">Elimina</button>
+        <button class="btn btn-warning" onclick="handleCustomAction('empty')">Svuota il piatto</button>
+        <button class="btn btn-secondary" onclick="closeCustomConfirmationModal()">Annulla</button>
+    </div>
 </div>
 
 <script>
-    function removePiatto(id) {
-        // Implement the logic to remove a dish
+    let currentPiattoId = null;
+    const schedaId = document.body.getAttribute('data-scheda-id');
+
+    function showPiattoModal(piattoId = null) {
+        const modal = document.getElementById('piattoModal');
+        const form = document.getElementById('piattoForm');
+        const modalTitle = document.getElementById('piattoModalTitle');
+        const piattoIdInput = document.getElementById('piattoId');
+        const submitButton = form.querySelector('input[type="submit"]');
+        const servizioId = document.querySelector('select[name="servizio"]').value;
+
+        if (piattoId) {
+            // Modifica
+            fetch(`/app_cucina/schede/piatti/info/${schedaId}/${piattoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    piattoIdInput.value = piattoId;
+                    form.elements['piatti'].value = data.piatti || '';
+                    form.elements['note'].value = data.note || '';
+                    form.elements['ordinatore'].value = data.ordinatore || '';
+                    modalTitle.textContent = 'Modifica Piatto';
+                    form.action = `/app_cucina/schede/piatti/info/${schedaId}/${piattoId}?servizio=${servizioId}`;  // Set the URL for PUT request
+                    submitButton.value = 'Aggiorna';
+                })
+                .catch(error => console.error('Errore:', error));
+        } else {
+            // Aggiungi
+            piattoIdInput.value = '';
+            form.reset();
+            modalTitle.textContent = 'Aggiungi Nuovo Piatto';
+            form.action = `/app_cucina/schede/piatti/${schedaId}?servizio=${servizioId}`;  // Corretto
+            submitButton.value = 'Aggiungi';
+        }
+
+        modal.style.display = 'block';
+    }
+    
+
+    function closePiattoModal() {
+        document.getElementById('piattoModal').style.display = 'none';
     }
 
-    function addPiatto() {
-        // Implement the logic to add a new dish
+    function showCustomConfirmationModal(piattoId) {
+        currentPiattoId = piattoId;
+        document.getElementById('customConfirmationModal').style.display = 'block';
     }
 
-    function saveChanges() {
-        // Implement the logic to save changes
+    function closeCustomConfirmationModal() {
+        document.getElementById('customConfirmationModal').style.display = 'none';
+    }
+
+    function handleCustomAction(action) {
+        const url = `/app_cucina/schede/piatti/info/${schedaId}/${currentPiattoId}`;
+        const method = action === 'delete' ? 'DELETE' : 'PUT';
+        
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert("Errore nell'operazione.");
+            }
+        }).catch(error => console.error('Errore:', error));
+
+        closeCustomConfirmationModal();
+    }
+
+    function redirectToSchede() {
+        window.location.href = "{{ url_for('app_cucina.schede') }}";
+    }
+
+    window.onclick = function(event) {
+        const piattoModal = document.getElementById("piattoModal");
+        const confirmationModal = document.getElementById("customConfirmationModal");
+        
+        if (event.target === piattoModal) {
+            closePiattoModal();
+        }
+        
+        if (event.target === confirmationModal) {
+            closeCustomConfirmationModal();
+        }
     }
 </script>
+
 {% endblock %}

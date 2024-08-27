@@ -6,6 +6,7 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from werkzeug.exceptions import Conflict, NotFound, Forbidden, Unauthorized
 from werkzeug.security import check_password_hash
+from sqlalchemy.exc import SQLAlchemyError
 from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
@@ -59,28 +60,71 @@ class Repository_t_utenti:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
         
+
+
+
+
+
     def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: int,
-                      fkFunzCustom: str, reparti: str, attivo: int, inizio, email: str, password: str):
-        resultExistsEmail = self.exists_utente_by_email(email)
-        if resultExistsEmail:
-            self.session.close()
-            raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
-        resultExistsUsername = self.exists_utente_by_username(username)
-        if resultExistsUsername:
-            self.session.close()
-            raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'username', username))
-        tipoUtente = Repository_t_tipiUtente()
-        resultTipoUtente = tipoUtente.exists_tipoUtente_by_id(fkTipoUtente)
-        if not resultTipoUtente:
-            self.session.close()
-            raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
-        utente = TUtenti(public_id=str(uuid.uuid4()), username=username, nome=nome, cognome=cognome, fkTipoUtente=fkTipoUtente,
-                         fkFunzCustom=fkFunzCustom, reparti=reparti, attivo=attivo, inizio=inizio,
-                         email=email, password=password)
-        self.session.add(utente)
-        self.session.commit()
-        return UtilityGeneral.getClassDictionaryOrList(utente)
-    
+                  fkFunzCustom: str, reparti: str, attivo: int, inizio, email: str, password: str):
+        try:
+            # Log dei dati di input
+            print(f"Creating user with: username={username}, nome={nome}, cognome={cognome}, fkTipoUtente={fkTipoUtente}, fkFunzCustom={fkFunzCustom}, reparti={reparti}, attivo={attivo}, inizio={inizio}, email={email}")
+
+            # Verifica se l'email esiste già
+            if self.exists_utente_by_email(email):
+                raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
+            
+            # Verifica se l'username esiste già
+            if self.exists_utente_by_username(username):
+                raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'username', username))
+            
+            # Verifica se il tipo di utente esiste
+            tipoUtente = Repository_t_tipiUtente()
+            if not tipoUtente.exists_tipoUtente_by_id(fkTipoUtente):
+                raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
+            
+            # Creazione dell'oggetto utente
+            
+            utente = TUtenti(
+                public_id=str(uuid.uuid4()),
+                username=username,
+                nome=nome,
+                cognome=cognome,
+                fkTipoUtente=fkTipoUtente,
+                fkFunzCustom=','.join(fkFunzCustom) if isinstance(fkFunzCustom, list) else fkFunzCustom,
+                reparti=','.join(map(str, reparti)) if isinstance(reparti, list) else reparti,
+                attivo=attivo,
+                inizio=inizio,
+                email=email,
+                password=password
+            )
+
+            # Log dell'oggetto utente
+            print(f"User object to be added: {utente}")
+
+            # Aggiunta e commit dell'utente al database
+            self.session.add(utente)
+            self.session.commit()
+            
+            return UtilityGeneral.getClassDictionaryOrList(utente)
+        
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while creating the user: {str(e)}")
+        
+        finally:
+            # Assicurati che la sessione venga chiusa
+            if self.session:
+                self.session.close()
+
+
+
+
+
+
     def update_utente_username(self, id: int, username: str):
         utente: TUtenti = self.exists_utente_by_id(id)
         if utente:

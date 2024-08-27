@@ -1,7 +1,7 @@
 
 
 document.getElementById('logout').addEventListener('click', function() {
-    fetch("do_logout", {
+    fetch("/app_cucina/do_logout", {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,  // Use the token defined in the template
@@ -24,12 +24,12 @@ document.getElementById('logout').addEventListener('click', function() {
     .then(data => {
         console.log(data);
         // This will only execute if the logout is successful without errors
-        window.location.href = "login";  // Redirect to login page
+        window.location.href = "/app_cucina/login";  // Redirect to login page
     })
     .catch(error => {
         console.error('Error:', error);
         // Optionally redirect to login if there's a network error
-        window.location.href = "login";  // Redirect to login page
+        window.location.href = "/app_cucina/login";  // Redirect to login page
     });
 });
 

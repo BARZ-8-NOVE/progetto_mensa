@@ -62,7 +62,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -104,6 +104,7 @@ service_t_OrdiniSchede = Service_t_OrdiniSchede()
 service_t_OrdiniPiatti = Service_t_OrdiniPiatti()
 service_t_funzionalita = Service_t_funzionalita ()
 service_t_SchedePiatti = Service_t_SchedePiatti()
+service_t_tipiUtenti = Service_t_tipiUtenti()
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
 
@@ -136,12 +137,52 @@ def login_required(f):
     return decorated_function
 
 
+# def get_page_name_from_path(path):
+#     # Rimuovi i caratteri di delimitazione finali e iniziali
+#     cleaned_path = path.strip('/')
+
+#     # Controlla se il percorso inizia con 'app_cucina/'
+#     if cleaned_path.startswith('app_cucina/'):
+#         # Rimuovi 'app_cucina/' dal percorso
+#         cleaned_path = cleaned_path[len('app_cucina/'):]
+
+#     # Dividi il percorso in segmenti usando '/' come delimitatore
+#     segments = cleaned_path.split('/')
+
+#     # Se ci sono più di un segmento, il secondo è il nome della pagina
+#     if len(segments) > 1:
+#         page_name = segments[0]  # Il primo segmento dopo 'app_cucina/'
+#     else:
+#         page_name = segments[0]  # Caso in cui il percorso non ha altri segmenti
+
+#     return page_name
+
 def get_page_name_from_path(path):
-    return path.strip('/').split('/')[-1]
+    # Rimuovi i caratteri di delimitazione finali e iniziali
+    cleaned_path = path.strip('/')
+
+    # Controlla se il percorso inizia con 'app_cucina/'
+    if cleaned_path.startswith('app_cucina/'):
+        # Rimuovi 'app_cucina/' dal percorso
+        cleaned_path = cleaned_path[len('app_cucina/'):]
+        
+        # Trova il primo '/' dopo 'app_cucina/'
+        first_slash_index = cleaned_path.find('/')
+        
+        # Restituisci il percorso fino al primo '/' includendo la barra
+        if first_slash_index != -1:
+            return '/' + 'app_cucina/' + cleaned_path[:first_slash_index]
+        else:
+            return '/' + 'app_cucina/' + cleaned_path
+
+    # Se il percorso non inizia con 'app_cucina/', restituisci vuoto o il percorso originale
+    return ''
+
+
 
 @app_cucina.before_request
 def check_token_and_permissions():
-    exempt_routes = ['app_cucina.login', 'app_cucina.index']
+    exempt_routes = ['app_cucina.login', 'app_cucina.index' ,'app_cucina.do_logout']
 
     # Se la rotta corrente è esente, salta il controllo del token e dei permessi
     if request.endpoint in exempt_routes:
@@ -166,18 +207,17 @@ def check_token_and_permissions():
     try:
         user_type_id = session.get('fkTipoUtente')
         page_link = get_page_name_from_path(request.path)
-        print (page_link)
-        print (user_type_id)
+
         # Chiamata al servizio per controllare i permessi
         access_granted, message = service_t_funzionalita.can_access(user_type_id=user_type_id, page_link=page_link)
         
         if not access_granted:
             logging.warning(f"Access denied for user_id {user_id} to {page_link}: {message}")
-            return redirect(url_for('app_cucina.login'))  # Rotta per accesso negato
+            return redirect(url_for('app_cucina.index'))  # Rotta per accesso negato
         
     except Exception as e:
         logging.error(f"Error checking permissions for user_id {user_id}: {str(e)}")
-        return redirect(url_for('app_cucina.login'))
+        return redirect(url_for('app_cucina.index'))
 
 
 @app_cucina.before_request
@@ -324,7 +364,7 @@ def elimina_alimento(id):
 
 
 
-@app_cucina.route('/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
+@app_cucina.route('preparazioni/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
 def get_by_fkTipoPreparazione(fkTipoPreparazione):
     piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
     tutti_i_piatti = service_t_Piatti.get_all()
@@ -989,8 +1029,172 @@ def modifica_scheda(id):
         return redirect(url_for('app_cucina.login'))
 
 
-@app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
-@app_cucina.route('/ordini_schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
+
+@app_cucina.route('/schede/piatti/<int:id>', methods=['GET', 'POST'])
+def schede_piatti(id):
+    if 'authenticated' in session:
+        
+        servizio_corrente = request.args.get('servizio', '1')
+        print(servizio_corrente)
+        
+        
+        # Retrieve data
+        scheda = service_t_Schede.get_by_id(id)
+        piatti = service_t_Piatti.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(id, servizio_corrente)
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(id, servizio_corrente)
+        servizi = service_t_Servizi.get_all_servizi()
+        tipi_piatti = service_t_TipiPiatti.get_all()
+
+        # Map the data for use in the template
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        piatti_map = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+        
+        # Initialize the form and set its choices
+        form = schedaPiattiForm()
+        form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
+
+        if form.validate_on_submit():
+            try:
+                # Retrieve selected piatto info
+                piatto_id = form.piatti.data
+                infopiatto = service_t_Piatti.get_by_id(piatto_id)  # Correct method to get piatto info
+                
+                # Determine the colonna based on fkTipoPiatto
+                colonna = 1 if infopiatto['fkTipoPiatto'] < 4 else 2
+
+                service_t_SchedePiatti.create(
+                    fkScheda=id, 
+                    fkServizio=servizio_corrente, 
+                    fkPiatto=piatto_id, 
+                    colonna=colonna,
+                    riga=0,  # Adjust riga if necessary
+                    note=form.note.data,
+                    ordinatore=form.ordinatore.data,
+                    utenteInserimento=get_username()
+                )
+                
+                flash('Scheda aggiunta con successo!', 'success')
+                return redirect(url_for('app_cucina.schede_piatti', id=id, servizio=servizio_corrente))
+            except Exception as e:
+                flash(f'Errore durante l\'aggiunta della scheda: {str(e)}', 'danger')
+                # Potresti anche loggare l'eccezione se necessario
+                app.logger.error(f'Errore: {str(e)}')
+
+        return render_template('schede_piatti.html',
+                               scheda=scheda,
+                               piatti=piatti,
+                               servizi=servizi,
+                               schedePiatti=schedePiatti,
+                               tipi_piatti=tipi_piatti,
+                               piatti_map=piatti_map,
+                               tipi_menu_map=tipi_menu_map,
+                               schedeDolci=schedeDolci,
+                               form=form
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+
+
+@app_cucina.route('/schede/piatti/info/<int:id_scheda>/<int:id_piatto_scheda>', methods=['GET', 'POST', 'DELETE', 'PUT'])
+def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
+    if 'authenticated' in session:
+        servizio_corrente = request.args.get('servizio', '1')
+
+
+        
+        if request.method == 'GET':
+            try:
+                schedaPiatto = service_t_SchedePiatti.get_by_id(id_piatto_scheda)
+                if not schedaPiatto:
+                    return jsonify({'error': 'Piatto non trovato!'}), 404
+                
+                
+                
+                
+                piatti = service_t_Piatti.get_all()
+                form = schedaPiattiForm(obj=schedaPiatto)
+                form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
+
+                return jsonify({
+                    'piatti': schedaPiatto.get('fkPiatto'),  # Corretto per restituire il valore del piatto
+                    'note': schedaPiatto.get('note'),
+                    'ordinatore': schedaPiatto.get('ordinatore')
+                })
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        
+        if request.method == 'POST':
+            try:
+                form = schedaPiattiForm()
+                service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=get_username())
+
+                piatto_id = form.piatti.data
+                infopiatto = service_t_Piatti.get_by_id(piatto_id)
+                colonna = 1 if infopiatto['fkTipoPiatto'] < 4 else 2
+
+                service_t_SchedePiatti.create(
+                    fkScheda=id_scheda, 
+                    fkServizio=servizio_corrente,
+                    fkPiatto=piatto_id, 
+                    colonna=colonna,
+                    riga=0,
+                    note=form.note.data,
+                    ordinatore=form.ordinatore.data,
+                    utenteInserimento=get_username()
+                )
+
+                flash('Scheda aggiunta con successo!', 'success')
+                return redirect(url_for('app_cucina.schede_piatti', id=id_scheda, servizio=servizio_corrente))
+            except Exception as e:
+                flash(f'Errore durante l\'aggiunta della scheda: {str(e)}', 'danger')
+                # Potresti anche loggare l'eccezione se necessario
+                app.logger.error(f'Errore: {str(e)}')
+
+        
+
+    if request.method == 'PUT':
+        print(f"Request to delete scheda with ID: {id_piatto_scheda}")  # Aggiungi questo log
+        try:
+            service_t_SchedePiatti.crea_piatto_vuoto(id=id_piatto_scheda)
+            flash('successo!', 'success')
+            return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+        except Exception as e:
+            print(f"Error deleting scheda: {e}")  # Log per l'errore
+            flash('Errore durante l\'eliminazione del piatto.', 'danger')
+            return '', 400  # Status code 400 Bad Request per errori
+        
+
+    if request.method == 'DELETE':
+        print(f"Request to delete scheda with ID: {id_piatto_scheda}")  # Aggiungi questo log
+        try:
+            service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=get_username())
+            flash('piatto eliminato con successo!', 'success')
+            return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+        except Exception as e:
+            print(f"Error deleting scheda: {e}")  # Log per l'errore
+            flash('Errore durante l\'eliminazione del piatto.', 'danger')
+            return '', 400  # Status code 400 Bad Request per errori
+
+
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+
+
+
+
+
+@app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
+@app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
 def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
         # Recupera i dati necessari
@@ -1165,7 +1369,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
 
 
-@app_cucina.route('/print_ordini/<int:id>', methods=['GET', 'POST'])
+@app_cucina.route('/ordini/print/<int:id>', methods=['GET', 'POST'])
 def print_ordini(id):
     if 'authenticated' in session:
         # Recupera tutti gli ordini associati all'ID fornito
@@ -1253,34 +1457,6 @@ def print_ordini(id):
 
 
 
-
-@app_cucina.route('/schede_piatti/<int:id>', methods=['GET', 'POST'])
-def schede_piatti(id):
-    if 'authenticated' in session:
-        servizio_corrente = request.args.get('servizio', '1')
-        scheda = service_t_Schede.get_by_id(id)
-        piatti = service_t_Piatti.get_all()
-        tipi_menu = service_t_TipiMenu.get_all()
-        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(id,servizio_corrente)
-        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(id,servizio_corrente)
-        servizi = service_t_Servizi.get_all_servizi()
-        tipi_piatti = service_t_TipiPiatti.get_all()
-        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
-
-        piatti_map = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
-
-        return render_template('schede_piatti.html',
-                               scheda=scheda,
-                               piatti=piatti,
-                               servizi=servizi,
-                               schedePiatti=schedePiatti,
-                               tipi_piatti=tipi_piatti,
-                               piatti_map=piatti_map,
-                               tipi_menu_map=tipi_menu_map,
-                               schedeDolci=schedeDolci)
-    else:
-        return redirect(url_for('app_cucina.login'))
-
     
 @app_cucina.route('/ordini', methods=['GET', 'POST'])
 def ordini():
@@ -1348,40 +1524,104 @@ def ordini():
         return redirect(url_for('app_cucina.login'))
 
 
-# @app_cucina.route('/ordini/<int:id_ordine>, <int:id_reparto>, <int:id_scheda>', methods=['GET', 'POST', 'DELETE'])
-# def ordini_schede(id_ordine,id_servizio, id_reparto,id_scheda ):
 
-#     if 'authenticated' in session:
+@app_cucina.route('/sicurezza', methods=['GET', 'POST'])
+def sicurezza():
+    if 'authenticated' in session:
+        utenti = service_t_utenti.get_utenti_all()
+        tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
+        reparti = service_t_Reparti.get_all()
+        funzionalita = service_t_funzionalita.get_all_menus()
 
-#         form = ordineSchedaForm()
+        tipologieUtente_map = {int(tipologia['id']): tipologia['nomeTipoUtente'] for tipologia in tipologieUtente}
+        reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
 
-#         if request.method == 'GET':
+        form = UtenteForm()
+        form.fkTipoUtente.choices = [(tipologia['id'], tipologia['nomeTipoUtente']) for tipologia in tipologieUtente]
+        form.reparti.choices = [(reparto['id'], reparto['descrizione']) for reparto in reparti]
+        form.fkFunzCustom.choices = [(funz['id'], funz['titolo']) for funz in funzionalita]
+
+        if form.validate_on_submit():
+            try:
+                # Recupera i dati dal modulo
+                username = form.username.data
+                nome = form.nome.data
+                cognome = form.cognome.data
+                fkTipoUtente = form.fkTipoUtente.data
+                fkFunzCustom = form.fkFunzCustom.data
+                reparti = form.reparti.data
+                email = form.email.data
+                password = form.password.data
+
+                # Stampa per debug
+                print(f"username: {username}")
+                print(f"nome: {nome}")
+                print(f"cognome: {cognome}")
+                print(f"fkTipoUtente: {fkTipoUtente}")
+                print(f"fkFunzCustom: {fkFunzCustom}")
+                print(f"reparti: {reparti}")
+                print(f"email: {email}")
+                print(f"password: {password}")
+
+                # Chiamata al servizio per creare l'utente
+                service_t_utenti.create_utente(
+                    username=username,
+                    nome=nome,
+                    cognome=cognome,
+                    fkTipoUtente=fkTipoUtente,
+                    fkFunzCustom=fkFunzCustom,
+                    reparti=reparti,
+                    email=email,
+                    password=password
+                )
+
+                flash('Utente creato con successo!', 'success')
+                return redirect(url_for('app_cucina.sicurezza'))
+
+            except Exception as e:
+                print(f'Errore durante la creazione dell\'utente: {str(e)}')  # Stampa per debug
+                flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
+
+        return render_template('sicurezza.html',
+                               utenti=utenti,
+                               tipologieUtente=tipologieUtente,
+                               form=form,
+                               tipologieUtente_map=tipologieUtente_map,
+                               reparti_map=reparti_map)
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
-#             ordineScheda = service_t_OrdiniSchede.get_by_ordine_reparto_scheda(id_ordine,id_reparto,id_scheda)
-#             if not ordineScheda:
-#                 flash('Scheda non trovata!', 'danger')
-#                 return redirect(url_for('app_cucina.schede'))
-
-#             return jsonify({
-#                 'fkOrdine': ordineScheda.get('fkOrdine'),
-#                 'fkReparto': ordineScheda.get('fkReparto'),
-#                 'data': ordineScheda.get('data').strftime('%Y-%m-%d'),
-#                 'fkServizio': ordineScheda.get('fkServizio'),
-#                 'fkScheda': ordineScheda.get('fkScheda'),
-#                 'cognome': ordineScheda.get('cognome'),
-#                 'nome': ordineScheda.get('nome'),
-#                 'letto': ordineScheda.get('letto'),
-#                 'dataInserimento': ordineScheda.get('dataInserimento'),
-#                 'utenteInserimento': ordineScheda.get('utenteInserimento')
 
 
-#             })
-        
+
+@app_cucina.route('/qualifiche', methods=['GET', 'POST'])
+def qualifiche():
+    if 'authenticated' in session:
+
+ 
 
 
-#     else:
-#         return redirect(url_for('app_cucina.login'))
+        return render_template('qualifiche.html',
+                              
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app_cucina.route('/do_logout', methods=['POST'])

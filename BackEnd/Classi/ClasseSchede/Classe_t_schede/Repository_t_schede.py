@@ -22,7 +22,7 @@ class RepositoryTSchede:
                         'fkSchedaPreconfezionata': result.fkSchedaPreconfezionata, 
                         'nome': result.nome, 
                         'titolo': result.titolo, 
-                        'titolo': result.sottotitolo, 
+                        'sottotitolo': result.sottotitolo, 
                         'descrizione': result.descrizione, 
                         'backgroundColor': result.backgroundColor, 
                         'color': result.color, 
@@ -42,20 +42,26 @@ class RepositoryTSchede:
                     return {'Error': f'No match found for this id: {id}'}, 404
             except Exception as e:
                 return {'Error': str(e)}, 400
+            
+            finally:
+                # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                if self.session:
+                    self.session.close()
 
 
     def get_all(self):
         try:
+            # Esegui la query per ottenere tutti i risultati non cancellati
             results = self.session.query(TSchede).filter(TSchede.dataCancellazione.is_(None)).all()
-        except Exception as e:
-            return {'Error': str(e)}, 500
-        return [{'id': result.id, 
+            
+            # Costruisci la lista dei risultati
+            output = [{'id': result.id, 
                 'fkTipoAlimentazione': result.fkTipoAlimentazione, 
                 'fkTipoMenu': result.fkTipoMenu,
                 'fkSchedaPreconfezionata': result.fkSchedaPreconfezionata, 
                 'nome': result.nome, 
                 'titolo': result.titolo, 
-                'titolo': result.sottotitolo, 
+                'sottotitolo': result.sottotitolo, 
                 'descrizione': result.descrizione, 
                 'backgroundColor': result.backgroundColor, 
                 'color': result.color, 
@@ -69,42 +75,62 @@ class RepositoryTSchede:
                 'dataCancellazione': result.dataCancellazione, 
                 'utenteCancellazione': result.utenteCancellazione, 
                 'nominativa': result.nominativa 
-                 
-                } for result in results]
-    
+                    } for result in results]
+            return output
+        
+        except Exception as e:
+            # Log dell'errore (opzionale)
+            # log.error(f"Error fetching data: {str(e)}")
+            return {'Error': str(e)}, 500
+        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def get_all_attivi_pazienti(self):
         try:
+            # Esegui la query per ottenere tutte le schede attive per i pazienti (dipendente == 0)
             results = self.session.query(TSchede).filter(
-                TSchede.utenteCancellazione == None,  # Verifica se utenteCancellazione è NULL
-                TSchede.fine == None,  # Verifica se fine è NULL
+                TSchede.utenteCancellazione.is_(None),  # Verifica se utenteCancellazione è NULL
+                TSchede.fine.is_(None),  # Verifica se fine è NULL
                 TSchede.dipendente == 0  # Verifica se dipendente è 0
             ).all()
+            
+            # Costruisci la lista dei risultati
+            return [{
+                'id': result.id, 
+                'fkTipoAlimentazione': result.fkTipoAlimentazione, 
+                'fkTipoMenu': result.fkTipoMenu,
+                'fkSchedaPreconfezionata': result.fkSchedaPreconfezionata, 
+                'nome': result.nome, 
+                'titolo': result.titolo, 
+                'sottotitolo': result.sottotitolo, 
+                'descrizione': result.descrizione, 
+                'backgroundColor': result.backgroundColor, 
+                'color': result.color, 
+                'dipendente': result.dipendente, 
+                'note': result.note,
+                'inizio': result.inizio,
+                'fine': result.fine,
+                'ordinatore': result.ordinatore,
+                'dataInserimento': result.dataInserimento, 
+                'utenteInserimento': result.utenteInserimento, 
+                'dataCancellazione': result.dataCancellazione, 
+                'utenteCancellazione': result.utenteCancellazione, 
+                'nominativa': result.nominativa 
+            } for result in results]
+        
         except Exception as e:
+            # Log dell'errore (opzionale)
+            # log.error(f"Error fetching data: {str(e)}")
             return {'Error': str(e)}, 500
-
-        return [{
-            'id': result.id, 
-            'fkTipoAlimentazione': result.fkTipoAlimentazione, 
-            'fkTipoMenu': result.fkTipoMenu,
-            'fkSchedaPreconfezionata': result.fkSchedaPreconfezionata, 
-            'nome': result.nome, 
-            'titolo': result.titolo, 
-            'sottotitolo': result.sottotitolo,  # Corretto il duplicato 'titolo'
-            'descrizione': result.descrizione, 
-            'backgroundColor': result.backgroundColor, 
-            'color': result.color, 
-            'dipendente': result.dipendente, 
-            'note': result.note,
-            'inizio': result.inizio,
-            'fine': result.fine,
-            'ordinatore': result.ordinatore,
-            'dataInserimento': result.dataInserimento, 
-            'utenteInserimento': result.utenteInserimento, 
-            'dataCancellazione': result.dataCancellazione, 
-            'utenteCancellazione': result.utenteCancellazione, 
-            'nominativa': result.nominativa 
-        } for result in results]
+        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
 
     def create(self, fkTipoAlimentazione, fkTipoMenu, nome, titolo, sottotitolo, descrizione, backgroundColor, dipendente, note, inizio, fine, utenteInserimento, nominativa):
@@ -146,6 +172,12 @@ class RepositoryTSchede:
             print(f"Error during database commit: {str(e)}")
 
             return {'Error': str(e)}, 500
+        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def update(self, id, fkTipoAlimentazione, fkTipoMenu, nome, titolo, sottotitolo, descrizione, backgroundColor, dipendente, note, inizio, fine, utenteInserimento, nominativa):
         try:
@@ -188,4 +220,7 @@ class RepositoryTSchede:
             self.session.rollback()
             return {'Error': str(e)}, 500
         
-    
+        finally:
+                # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                if self.session:
+                    self.session.close()

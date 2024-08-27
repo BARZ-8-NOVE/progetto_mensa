@@ -17,6 +17,7 @@ class TUtenti(Base):
     reparti = Column(String, nullable=True)
     attivo = Column(TINYINT, nullable=True)
     inizio = Column(Date, nullable=True)
+    fine = Column(Date, nullable=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
     token = Column(String, nullable=True)

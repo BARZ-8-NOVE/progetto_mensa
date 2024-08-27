@@ -25,10 +25,23 @@ class Repository_t_tipiUtente:
             self.session.commit()
         return
     
-    # def get_tipiUtenti_all(self):
-    #     results = self.session.query(TTipiUtenti).all()
-    #     self.session.close()
-    #     return UtilityGeneral.getClassDictionaryOrList(results)
+
+        
+    def get_tipiUtenti_all(self):
+        try:
+            results = self.session.query(TTipiUtenti).all()
+            return [{'id': result.id, 'nomeTipoUtente': result.nomeTipoUtente} for result in results]
+
+        except Exception as e:
+            # Se si verifica un'eccezione, esegui il rollback della sessione
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            self.session.close()
+
+
 
     # def get_tipoUtente_by_id(self, id:int):
     #     result = self.session.query(TTipiUtenti).filter_by(id=id).first()
