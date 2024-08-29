@@ -44,11 +44,15 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
                 <td>{{ utente.inizio }}</td>
                 <td>{{ utente.fine }}</td>
                 <td>
-                    {% set abilitazioni_ids = utente.reparti.split(',') %}
-                    {% for id in abilitazioni_ids %}
-                    {{ reparti_map[id.strip()] }}{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
+                    {% set abilitazioni_ids = utente.reparti.split(',') if utente.reparti else [] %}
+                    {% if abilitazioni_ids %}
+                        {% for id in abilitazioni_ids %}
+                            {% set int_id = id.strip() | int %}
+                            {% set reparto = reparti_map.get(int_id, 'Reparto non trovato') %}
+                            {{ reparto }}{% if not loop.last %},<br>{% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </td>         
                 <td><button>imp</button></td>
             </tr>
             {% endfor %}

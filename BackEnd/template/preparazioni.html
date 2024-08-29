@@ -60,7 +60,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 <!-- Modal Structure -->
 <div id="ingredientsModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
+
         <h2>Ingredienti</h2>
         <div id="ingredientsList"></div>
     </div>
@@ -70,14 +70,12 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 <div id="preparazioneModal" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
             <form id="PreparazioniForm"method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
                 <div class="modal-header">
                     <h5 class="modal-title">Aggiungi Preparazione</h5>
-                    <button type="button" class="close" onclick="closeModal()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
                 <div class="modal-body">
                     <!-- Existing fields for preparazione details -->
@@ -276,6 +274,7 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
         document.getElementById('ingredientListInput').value = JSON.stringify(ingredientList);
     }
     
+    
     // Funzione per rimuovere un alimento dalla lista
     function removeAlimento(index) {
         ingredientList.splice(index, 1);
@@ -299,8 +298,8 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                const descrizione = row.cells[0].textContent.toLowerCase();
-                const tipo = row.cells[1].textContent;
+                const descrizione = row.cells[1].textContent.toLowerCase();
+                const tipo = row.cells[2].textContent;
 
                 const matchesName = descrizione.includes(searchName);
                 const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
@@ -400,7 +399,7 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             // Ottieni il token CSRF dal meta tag
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            fetch(`preparazioni/${id}`, {
+            fetch(`/app_cucina/preparazioni/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -426,25 +425,52 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
 
 
     function showModificaPreparazioneForm(id) {
-        fetch(`preparazioni/${id}`)
+        fetch(`/app_cucina/preparazioni/${id}`)
             .then(response => response.json())
             .then(data => {
                 const form = document.getElementById('PreparazioniForm');
-                form.action = `preparazioni/${id}`;
-
-
-                form.elements['fkTipoPreparazione'].value = data.fkTipoPreparazione;
-                form.elements['titoloSelect'].value = data.fkPiatto;
-                form.elements['descrizione'].value = data.descrizione;
-                form.elements['isEstivo'].checked = data.isEstivo;
-                form.elements['isInvernale'].checked = data.isInvernale;
-                form.elements['inizio'].value = data.inizio;
-                form.elements['fine'].value = data.fine;
-                form.elements['immagine'].value = data.immagine;
-
+                form.action = `/app_cucina/preparazioni/${id}`; // Imposta l'azione del form all'endpoint di aggiornamento
+    
+                // Ottieni i dati della preparazione dal JSON
+                const preparazione = data.preparazione;
+    
+                // Imposta i campi del modulo con i dati ricevuti
+                form.elements['fkTipoPreparazione'].value = preparazione.fkTipoPreparazione;
+                form.elements['descrizione'].value = preparazione.descrizione;
+                form.elements['isEstivo'].checked = preparazione.estivo;
+                form.elements['isInvernale'].checked = preparazione.invernale;
+                form.elements['inizio'].value = preparazione.inizio;
+                form.elements['fine'].value = preparazione.fine;
+    
+                // Popola dinamicamente il select per 'titoloSelect'
+                const titoloSelect = document.getElementById('titoloSelect');
+                titoloSelect.innerHTML = ''; // Svuota il select prima di aggiungere nuove opzioni
+    
+                data.scelte.tipiPreparazioni.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option[0]; // ID del tipo piatto
+                    optionElement.textContent = option[1]; // Descrizione del tipo piatto
+                    titoloSelect.appendChild(optionElement);
+                });
+    
+                // Imposta il valore selezionato nel select
+                titoloSelect.value = preparazione.fkTipoPiatto;
+    
+                // Mostra il modale
                 document.getElementById('preparazioneModal').style.display = 'block';
+    
+                // Aggiorna la lista degli ingredienti
+                ingredientList = data.ingredienti;
+                updateIngredientList();
+            })
+            .catch(error => {
+                console.error('Error fetching preparation data:', error);
+                alert('Errore durante il caricamento dei dettagli della preparazione.');
             });
     }
+    
+    
+    
     
         </script>
         

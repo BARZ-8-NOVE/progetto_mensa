@@ -13,6 +13,9 @@ class Service_t_utenti:
     def get_utenti_all(self):
         return self.repository.get_utenti_all()
 
+    def get_all(self):
+        return self.repository.get_all()
+
     def get_utente_by_id(self, id:int):
         UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_id(id)
@@ -20,6 +23,10 @@ class Service_t_utenti:
     def get_utente_by_public_id(self, public_id : str):
         UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_public_id(public_id)
+    
+
+    def get_reparti_list(self, user_id: int):
+        return self.repository.get_reparti_list(user_id)
     
   
     def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: str,

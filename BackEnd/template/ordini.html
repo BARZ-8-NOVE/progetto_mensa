@@ -35,7 +35,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ prev_day }}">
         <input type="hidden" name="month" value="{{ prev_month }}">
         <input type="hidden" name="year" value="{{ prev_year }}">
-        <button type="submit">Giorno Precedente</button>
+        <button type="submit" class="styled-button">Giorno Precedente</button>
     </form>
 
     <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
@@ -93,7 +93,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ next_day }}">
         <input type="hidden" name="month" value="{{ next_month }}">
         <input type="hidden" name="year" value="{{ next_year }}">
-        <button type="submit">Giorno Successivo</button>
+        <button type="submit"class="styled-button">Giorno Successivo</button>
     </form>
 
     <!-- Filtra per servizio -->
@@ -102,7 +102,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="year" value="{{ year }}">
         <input type="hidden" name="month" value="{{ month }}">
         <label for="servizio">Filtra per servizio:</label>
-        <select id="servizio" name="servizio" onchange="this.form.submit()">
+        <select class="search-container-select-menu" id="servizio" name="servizio" onchange="this.form.submit()">
             {% for servizio in servizio %}
             <option value="{{ servizio.id }}" {% if request.args.get('servizio', '1') == servizio.id|string %}selected{% endif %}>
                 {{ servizio.descrizione }}
@@ -112,7 +112,7 @@ Ordini - Gestione Cucina
     </form>
 
     <!-- Pulsante Stampa -->
-    <button type="button" onclick="printPage({{ ordine_esistente.id }})">Stampa</button>
+    <button type="button" class="styled-button" onclick="printPage({{ ordine_esistente.id }})">Stampa</button>
 </div>
 
 <table>

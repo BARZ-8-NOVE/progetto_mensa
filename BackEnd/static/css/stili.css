@@ -166,10 +166,35 @@ nav ul li a {
 
 
 
+.search-container-select-menu{
+    padding: 9px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    margin: 0 0 0 0px; /* Stesso margine sinistro dell'elemento <h2> */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 20 20'%3E%3Cpath fill='%23333' d='M0 0l10 10 10-10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    min-width: 250px;
 
+}
 
+.search-container-select-menu:focus {
+    border-color: #86b7fe;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+ 
 
-
+.search-container-select:focus {
+    border-color: #86b7fe;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
 
 
 .search-container input[type="text"],
@@ -686,4 +711,213 @@ li {
 
 @page {
     margin: 10mm; /* Margine per staccare i contenuti dai bordi della pagina */
+}
+
+
+/* Stile per la tabella e le celle */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #07437e;
+    vertical-align: top; /* Allinea il contenuto delle celle in alto */
+}
+
+thead {
+    background-color: #ffffff;
+}
+
+tbody tr:hover {
+    background-color: #eff7ff;
+}
+
+/* Stile per i contenitori delle colonne */
+/* Margine superiore per abbassare le colonne e creare spazio per i pulsanti */
+.menu-columns {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: 0px;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 20px; /* Aggiungi uno spazio sopra le colonne */
+    position: relative; /* Imposta la posizione relativa per contenere i pulsanti */
+}
+
+/* Stile per i pulsanti in alto a destra */
+.menu-actions {
+    position: absolute;
+    top: -28px; /* Posiziona i pulsanti sopra le colonne */
+    right: 0;
+    display: none; /* Nascondi i pulsanti per default */
+}
+
+.menu-actions button {
+    margin-left: 5px;
+    padding: 5px 5px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.menu-actions button.clone {
+    background-color: #07437e; /* Verde per il pulsante "Clona" */
+}
+
+.menu-actions button:hover {
+    opacity: 0.8; /* Leggero effetto di hover */
+}
+
+/* Mostra i pulsanti al passaggio del mouse sul menu */
+.menu-columns:hover .menu-actions {
+    display: block;
+    position: absolute; /* Assicurati che l'elemento sia posizionato assolutamente */
+    top: -28px; /* Aumenta l'offset verso l'alto, modifica a seconda delle necessità */
+    right: 0; /* Posiziona a destra */
+    width: auto; /* Imposta a auto se non desideri che l'elemento si estenda tutta la larghezza */
+    height: calc(100% + 50px); /* Estendi l'altezza verso il basso e verso l'alto */
+    z-index: 10; /* Assicurati che l'area di hover sia sopra gli altri elementi */
+    background: transparent; /* Imposta uno sfondo temporaneo per il debug */
+}
+
+
+
+.column {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    box-sizing: border-box;
+    min-height: 100px;
+    min-width: 100px; /* Imposta una larghezza minima */
+    max-width: 300px; /* Opzionale: Imposta una larghezza massima */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Stile per i titoli delle categorie di piatti */
+.column h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #333;
+    border-bottom: 2px solid #07437e;
+    padding-bottom: 5px;
+}
+
+/* Stile per l'elenco dei piatti */
+.column ul {
+    list-style-type: none;
+    padding-left: 0;
+    font-size: 14px;
+    margin: 0;
+    flex: 1;
+}
+
+/* Stile per ogni piatto (li) */
+.column li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+.column li:last-child {
+    border-bottom: none;
+}
+
+.codice {
+    width: flex; /* Larghezza fissa per il codice */
+    font-weight: bold;
+    color: #07437e;
+    margin-right: 10px; /* Spazio tra il codice e la preparazione */
+    padding: 5px;
+    text-align: center;
+    border-radius: 3px;
+}
+
+.column li:hover {
+    background-color: #f1f1f1;
+}
+
+.codice.yellow {
+    background-color: #ffff99; /* Giallo per i Primi */
+}
+
+.codice.brown {
+    background-color: #ffcc99; /* Marrone per i Secondi */
+}
+
+.codice.green {
+    background-color: #ccffcc; /* Verde per i Contorni */
+}
+
+.preparazione {
+    white-space: normal; /* Consente il ritorno a capo del testo */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    flex: 1; /* Occupa lo spazio rimanente */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Contenitore principale per i piatti */
+.piatti-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spazio tra ogni piatto */
+}
+
+/* Stile per ogni riga di piatti */
+.piatti-row {
+    display: flex;
+    align-items: center; /* Allinea verticalmente il contenuto */
+}
+
+/* Colonne */
+.piatti-column {
+    flex: 1; /* Ogni colonna occupa uno spazio uguale */
+}
+
+/* Stile per il checkbox del piatto */
+.piatti-column.checkbox {
+    text-align: center; /* Allinea i checkbox al centro della colonna */
+}
+
+/* Stile per il contenitore delle preparazioni */
+.preparazioni-container {
+    margin-left: 20px; /* Spazio tra il piatto e le preparazioni */
+    display: none; /* Nascondi il contenitore per default */
+}
+
+/* Stile per il select per una singola scelta */
+select {
+    width: 200px; /* Imposta una larghezza fissa per il select */
+    height: auto; /* Adatta l'altezza in base al contenuto */
 }

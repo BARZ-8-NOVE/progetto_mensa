@@ -11,7 +11,7 @@ from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
 from datetime import datetime, timedelta
-
+import logging
 class Repository_t_utenti:
     
     def __init__(self) -> None:
@@ -45,11 +45,41 @@ class Repository_t_utenti:
     def exist_utenti_by_tipoUtente(self, fkTipoUtente):
         results = self.session.query(TUtenti).filter_by(fkTipoUtente=fkTipoUtente).all()
         return results
-    
+
+    def get_all(self):
+        try:
+            results = self.session.query(TUtenti).all()
+            return [{
+                'id': result.id,
+                'public_id': result.public_id,
+                'username': result.username,
+                'nome': result.nome,
+                'cognome': result.cognome,
+                'fkTipoUtente': result.fkTipoUtente,
+                'fkFunzCustom': result.fkFunzCustom,
+                'reparti': result.reparti,
+                'attivo': result.attivo,  # Mantiene l'ora e i minuti
+                'inizio': result.inizio.date() if isinstance(result.inizio, datetime) else result.inizio,
+                'fine': result.fine.date() if isinstance(result.fine, datetime) else result.fine,
+                'email': result.email
+            } for result in results]
+        except Exception as e:
+            logging.error(f"Error getting all alimenti: {e}")
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
+
+
     def get_utenti_all(self):
         results = self.session.query(TUtenti).all()
         self.session.close()
         return UtilityGeneral.getClassDictionaryOrList(results)
+
 
     def get_utente_by_id(self, id: int):
         result = self.session.query(TUtenti).filter_by(id=id).first()
@@ -59,7 +89,34 @@ class Repository_t_utenti:
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-        
+
+
+    def get_reparti_list(self, user_id: int):
+        try:
+            # Recupera l'utente dalla sessione
+            user = self.session.query(TUtenti).filter_by(id=user_id).first()
+            
+            if user:
+                # Verifica se l'attributo reparti è None o una stringa vuota
+                if user.reparti:
+                    # Converte la stringa dei reparti in una lista di interi
+                    reparti_list = [int(reparto_id) for reparto_id in user.reparti.split(',')]
+                else:
+                    # Restituisce una lista vuota se reparti è None o vuoto
+                    reparti_list = []
+                
+                # Chiudi la sessione
+                self.session.close()
+                return reparti_list
+            else:
+                # Chiudi la sessione e solleva un'eccezione se l'utente non viene trovato
+                self.session.close()
+                raise NotFound(f"Utente con ID {user_id} non trovato.")
+        except Exception as e:
+            # Gestisci eccezioni generali e chiudi la sessione
+            self.session.close()
+            raise RuntimeError(f"An error occurred while retrieving the user's reparti: {str(e)}")
+
 
 
 

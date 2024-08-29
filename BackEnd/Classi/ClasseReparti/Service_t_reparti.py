@@ -10,6 +10,11 @@ class Service_t_Reparti:
 
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
+    
+    
+
+    def get_by_ids(self, ids):
+        return self.repository.get_by_ids(ids)
 
     def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento):
         if not dataInserimento:

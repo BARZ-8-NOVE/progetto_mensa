@@ -8,30 +8,46 @@ Modifica Menu - Gestione Cucina
     <h1>Dettaglio Menu</h1>
     <form method="POST">
         {{ form.hidden_tag() }}
-        <div>
-            <label for="piatti">Piatti</label><br>
+        <div class="piatti-container">
+            <div class="piatti-column">
+                <label for="piatti">Piatti</label><br>
+            </div>
+            <div class="piatti-column checkbox">
+                <label>Checkbox</label>
+            </div>
+            <div class="piatti-column">
+                <label>Preparazioni</label>
+            </div>
+            
             {% for piatto in piatti %}
-                <div>
-                    <input 
-                        type="checkbox" 
-                        id="piatto-{{ piatto.id }}" 
-                        name="piatti" 
-                        value="{{ piatto.id }}"
-                        {% if piatto.id in piatti_to_preparazioni and piatti_to_preparazioni[piatto.id] %} checked {% endif %}>
-                    <label for="piatto-{{ piatto.id }}">{{ piatto.titolo }}</label>
-                    <div id="preparazioni-container-{{ piatto.id }}" style="display:none;">
-                        <select id="preparazioni-{{ piatto.id }}" name="preparazioni-{{ piatto.id }}"  multiple style="width: 500px;">
-                            {% for preparazione in prep_per_piatto %}
-                                {% if preparazione['piatto']['id'] == piatto.id %}
-                                    {% for p in preparazione['preparazioni'] %}
-                                        <option value="{{ p['fkPreparazione'] }}" 
-                                                {% if piatto.id in piatti_to_preparazioni and p['fkPreparazione'] in piatti_to_preparazioni[piatto.id] %} selected {% endif %}>
-                                            {{ preparazioni_map[p['fkPreparazione']] }}
-                                        </option>
-                                    {% endfor %}
-                                {% endif %}
-                            {% endfor %}
-                        </select>
+                <div class="piatti-row">
+                    <div class="piatti-column">
+                        <label for="piatto-{{ piatto.id }}">{{ piatto.titolo }}</label>
+                    </div>
+                    <div class="piatti-column checkbox">
+                        <input 
+                            type="checkbox" 
+                            id="piatto-{{ piatto.id }}" 
+                            name="piatti" 
+                            value="{{ piatto.id }}"
+                            {% if piatto.id in piatti_to_preparazioni and piatti_to_preparazioni[piatto.id] %} checked {% endif %}>
+                    </div>
+                    <div class="piatti-column">
+                        <div id="preparazioni-container-{{ piatto.id }}" class="preparazioni-container">
+                            <select id="preparazioni-{{ piatto.id }}" name="preparazioni-{{ piatto.id }}">
+                                <option value="">Seleziona preparazione</option> <!-- Opzione predefinita -->
+                                {% for preparazione in prep_per_piatto %}
+                                    {% if preparazione['piatto']['id'] == piatto.id %}
+                                        {% for p in preparazione['preparazioni'] %}
+                                            <option value="{{ p['fkPreparazione'] }}" 
+                                                    {% if piatto.id in piatti_to_preparazioni and p['fkPreparazione'] in piatti_to_preparazioni[piatto.id] %} selected {% endif %}>
+                                                {{ preparazioni_map[p['fkPreparazione']] }}
+                                            </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
             {% endfor %}

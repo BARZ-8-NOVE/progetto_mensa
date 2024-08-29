@@ -75,7 +75,7 @@ class PiattiForm(FlaskForm):
 class MenuForm(FlaskForm):
     # piatto_categoria = RadioField('Categoria', choices=[], validators=[DataRequired()], coerce=int)
     piatti = MultiCheckboxField('piatti', validators=[Optional()], coerce=int)
-    preparazioni = SelectMultipleField('Preparazioni', choices=[], coerce=int)
+    preparazioni = SelectField('Preparazioni', choices=[], coerce=int)
 
     submit = SubmitField('Aggiungi Menu')
 

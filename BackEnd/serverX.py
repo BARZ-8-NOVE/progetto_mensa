@@ -243,6 +243,7 @@ def login():
                 session['token'] = user['token']
                 session['fkTipoUtente'] = user['fkTipoUtente']
                 
+                
                 funzionalita_service = TFunzionalitaUtenteService()
                 menu_structure = funzionalita_service.build_menu_structure(user['id'])
                 session['menu_structure'] = menu_structure
@@ -395,6 +396,7 @@ def preparazioni():
     associazione = service_t_AssociazionePiattiPreparazionie.get_all()
 
 
+
     #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
     piattiform = PiattiForm()
     form = PreparazioniForm()
@@ -428,7 +430,7 @@ def preparazioni():
             utente_inserimento = get_username()
             fk_piatto = request.form.get('titolo')
 
-            # Create the preparation record and get its ID
+
             # Create the preparation record and get its ID
             new_preparazione_id = service_t_preparazioni.create_preparazione(
                 
@@ -514,6 +516,7 @@ def preparazione_dettagli(id_preparazione):
             alimenti = service_t_Alimenti.get_all()
             alimentiPerPrep = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)
             associazione = service_t_AssociazionePiattiPreparazionie.get_id_piatto_by_preparazione(id_preparazione)
+
             tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
             
             form = PreparazioniForm(obj=preparazione)
@@ -532,8 +535,7 @@ def preparazione_dettagli(id_preparazione):
                 (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
             ]
 
-            # Restituisce i dettagli della preparazione e gli ingredienti
-            return jsonify({
+            data = {
                 'preparazione': {
                     'fkTipoPreparazione': preparazione.get('fkTipoPreparazione'),
                     'fkTipoPiatto': associazione.get('fkPiatto'),
@@ -557,7 +559,10 @@ def preparazione_dettagli(id_preparazione):
                     'alimenti': [(alimento['id'], alimento['alimento']) for alimento in alimenti],
                     'tipiQuantita': [(tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita]
                 }
-            })
+            }
+            
+        
+            return jsonify(data)
 
         if request.method == 'POST':
             # Logica per gestire il POST
@@ -762,18 +767,21 @@ def menu():
 
     # Crea una mappa dei piatti e delle preparazioni
     piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
+    codice_map = {int(piatto['id']): piatto['codice'] for piatto in piatti}
+
     preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
     # piatti_form = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
     # Mappa per associare i piatti e le preparazioni
     associazione_map = {}
     for tipo_associa in associazione:
         piatto_nome = piatti_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
+        piatto_codice = codice_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
         preparazione_descrizione = preparazioni_map.get(tipo_associa['fkPreparazione'], 'Sconosciuto')
         associazione_map[tipo_associa['id']] = {
             'piatto': piatto_nome,
+            'codice':piatto_codice,
             'preparazione': preparazione_descrizione
         }
-
 
 
         
@@ -840,6 +848,7 @@ def menu_dettagli(id_menu):
             piatti_to_preparazioni[assoc['fkPiatto']].append(assoc['fkPreparazione'])
 
         piatti_map = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
+        codice_map = {int(piatto['id']): piatto['codice'] for piatto in piatti}
         preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
 
         if form.validate_on_submit():
@@ -901,7 +910,8 @@ def menu_dettagli(id_menu):
                                 piatti=piatti,
                                 tipologia_piatti=tipologia_piatti,
                                 piatti_to_preparazioni=piatti_to_preparazioni,
-                                prep_per_piatto=prep_per_piatto
+                                prep_per_piatto=prep_per_piatto,
+                                codice_map=codice_map
                                 )
     else:
         return redirect(url_for('app_cucina.login'))
@@ -1197,6 +1207,9 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
 @app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
 def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
+
+
+
         # Recupera i dati necessari
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
@@ -1456,6 +1469,12 @@ def print_ordini(id):
 
 
 
+def get_reparti_utente():
+    user_id = session.get('user_id')
+    user = service_t_utenti.get_reparti_list(user_id)
+    
+    # Se 'reparti' è None, restituisce una lista vuota
+    return user.get('reparti', []) if user else []
 
     
 @app_cucina.route('/ordini', methods=['GET', 'POST'])
@@ -1469,12 +1488,23 @@ def ordini():
  
         data = f'{year}-{month}-{day}'
 
+        
+        # Ottieni la lista dei reparti dell'utente
+        user_reparti_ids = service_t_utenti.get_reparti_list(session['user_id'])
+        # Recupera i reparti in base alla lista degli ID
+        if user_reparti_ids:
+            response = service_t_Reparti.get_by_ids(user_reparti_ids)
+            if 'Error' in response:
+                return jsonify(response), 400
+            reparti = response['results']
+        else:
+            reparti = service_t_Reparti.get_all()  # Se la lista è vuota, prendi tutti i reparti
+
 
         servizio = service_t_Servizi.get_all_servizi()
         schede = service_t_Schede.get_all()
         tipi_menu = service_t_TipiMenu.get_all()
         tipi_alimentazione = service_t_TipiAlimentazione.get_all()
-        reparti = service_t_Reparti.get_all()
         ordiniSchede = service_t_OrdiniSchede.get_all_by_day(year, month, day, servizio_corrente)
         schede_attive = service_t_Schede.get_all_attivi_pazienti()
 
@@ -1528,7 +1558,7 @@ def ordini():
 @app_cucina.route('/sicurezza', methods=['GET', 'POST'])
 def sicurezza():
     if 'authenticated' in session:
-        utenti = service_t_utenti.get_utenti_all()
+        utenti = service_t_utenti.get_all()
         tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
         reparti = service_t_Reparti.get_all()
         funzionalita = service_t_funzionalita.get_all_menus()
@@ -1553,16 +1583,6 @@ def sicurezza():
                 email = form.email.data
                 password = form.password.data
 
-                # Stampa per debug
-                print(f"username: {username}")
-                print(f"nome: {nome}")
-                print(f"cognome: {cognome}")
-                print(f"fkTipoUtente: {fkTipoUtente}")
-                print(f"fkFunzCustom: {fkFunzCustom}")
-                print(f"reparti: {reparti}")
-                print(f"email: {email}")
-                print(f"password: {password}")
-
                 # Chiamata al servizio per creare l'utente
                 service_t_utenti.create_utente(
                     username=username,
@@ -1585,6 +1605,7 @@ def sicurezza():
         return render_template('sicurezza.html',
                                utenti=utenti,
                                tipologieUtente=tipologieUtente,
+                               reparti=reparti,
                                form=form,
                                tipologieUtente_map=tipologieUtente_map,
                                reparti_map=reparti_map)

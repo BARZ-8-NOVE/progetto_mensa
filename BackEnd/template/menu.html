@@ -6,35 +6,36 @@ Calendario Menu - Gestione Cucina
 
 {% block content %}
     <h1>Menu del Mese di {{ month_name }} {{ year }}</h1>
+    <div class="controls-container">
+            <!-- Pulsanti di navigazione del mese -->
+            <form method="GET" action="{{ url_for('app_cucina.menu') }}">
+                <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
+                <input type="hidden" name="year" value="{{ year if month > 1 else year - 1 }}">
+                <input type="hidden" name="month" value="{{ month - 1 if month > 1 else 12 }}">
+                <button type="submit" class="styled-button">Mese Precedente</button>
+            </form>
 
-    <!-- Pulsanti di navigazione del mese -->
-    <form method="GET" action="{{ url_for('app_cucina.menu') }}">
-        <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
-        <input type="hidden" name="year" value="{{ year if month > 1 else year - 1 }}">
-        <input type="hidden" name="month" value="{{ month - 1 if month > 1 else 12 }}">
-        <button type="submit">Mese Precedente</button>
-    </form>
+            <form method="GET" action="{{ url_for('app_cucina.menu') }}">
+                <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
+                <input type="hidden" name="year" value="{{ year if month < 12 else year + 1 }}">
+                <input type="hidden" name="month" value="{{ month + 1 if month < 12 else 1 }}">
+                <button type="submit" class="styled-button">Mese Successivo</button>
+            </form>
 
-    <form method="GET" action="{{ url_for('app_cucina.menu') }}">
-        <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
-        <input type="hidden" name="year" value="{{ year if month < 12 else year + 1 }}">
-        <input type="hidden" name="month" value="{{ month + 1 if month < 12 else 1 }}">
-        <button type="submit">Mese Successivo</button>
-    </form>
-
-    <label for="tipo_menu">Filtra per tipo di menu:</label>
-    <form method="GET" action="{{ url_for('app_cucina.menu') }}">
-        <input type="hidden" name="year" value="{{ year }}">
-        <input type="hidden" name="month" value="{{ month }}">
-        <select id="tipo_menu" name="tipo_menu" onchange="this.form.submit()">
-            {% for tipo in tipologie_menu %}
-            <option value="{{ tipo.id }}" {% if request.args.get('tipo_menu', '1') == tipo.id|string %}selected{% endif %}>
-                {{ tipo.descrizione }}
-            </option>
-            {% endfor %}
-        </select>
-    </form>
-
+            <label for="tipo_menu" >Filtra per tipo di menu:</label>
+            <form method="GET" action="{{ url_for('app_cucina.menu') }}">
+                <input type="hidden" name="year" value="{{ year }}">
+                <input type="hidden" name="month" value="{{ month }}">
+                <select class="search-container-select-menu" id="tipo_menu" name="tipo_menu" onchange="this.form.submit()">
+                    {% for tipo in tipologie_menu %}
+                    <option value="{{ tipo.id }}" {% if request.args.get('tipo_menu', '1') == tipo.id|string %}selected{% endif %}>
+                        {{ tipo.descrizione }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
     <table border="1">
         <thead>
             <tr>
@@ -62,22 +63,28 @@ Calendario Menu - Gestione Cucina
                                     {% for piatto in piatti_pranzo %}
                                         {% set associazione = associazione_map.get(piatto.id, {}) %}
                                         {% if associazione.piatto == 1 %}
-                                            {% set _ = piatti_by_category['Primi'].append(associazione.preparazione) %}
+                                            {% set _ = piatti_by_category['Primi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'yellow'}) %}
                                         {% elif associazione.piatto == 2 %}
-                                            {% set _ = piatti_by_category['Secondi'].append(associazione.preparazione) %}
+                                            {% set _ = piatti_by_category['Secondi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'brown'}) %}
                                         {% elif associazione.piatto == 3 %}
-                                            {% set _ = piatti_by_category['Contorni'].append(associazione.preparazione) %}
-                                        {% elif associazione.piatto == 4 %}
-                                            {% set _ = piatti_by_category['Dolci'].append(associazione.preparazione) %}
+                                            {% set _ = piatti_by_category['Contorni'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'green'}) %}
                                         {% endif %}
                                     {% endfor %}
                                     
                                     <div class="menu-columns">
+                                        <!-- Pulsanti di azione per clonare o cancellare il menu -->
+                                        <div class="menu-actions">
+                                            <button class="clone">Clona</button>
+                                            <button class="delete">X</button>
+                                        </div>
                                         <div class="column">
                                             <h4>Primi</h4>
                                             <ul>
                                                 {% for piatto in piatti_by_category['Primi'] %}
-                                                    <li>{{ piatto }}</li>
+                                                    <li>
+                                                        <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                        <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                    </li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
@@ -85,7 +92,10 @@ Calendario Menu - Gestione Cucina
                                             <h4>Secondi</h4>
                                             <ul>
                                                 {% for piatto in piatti_by_category['Secondi'] %}
-                                                    <li>{{ piatto }}</li>
+                                                    <li>
+                                                        <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                        <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                    </li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
@@ -93,26 +103,22 @@ Calendario Menu - Gestione Cucina
                                             <h4>Contorni</h4>
                                             <ul>
                                                 {% for piatto in piatti_by_category['Contorni'] %}
-                                                    <li>{{ piatto }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        <div class="column">
-                                            <h4>Dolci</h4>
-                                            <ul>
-                                                {% for piatto in piatti_by_category['Dolci'] %}
-                                                    <li>{{ piatto }}</li>
+                                                    <li>
+                                                        <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                        <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                    </li>
                                                 {% endfor %}
                                             </ul>
                                         </div>
                                     </div>
+                                    {% else %}
+                                        <p>Nessun piatto disponibile</p>
+                                    {% endif %}
                                 {% else %}
-                                    <p>Nessun piatto disponibile</p>
-                                {% endif %}
-                            {% else %}
                                 <p>Nessun servizio disponibile</p>
                             {% endif %}
                         </td>
+                        
                         {% set current_date_str = current_date.strftime('%Y-%m-%d') %}
                         <td onclick="showMenuForm({{ menu_per_giorno[current_date_str]['Cena'] if current_date_str in menu_per_giorno and 'Cena' in menu_per_giorno[current_date_str] else 'null' }})">
                             {% if current_date_str in menu_per_giorno and 'Cena' in menu_per_giorno[current_date_str] %}
@@ -121,52 +127,56 @@ Calendario Menu - Gestione Cucina
                                     {% set piatti_by_category = {'Primi': [], 'Secondi': [], 'Contorni': [], 'Dolci': [] } %}
                                     {% set piatti_cena = piattimenu.get(cena_id, []) %}
                                     {% for piatto in piatti_cena %}
-                                        {% set associazione = associazione_map.get(piatto.id, {}) %}
-                                        {% if associazione.piatto == 1 %}
-                                            {% set _ = piatti_by_category['Primi'].append(associazione.preparazione) %}
-                                        {% elif associazione.piatto == 2 %}
-                                            {% set _ = piatti_by_category['Secondi'].append(associazione.preparazione) %}
-                                        {% elif associazione.piatto == 3 %}
-                                            {% set _ = piatti_by_category['Contorni'].append(associazione.preparazione) %}
-                                        {% elif associazione.piatto == 4 %}
-                                            {% set _ = piatti_by_category['Dolci'].append(associazione.preparazione) %}
-                                        {% endif %}
-                                    {% endfor %}
-
-                                    <div class="menu-columns">
-                                        <div class="column">
-                                            <h4>Primi</h4>
-                                            <ul>
-                                                {% for piatto in piatti_by_category['Primi'] %}
-                                                    <li>{{ piatto }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        <div class="column">
-                                            <h4>Secondi</h4>
-                                            <ul>
-                                                {% for piatto in piatti_by_category['Secondi'] %}
-                                                    <li>{{ piatto }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        <div class="column">
-                                            <h4>Contorni</h4>
-                                            <ul>
-                                                {% for piatto in piatti_by_category['Contorni'] %}
-                                                    <li>{{ piatto }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        <div class="column">
-                                            <h4>Dolci</h4>
-                                            <ul>
-                                                {% for piatto in piatti_by_category['Dolci'] %}
-                                                    <li>{{ piatto }}</li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
+                                    {% set associazione = associazione_map.get(piatto.id, {}) %}
+                                    {% if associazione.piatto == 1 %}
+                                        {% set _ = piatti_by_category['Primi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'yellow'}) %}
+                                    {% elif associazione.piatto == 2 %}
+                                        {% set _ = piatti_by_category['Secondi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'brown'}) %}
+                                    {% elif associazione.piatto == 3 %}
+                                        {% set _ = piatti_by_category['Contorni'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'green'}) %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <div class="menu-columns">
+                                    <!-- Pulsanti di azione per clonare o cancellare il menu -->
+                                    <div class="menu-actions">
+                                        <button class="clone">Clona</button>
+                                        <button class="delete">X</button>
                                     </div>
+                                    <div class="column">
+                                        <h4>Primi</h4>
+                                        <ul>
+                                            {% for piatto in piatti_by_category['Primi'] %}
+                                                <li>
+                                                    <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                    <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="column">
+                                        <h4>Secondi</h4>
+                                        <ul>
+                                            {% for piatto in piatti_by_category['Secondi'] %}
+                                                <li>
+                                                    <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                    <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="column">
+                                        <h4>Contorni</h4>
+                                        <ul>
+                                            {% for piatto in piatti_by_category['Contorni'] %}
+                                                <li>
+                                                    <span class="codice {{ piatto.colore }}">{{ piatto.codice }}</span>
+                                                    <span class="preparazione">{{ piatto.preparazione }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
                                 {% else %}
                                     <p>Nessun piatto disponibile</p>
                                 {% endif %}
