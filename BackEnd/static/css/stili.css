@@ -748,13 +748,19 @@ tbody tr:hover {
     position: relative; /* Imposta la posizione relativa per contenere i pulsanti */
 }
 
-/* Stile per i pulsanti in alto a destra */
 .menu-actions {
     position: absolute;
-    top: -28px; /* Posiziona i pulsanti sopra le colonne */
+    top: 0;
     right: 0;
-    display: none; /* Nascondi i pulsanti per default */
+    display: none; /* Mostra solo quando il menu è attivo */
+    z-index: 1000; /* Assicurati che i pulsanti siano sopra altri contenuti */
+    background-color: white;
+    padding: 11px 0px 11px 0px;
+    border-radius: 5px;
+  
 }
+
+
 
 .menu-actions button {
     margin-left: 5px;
@@ -878,12 +884,39 @@ tbody tr:hover {
 
 
 
+/* Stile generale per i bottoni */
+.navigation-buttons button {
+    border: 1px;
+    color: #000000; /* Testo bianco */
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+    margin: 0 15px; /* Spazio tra i bottoni */
+}
+
+.navigation-buttons button:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
 
+/* Colori specifici per i bottoni */
+.button-1 {
+    background-color: #ffff99; /* Giallo per il primo piatto */
+}
 
+.button-2 {
+    background-color: #ffcc99; /* Marrone per il secondo piatto */
+}
 
+.button-3 {
+    background-color: #ccffcc; /* Verde per il contorno */
+}
 
-
+.button-4 {
+    background-color: #ffccff; /* Rosa per il dolce */
+}
 
 
 
@@ -891,33 +924,116 @@ tbody tr:hover {
 .piatti-container {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Spazio tra ogni piatto */
+    gap: 15px; /* Spazio tra ogni piatto */
+    max-width: 100%; /* Imposta una larghezza massima per il contenitore */
+    overflow-x: auto; /* Aggiungi lo scroll orizzontale se necessario */
 }
 
-/* Stile per ogni riga di piatti */
 .piatti-row {
     display: flex;
-    align-items: center; /* Allinea verticalmente il contenuto */
+    align-items: center;
+    flex-wrap: wrap; /* Permette alle colonne di andare a capo se necessario */
+    margin-bottom: 5px;
+    padding: 5px; /* Riduci il padding */
+    border-left: 5px solid transparent; /* Per il colore del piatto */
 }
 
-/* Colonne */
-.piatti-column {
-    flex: 1; /* Ogni colonna occupa uno spazio uguale */
+.piatti-column.code {
+    flex: 0 0 50px; /* Riduci la larghezza del codice */
+    font-weight: bold;
+    color: #333;
 }
 
-/* Stile per il checkbox del piatto */
+.piatti-column.name {
+    flex: 0 0 250px; /* Riduci la larghezza del nome */
+    color: #555;
+    margin-right: 5px; /* Riduci lo spazio tra il nome e la checkbox */
+}
+
 .piatti-column.checkbox {
-    text-align: center; /* Allinea i checkbox al centro della colonna */
+    flex: 0 0 50px; /* Riduci la larghezza della checkbox */
+    text-align: center;
+    margin-right: 5px; /* Spazio tra la checkbox e la colonna preparazione */
 }
 
-/* Stile per il contenitore delle preparazioni */
-.preparazioni-container {
-    margin-left: 20px; /* Spazio tra il piatto e le preparazioni */
-    display: none; /* Nascondi il contenitore per default */
+.piatti-column.preparazione {
+    flex: 0 0 250px; /* Riduci la larghezza della preparazione */
 }
 
-/* Stile per il select per una singola scelta */
+.piatto-code {
+    display: inline-block;
+    padding: 3px 6px; /* Riduci il padding del codice del piatto */
+    border-radius: 4px;
+    color: #000000;
+}
+
+.piatto-row.primo .piatto-code {
+    background-color: #ffff99; /* Colore per i primi piatti */
+}
+
+.piatto-row.secondo .piatto-code {
+    background-color: #ffcc99; /* Colore per i secondi piatti */
+}
+
+.piatto-row.contorno .piatto-code {
+    background-color: #ccffcc; /* Colore per i contorni */
+}
+
+.piatto-row.dolce .piatto-code {
+    background-color: #ffccff; /* Colore per i dolci */
+}
+
+/* Stile per il select */
 select {
-    width: 200px; /* Imposta una larghezza fissa per il select */
-    height: auto; /* Adatta l'altezza in base al contenuto */
+    padding: 9px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    margin: 0; /* Margine standard per il select */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 20 20'%3E%3Cpath fill='%23333' d='M0 0l10 10 10-10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    width: 300px; /* Riduci la larghezza del select */
+}
+
+/* Stile per le checkbox ingrandite */
+.piatti-column.checkbox input[type="checkbox"] {
+    transform: scale(1.5); /* Ingrandisce la checkbox di 1.5 volte */
+    margin: 0; /* Rimuove margini extra se necessario */
+}
+
+
+
+
+
+
+
+.clone-form {
+    margin-top: 20px;
+}
+
+/* Cella che contiene solo il cerchio */
+.circle-cell {
+    display: flex; /* Usa Flexbox per il layout */
+    align-items: center; /* Centra il cerchio verticalmente */
+    justify-content: center; /* Centra il cerchio orizzontalmente */
+    height: 250px; /* Altezza della cella, modifica se necessario */
+}
+
+/* Stile per il cerchio con il numero della settimana */
+.week-circle {
+    width: 40px; /* Diametro del cerchio */
+    height: 40px; /* Diametro del cerchio */
+    border-radius: 50%; /* Crea il cerchio */
+    border: 1px solid #000000; /* Bordo del cerchio */
+    background-color: #f0f0f0; /* Colore di sfondo del cerchio */
+    color: #333; /* Colore del testo */
+    display: flex; /* Usa Flexbox per centrare il testo */
+    align-items: center; /* Centra il testo verticalmente */
+    justify-content: center; /* Centra il testo orizzontalmente */
+    font-weight: bold; /* Grassetto per il testo */
 }

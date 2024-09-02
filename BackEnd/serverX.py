@@ -62,7 +62,7 @@ from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtent
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -687,126 +687,231 @@ def tipologia_menu():
     
 @app_cucina.route('/menu', methods=['GET', 'POST'])
 def menu():
-    # Ottieni i parametri dai query string
-    year = request.args.get('year', datetime.now().year, type=int)
-    month = request.args.get('month', datetime.now().month, type=int)
-    tipo_menu = request.args.get('tipo_menu', '1')
-
-    cal = calendar.Calendar(firstweekday=0)  # 0 per lunedì, 6 per domenica
-    month_days = cal.monthdayscalendar(year, month)
-    month_name = calendar.month_name[month]
-
-    # Mappa per i giorni della settimana
-    weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
-
-    utente_inserimento = get_username()
-    # Recupera i dati dal servizio
-    tipologie_menu = service_t_TipiMenu.get_all()
-    menu = service_t_Menu.get_by_month(year, month, tipo_menu)
-    associazione = service_t_AssociazionePiattiPreparazionie.get_all()
-    piatti = service_t_Piatti.get_all()
-    preparazioni = service_t_preparazioni.get_all_preparazioni()
-    servizi = service_t_Servizi.get_all_servizi()
-    
-    # Recupera gli ID dei menu filtrati per il mese corrente
-    menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
-
-    # Crea menu e servizi se non ci sono abbastanza menu per tutti i giorni del mese
-    if len(menu_ids) < len(month_days):
-        for week in month_days:
-            for day in week:
-                if day != 0:  # Salta i giorni che sono parte del mese precedente o successivo
-                    # Controlla se esiste già un menu per il giorno corrente
-                    existing_menu = service_t_Menu.get_by_date_and_type(year, month, day, tipo_menu)
-                    if not existing_menu:
-                        # Crea un nuovo menu
-                        new_menu_id = service_t_Menu.create(date(year, month, day), tipo_menu, utente_inserimento)
-                        if new_menu_id:
-                            # Popola il nuovo menu con i servizi
-                            for servizio in servizi:
-                                new_servizio_id = service_t_MenuServizi.create(new_menu_id, servizio['id'], utente_inserimento)
-                                
-                                old_menu = service_t_Menu.get_by_date_and_type_previous_year(year, month, day, tipo_menu)
-                                if old_menu:
-                                    old_menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(old_menu.id)
-                                    for old_servizio in old_menu_servizi:
-                                        if old_servizio['fkServizio'] == servizio['id']:
-                                            old_menu_piatti = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(old_servizio ['id'])
-                                            for old_piatto in old_menu_piatti:
-                                                service_t_MenuServiziAssociazione.create(new_servizio_id, old_piatto['id'], utente_inserimento)
-        
-        # Dopo aver creato i menu, servizi e piatti, fai un redirect alla stessa pagina
-        return redirect(url_for('app_cucina.menu', year=year, month=month, tipo_menu=tipo_menu))
-                                        
-
-    # Recupera tutti i servizi associati ai menu per il mese
-    menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(menu_ids)
-    
-    # Crea una mappa per gli ID dei servizi associati ai menu
-    menu_servizi_map = {}
-    for ms in menu_servizi:
-        if ms['fkMenu'] not in menu_servizi_map:
-            menu_servizi_map[ms['fkMenu']] = {}
-        menu_servizi_map[ms['fkMenu']][ms['fkServizio']] = ms['id']
-    
-    # Organizza i dati per giorno e servizio
-    menu_per_giorno = {}
-    for menu_item in menu:
-        date_key = datetime.strptime(menu_item['data'], '%Y-%m-%d').strftime('%Y-%m-%d')
-        if date_key not in menu_per_giorno:
-            menu_per_giorno[date_key] = {'id_menu': menu_item['id']}
-        # Aggiungi servizi per pranzo e cena
-        for servizio in servizi:  # Iterate over each service
-            servizio_id = menu_servizi_map.get(menu_item['id'], {}).get(servizio['id'])
-            menu_per_giorno[date_key][servizio['descrizione']] = servizio_id
-
-    # Recupera i piatti per ogni servizio dinamicamente
-    piattimenu = {}
-    for servizio_id in set(id for ids in menu_servizi_map.values() for id in ids.values()):
-        piattimenu[servizio_id] = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(servizio_id)
-
-    # Crea una mappa dei piatti e delle preparazioni
-    piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
-    codice_map = {int(piatto['id']): piatto['codice'] for piatto in piatti}
-
-    preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
-    # piatti_form = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
-    # Mappa per associare i piatti e le preparazioni
-    associazione_map = {}
-    for tipo_associa in associazione:
-        piatto_nome = piatti_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
-        piatto_codice = codice_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
-        preparazione_descrizione = preparazioni_map.get(tipo_associa['fkPreparazione'], 'Sconosciuto')
-        associazione_map[tipo_associa['id']] = {
-            'piatto': piatto_nome,
-            'codice':piatto_codice,
-            'preparazione': preparazione_descrizione
-        }
-
-
-        
-
     if 'authenticated' in session:
+        # Ottieni i parametri dai query string
+        year = request.args.get('year', datetime.now().year, type=int)
+        month = request.args.get('month', datetime.now().month, type=int)
+        tipo_menu = request.args.get('tipo_menu', '1')
+
+        cal = calendar.Calendar(firstweekday=0)  # 0 per lunedì, 6 per domenica
+        month_days = cal.monthdayscalendar(year, month)
+        month_name = calendar.month_name[month]
+
+        # Mappa per i giorni della settimana
+        weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+
+         # Calcola il numero della settimana per ogni giorno
+        week_numbers = {}
+        for week_index, week in enumerate(month_days):
+            for day in week:
+                if day != 0:
+                    date_key = datetime(year, month, day)
+                    # Calcola il numero della settimana ISO
+                    iso_week_number = date_key.isocalendar()[1]
+                    # Calcola il numero della settimana nel ciclo di 4 settimane
+                    cycle_week_number = (iso_week_number - 1) % 4 + 1
+                    week_numbers[(year, month, day)] = cycle_week_number
+
+        
+        # Recupera i dati dal servizio
+        tipologie_menu = service_t_TipiMenu.get_all()
+        menu = service_t_Menu.get_by_month(year, month, tipo_menu)
+        associazione = service_t_AssociazionePiattiPreparazionie.get_all()
+        piatti = service_t_Piatti.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+        servizi = service_t_Servizi.get_all_servizi()
+        
+        # Recupera gli ID dei menu filtrati per il mese corrente
+        menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
+
+        # # Crea menu e servizi se non ci sono abbastanza menu per tutti i giorni del mese
+        # if len(menu_ids) < len(month_days):
+        #     for week in month_days:
+        #         for day in week:
+        #             if day != 0:  # Salta i giorni che sono parte del mese precedente o successivo
+        #                 # Controlla se esiste già un menu per il giorno corrente
+        #                 existing_menu = service_t_Menu.get_by_date_and_type(year, month, day, tipo_menu)
+        #                 if not existing_menu:
+        #                     # Crea un nuovo menu
+        #                     new_menu_id = service_t_Menu.create(date(year, month, day), tipo_menu, utente_inserimento)
+        #                     if new_menu_id:
+        #                         # Popola il nuovo menu con i servizi
+        #                         for servizio in servizi:
+        #                             new_servizio_id = service_t_MenuServizi.create(new_menu_id, servizio['id'], utente_inserimento)
+                                    
+        #                             old_menu = service_t_Menu.get_by_date_and_type_previous_year(year, month, day, tipo_menu)
+        #                             if old_menu:
+        #                                 old_menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(old_menu.id)
+        #                                 for old_servizio in old_menu_servizi:
+        #                                     if old_servizio['fkServizio'] == servizio['id']:
+        #                                         old_menu_piatti = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(old_servizio ['id'])
+        #                                         for old_piatto in old_menu_piatti:
+        #                                             service_t_MenuServiziAssociazione.create(new_servizio_id, old_piatto['id'], utente_inserimento)
+            
+        #     # Dopo aver creato i menu, servizi e piatti, fai un redirect alla stessa pagina
+        #     return redirect(url_for('app_cucina.menu', year=year, month=month, tipo_menu=tipo_menu))
+                                            
+
+        # Recupera tutti i servizi associati ai menu per il mese
+        menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(menu_ids)
+        
+        # Crea una mappa per gli ID dei servizi associati ai menu
+        menu_servizi_map = {}
+        for ms in menu_servizi:
+            if ms['fkMenu'] not in menu_servizi_map:
+                menu_servizi_map[ms['fkMenu']] = {}
+            menu_servizi_map[ms['fkMenu']][ms['fkServizio']] = ms['id']
+        
+        # Organizza i dati per giorno e servizio
+        menu_per_giorno = {}
+        for menu_item in menu:
+            date_key = datetime.strptime(menu_item['data'], '%Y-%m-%d').strftime('%Y-%m-%d')
+            if date_key not in menu_per_giorno:
+                menu_per_giorno[date_key] = {'id_menu': menu_item['id']}
+            # Aggiungi servizi per pranzo e cena
+            for servizio in servizi:  # Iterate over each service
+                servizio_id = menu_servizi_map.get(menu_item['id'], {}).get(servizio['id'])
+                menu_per_giorno[date_key][servizio['descrizione']] = servizio_id
+
+        # Recupera i piatti per ogni servizio dinamicamente
+        piattimenu = {}
+        for servizio_id in set(id for ids in menu_servizi_map.values() for id in ids.values()):
+            piattimenu[servizio_id] = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(servizio_id)
+
+        # Crea una mappa dei piatti e delle preparazioni
+        piatti_map = {int(piatto['id']): piatto['fkTipoPiatto'] for piatto in piatti}
+        codice_map = {int(piatto['id']): piatto['codice'] for piatto in piatti}
+
+        preparazioni_map = {int(preparazione['id']): preparazione['descrizione'] for preparazione in preparazioni}
+        # piatti_form = {int(piatto['id']): piatto['titolo'] for piatto in piatti}
+        # Mappa per associare i piatti e le preparazioni
+        associazione_map = {}
+        for tipo_associa in associazione:
+            piatto_nome = piatti_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
+            piatto_codice = codice_map.get(tipo_associa['fkPiatto'], 'Sconosciuto')
+            preparazione_descrizione = preparazioni_map.get(tipo_associa['fkPreparazione'], 'Sconosciuto')
+            associazione_map[tipo_associa['id']] = {
+                'piatto': piatto_nome,
+                'codice':piatto_codice,
+                'preparazione': preparazione_descrizione
+            }
+            
+
+        form = CloneMenuForm()
+        if request.method == 'POST':
+            print('Dati del form POST:', request.form)  # Log dei dati del form
+            if form.validate_on_submit():
+                try:
+                    menu_id = request.form['menu_id']
+                    clone_date = form.clone_date.data.strftime('%Y-%m-%d')
+                    next_url = request.form.get('next_url', url_for('app_cucina.menu'))  # Usa l'URL di ritorno o un valore di default
+                    print(next_url)
+
+
+
+                    # Funzione helper per recuperare il menu da clonare
+                    def get_menu_data(menu_id):
+                        assoc_piatti = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_id)
+                        menu = service_t_MenuServizi.get_by_id(menu_id)
+                        tipo_menu = service_t_Menu.get_by_id(menu['fkMenu'])
+                        return assoc_piatti, menu, tipo_menu
+
+                    # Recupera i dati necessari per la clonazione
+                    assoc_piatti, menu_da_clonare, tipo_menu_da_clonare = get_menu_data(menu_id)
+
+
+                    # Recupera o crea il menu per la nuova data
+                    menu_by_data = service_t_Menu.get_by_data(clone_date, tipo_menu_da_clonare['fkTipoMenu'])
+
+                    if menu_by_data is None:
+                        new_menu_id = service_t_Menu.create(clone_date, tipo_menu_da_clonare['fkTipoMenu'], utenteInserimento=get_username())
+                        
+                        # Recupera i dettagli del nuovo menu usando il suo ID
+                        menu_by_data = service_t_Menu.get_by_id(new_menu_id)
+
+                    # Assicurati che `menu_by_data` sia un dizionario
+                    if not isinstance(menu_by_data, dict):
+                        raise ValueError("Errore: menu_by_data dovrebbe essere un dizionario")
+
+                    # Recupera o crea il servizio associato al menu
+                    menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(menu_by_data['id'], menu_da_clonare['fkServizio'])
+
+                    if menu_servizio is None:
+                        menu_servizio = service_t_MenuServizi.create(menu_by_data['id'], menu_da_clonare['fkServizio'], utenteInserimento=get_username())
+
+
+                    # Verifica che `menu_servizio` sia un dizionario
+                    if not isinstance(menu_servizio, dict):
+                        raise ValueError("Errore: menu_servizio dovrebbe essere un dizionario")
+
+                    # Cancella e ricrea le associazioni dei piatti per il nuovo menu
+                    service_t_MenuServiziAssociazione.delete_per_menu(menu_servizio['id'], utenteCancellazione=get_username())
+                    for associazione in assoc_piatti:
+                        service_t_MenuServiziAssociazione.create(menu_servizio['id'], associazione['id'], utenteInserimento=get_username())
+
+
+                    flash('Menu clonato con successo!', 'success')
+                    return redirect(next_url)
+                
+                except ValueError as ve:
+                    flash(f"Errore di validazione: {str(ve)}", 'error')
+
+                except Exception as e:
+                    flash(f"Errore durante la clonazione del menu: {str(e)}", 'error')
+
+            else:
+                print('Errori di validazione del form:', form.errors)  # Log per errori di validazione
+
+                
         return render_template(
-            'menu.html',
-            year=year,
-            month=month,
-            month_name=month_name,
-            month_days=month_days,
-            weekdays=weekdays,
-            tipologie_menu=tipologie_menu,
-            menu_per_giorno=menu_per_giorno,
-            piatti_map=piatti_map,
-            preparazioni_map=preparazioni_map,
-            associazione_map=associazione_map,
-            piattimenu=piattimenu,  # Passa piattimenu al template
-            piatti=piatti,
-            preparazioni=preparazioni,
-            datetime=datetime,
-            calendar=calendar
-        )
+                    'menu.html',
+                    year=year,
+                    month=month,
+                    month_name=month_name,
+                    month_days=month_days,
+                    weekdays=weekdays,
+                    tipologie_menu=tipologie_menu,
+                    menu_per_giorno=menu_per_giorno,
+                    piatti_map=piatti_map,
+                    preparazioni_map=preparazioni_map,
+                    associazione_map=associazione_map,
+                    piattimenu=piattimenu,  # Passa piattimenu al template
+                    piatti=piatti,
+                    preparazioni=preparazioni,
+                    datetime=datetime,
+                    calendar=calendar,
+                    week_numbers=week_numbers,  # Passa i numeri delle settimane al template
+                    form=form
+                )
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/menu/<int:id_menu>', methods=['DELETE'])
+def cose_menu(id_menu):
+    if 'authenticated' in session:
+
+        if request.method == 'DELETE':
+            # Gestione dell'Eliminazione del Menu
+            print(f"Request to delete menu with ID: {id_menu}")
+            try:
+                menu = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
+                print(menu)
+                service_t_MenuServiziAssociazione.delete_per_menu(id_menu, utenteCancellazione=get_username())
+                flash('Menu eliminato con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            except Exception as e:
+                print(f"Error deleting menu: {e}")
+                flash('Errore durante l\'eliminazione del menu.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+        
+
+    else:
+        flash('Per favore, effettua il login prima.', 'warning')
+        return redirect(url_for('app_cucina.login'))
+
+
 
 
 @app_cucina.route('/menu/dettagli/<int:id_menu>', methods=['GET', 'POST'])
@@ -814,12 +919,22 @@ def menu_dettagli(id_menu):
     if 'authenticated' in session:
         # Recupera le associazioni esistenti
         associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
-        
+
+
+        menu_servizio = service_t_MenuServizi.get_by_id(id_menu)
+        menu_giorno = service_t_Menu.get_by_id(menu_servizio['fkMenu'])
+        servizi = service_t_Servizi.get_all_servizi()
+
+        servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
+
+
+
+
         piatti_e_prep = []
         for associazione in associazioni:
             piatti_e_prep.extend(service_t_AssociazionePiattiPreparazionie.get_by_id_ritorno_diz(associazione['id']))
 
-        tipologia_piatti = service_t_TipiPiatti.get_all()
+        tipologia_piatti = service_t_TipiPiatti.get_all_in_menu()
         piatti = service_t_Piatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()
 
@@ -894,7 +1009,7 @@ def menu_dettagli(id_menu):
                         return {'Error': response['Error']}, 500
                 
                 app.logger.debug("Menu modificato con successo nel database.")
-                return redirect(url_for('app_cucina.menu'))
+                return redirect(url_for('app_cucina.menu'))#qui devo passare il menu e il mese corrente
             except Exception as e:
                 app.logger.error(f"Errore durante la modifica del menu: {str(e)}")
                 return {'Error': str(e)}, 500
@@ -911,7 +1026,12 @@ def menu_dettagli(id_menu):
                                 tipologia_piatti=tipologia_piatti,
                                 piatti_to_preparazioni=piatti_to_preparazioni,
                                 prep_per_piatto=prep_per_piatto,
-                                codice_map=codice_map
+                                codice_map=codice_map,
+                                menu_servizio=menu_servizio,
+                                menu_giorno=menu_giorno,
+                                servizi_map=servizi_map
+
+        
                                 )
     else:
         return redirect(url_for('app_cucina.login'))
@@ -1582,6 +1702,8 @@ def sicurezza():
                 reparti = form.reparti.data
                 email = form.email.data
                 password = form.password.data
+
+                print(username)
 
                 # Chiamata al servizio per creare l'utente
                 service_t_utenti.create_utente(

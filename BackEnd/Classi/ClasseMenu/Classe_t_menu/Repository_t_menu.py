@@ -193,23 +193,24 @@ class RepositoryMenu:
                     'utenteCancellazione': result.utenteCancellazione,
                 }
             else:
-                # Restituisce un messaggio di errore se non ci sono risultati
-                return {'Error': f'No match found for data: {data}'}, 404
+                 # Restituisce None se non ci sono risultati
+                return None
 
         except SQLAlchemyError as e:
             # Gestione degli errori specifici di SQLAlchemy
             logging.error(f"SQLAlchemy error getting menu by date {data}: {e}")
-            return {'Error': 'Database error occurred'}, 500
+            raise RuntimeError("Database error occurred") from e
 
         except Exception as e:
             # Gestione di altri errori generali
             logging.error(f"Unexpected error getting menu by date {data}: {e}")
-            return {'Error': str(e)}, 400
+            raise RuntimeError(f"Unexpected error: {str(e)}") from e
 
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
+
 
     
     def delete(self, id, utenteCancellazione):

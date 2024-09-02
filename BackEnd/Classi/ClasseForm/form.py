@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
+from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, Optional, Length,  Email
 from wtforms.validators import StopValidation
 from datetime import datetime
@@ -75,7 +75,7 @@ class PiattiForm(FlaskForm):
 class MenuForm(FlaskForm):
     # piatto_categoria = RadioField('Categoria', choices=[], validators=[DataRequired()], coerce=int)
     piatti = MultiCheckboxField('piatti', validators=[Optional()], coerce=int)
-    preparazioni = SelectField('Preparazioni', choices=[], coerce=int)
+    preparazioni = SelectMultipleField('Preparazioni', choices=[], coerce=int)
 
     submit = SubmitField('Aggiungi Menu')
 
@@ -124,3 +124,21 @@ class UtenteForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Salva e conferma')
+
+
+class UtenteForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    nome = StringField('Nome', validators=[DataRequired()])
+    cognome = StringField('Cognome', validators=[DataRequired()])
+    fkTipoUtente = SelectField('Tipo Operatore', coerce=int, validators=[DataRequired()])
+    fkFunzCustom= MultiCheckboxField('funzionalità custom', choices=[], coerce=int, validators=[Optional()])
+    reparti = MultiCheckboxField('Reparti', choices=[], coerce=int, validators=[Optional()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Salva e conferma')
+
+
+class CloneMenuForm(FlaskForm):
+   
+    clone_date = DateField('Data di Clonazione', format='%Y-%m-%d')
+    submit = SubmitField('Conferma Clonazione')

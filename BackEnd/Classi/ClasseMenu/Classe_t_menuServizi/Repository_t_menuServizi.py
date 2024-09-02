@@ -163,7 +163,7 @@ class RepositoryMenuServizi:
 
     def get_all_by_menu_ids_con_servizio(self, menu_id, fkServizio):
         try:
-        # Filtra i record con fkMenu e fkServizio
+            # Filtra i record con fkMenu e fkServizio
             result = self.session.query(TMenuServizi).filter(
                 TMenuServizi.fkMenu == menu_id,
                 TMenuServizi.fkServizio == fkServizio,
@@ -182,11 +182,14 @@ class RepositoryMenuServizi:
                     'utenteCancellazione': result.utenteCancellazione,
                 }
             else:
-                return {'id': 'N/A'}
+                return None
             
         except Exception as e:
             logging.error(f"Error getting menu services by menu id and service type: {e}")
-            return {'Error': str(e)}, 500
+            # Ritorna None per gestire gli errori al livello superiore
+            return None
+        
         finally:
             # Chiudi sempre la sessione
-            self.session.close()
+            if self.session:
+                self.session.close()

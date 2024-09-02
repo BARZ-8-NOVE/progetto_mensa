@@ -5,23 +5,31 @@ Modifica Menu - Gestione Cucina
 {% endblock %}
 
 {% block content %}
-    <h1>Dettaglio Menu</h1>
+    <h1>Menu {{servizi_map[menu_servizio.fkServizio]}} per il girono {{menu_giorno.data}}</h1>
     <form method="POST">
         {{ form.hidden_tag() }}
-        <div class="piatti-container">
-            <div class="piatti-column">
-                <label for="piatti">Piatti</label><br>
-            </div>
-            <div class="piatti-column checkbox">
-                <label>Checkbox</label>
-            </div>
-            <div class="piatti-column">
-                <label>Preparazioni</label>
-            </div>
-            
-            {% for piatto in piatti %}
+
+            <!-- Bottoni di navigazione -->
+        <div class="navigation-buttons">
+            {% for tipo in tipologia_piatti %}
+                <button type="button" class="button-{{ tipo.id }}" onclick="showSection('{{ tipo.id }}')">
+                    {{ tipo.descrizionePlurale }}
+                </button>
+            {% endfor %}
+        </div>
+
+
+        <!-- Sezioni del menu -->
+        {% for tipo in tipologia_piatti %}
+            <div id="{{ tipo.id }}" class="menu-section" style="{% if loop.index == 1 %}display: block;{% else %}display: none;{% endif %}">
+                <h2>{{ tipo.nome }}</h2>
+                {% for piatto in piatti if piatto.fkTipoPiatto == tipo.id %}
                 <div class="piatti-row">
-                    <div class="piatti-column">
+                    <div class="piatti-column code">
+                        <!-- Applicare dinamicamente il colore di sfondo usando lo style inline -->
+                        <span class="piatto-code" style="background-color: {{ tipo.backgroundColor }}">{{ piatto.codice }}</span>
+                    </div>
+                    <div class="piatti-column name">
                         <label for="piatto-{{ piatto.id }}">{{ piatto.titolo }}</label>
                     </div>
                     <div class="piatti-column checkbox">
@@ -50,14 +58,31 @@ Modifica Menu - Gestione Cucina
                         </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        
         <div>
-            <button type="submit">Aggiungi Menu</button>
+            <button type="submit" class="styled-button">modifica e salva</button>
+            <button type="button" class="styled-button" onclick="redirectToMenu()">annulla</button>
         </div>
     </form>
 
     <script>
+        // Funzione per mostrare una sezione specifica
+        function showSection(sectionId) {
+            // Nascondi tutte le sezioni
+            document.querySelectorAll('.menu-section').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Mostra la sezione selezionata
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Chiama showSection per mostrare la sezione iniziale
+        showSection('{{ tipologia_piatti[0].id }}');
+
         // Stampa i dati per il debug
         console.log('piattiToPreparazioni:', {{ piatti_to_preparazioni | tojson }});
         console.log('prep_associate_a_piatto:', {{ prep_per_piatto | tojson }});
@@ -90,5 +115,11 @@ Modifica Menu - Gestione Cucina
 
         // Chiama updatePreparazioni al caricamento della pagina per visualizzare i contenitori appropriati
         updatePreparazioni();
+
+
+
+        function redirectToMenu() {
+            window.location.href = "{{ url_for('app_cucina.menu') }}";
+        }
     </script>
 {% endblock %}
