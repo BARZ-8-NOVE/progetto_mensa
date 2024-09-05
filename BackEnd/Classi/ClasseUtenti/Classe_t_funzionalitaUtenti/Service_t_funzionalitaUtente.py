@@ -1,6 +1,6 @@
 from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Repository_t_funzionalitaUtente import TFunzionalitaUtenteRepository
 
-class TFunzionalitaUtenteService:
+class Service_t_FunzionalitaUtente:
     def __init__(self):
         self.repository = TFunzionalitaUtenteRepository()
 
@@ -74,3 +74,16 @@ class TFunzionalitaUtenteService:
                             figlio['nipoti'].append(nipote_dict)
 
         return menu_structure
+    
+
+
+
+    def get_funz_utenti_by_user_type(self, tipo_utente_id: int):
+        return self.repository.get_funz_utenti_by_user_type(tipo_utente_id)
+    
+
+    def create(self, tipo_utente_id, fkFunzionalita, permessi ):
+        return self.repository.create(tipo_utente_id, fkFunzionalita, permessi)
+    
+    def delete_by_tipo_utente(self, tipo_utente_id):
+        return self.repository.delete_by_tipo_utente(tipo_utente_id)

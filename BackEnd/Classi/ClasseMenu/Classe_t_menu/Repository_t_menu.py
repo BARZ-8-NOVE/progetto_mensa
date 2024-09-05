@@ -10,7 +10,8 @@ from Classi.ClasseServizi.Domani_t_servizi import TServizi
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
 from sqlalchemy.exc import SQLAlchemyError
 
-from datetime import datetime, date
+        
+from datetime import datetime, date, timedelta
 from sqlalchemy import and_
 class RepositoryMenu:
 
@@ -88,6 +89,44 @@ class RepositoryMenu:
             # Chiudi sempre la sessione
             self.session.close()  
 
+    def get_by_date_range(self, start_date: datetime, end_date: datetime, fkTipoMenu: int = None):
+        try:
+            # Assicurati che le date di fine siano incluse
+            end_date = end_date + timedelta(days=1)
+
+            # Costruisci la query con eventuale filtro per tipo di menu
+            query = self.session.query(TMenu).filter(
+                and_(
+                    TMenu.data >= start_date,
+                    TMenu.data < end_date,
+                    TMenu.dataCancellazione.is_(None)
+                )
+            )
+
+            # Aggiungi il filtro per fkTipoMenu se fornito
+            if fkTipoMenu is not None:
+                query = query.filter(TMenu.fkTipoMenu == fkTipoMenu)
+
+            results = query.all()
+
+            return [
+                {
+                    'id': result.id,
+                    'data': result.data.strftime('%Y-%m-%d'),  # Converti la data in formato stringa
+                    'fkTipoMenu': result.fkTipoMenu,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione,
+                } for result in results
+            ]
+            
+        except Exception as e:
+            logging.error(f"Error getting menu by date range: {e}")
+            return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
 
     def get_by_id(self, id):

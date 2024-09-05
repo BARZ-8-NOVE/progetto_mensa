@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stampa Schede</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
+</head>
+
+<body>
+    <div class="stampa">
+        <table>
+            <thead>
+                <tr>
+                    <th>Reparto</th>
+                    {% set preparazioni_totali = preparazioni_totals.keys() %}
+                    {% for preparazione in preparazioni_totali %}
+                        <th>{{ preparazione }}</th>
+                    {% endfor %}
+                    <th>Totale Reparto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reparto_id, count_data in piatti_count.items() %}
+                    <tr>
+                        <td>{{ reparti_map[reparto_id] }}</td>
+                        {% for preparazione in preparazioni_totali %}
+                            <td>{{ count_data.get(preparazione, 0) }}</td>
+                        {% endfor %}
+                        <td>{{ count_data.values()|sum }}</td> <!-- Totale per reparto -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Totale Preparazione</th>
+                    {% for preparazione in preparazioni_totali %}
+                        <th>
+                            {% set totale_preparazione = preparazioni_totals[preparazione] %}
+                            {{ totale_preparazione }}
+                        </th>
+                    {% endfor %}
+                    <th>
+                        {{ totale_azienda }}
+                    </th> <!-- Totale complessivo -->
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</body>
+</html>

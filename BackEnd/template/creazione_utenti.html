@@ -65,7 +65,7 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-content">
         <span class="close" onclick="closeAddUtenteForm()">&times;</span>
         <h2>Aggiungi Utente</h2>
-        <form method="POST" action="{{ url_for('app_cucina.sicurezza') }}">
+        <form method="POST" action="{{ url_for('app_cucina.creazione_utenti') }}">
             {{ form.hidden_tag() }}
             <div>
                 {{ form.username.label }} {{ form.username(size=32) }}

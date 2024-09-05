@@ -25,3 +25,6 @@ class Service_t_OrdiniPiatti:
     
     def delete_by_fkOrdine(self, fkOrdineScheda):
         return self.repository.delete_by_fkOrdine(fkOrdineScheda)
+
+    def get_count_piatti(self, data, servizio: int, fkReparto=None, fkScheda=None):
+        return self.repository.get_count_piatti(data, servizio, fkReparto, fkScheda)

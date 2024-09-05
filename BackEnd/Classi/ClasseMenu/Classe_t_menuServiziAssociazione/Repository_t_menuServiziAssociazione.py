@@ -70,6 +70,39 @@ class RepositoryMenuServiziAssociazion:
             # Chiudi sempre la sessione
             self.session.close()
 
+    def get_info_by_fk_menu_servizio(self, fkMenuServizio):
+        try:
+            # Esegui la query per ottenere le associazioni
+            results = self.session.query(TMenuServiziAssociazione).filter_by(fkMenuServizio=fkMenuServizio, dataCancellazione=None).all()
+            
+            # Trasforma i risultati in una lista di dizionari
+            data = [
+                {
+                    'id': result.id,
+                    'fkMenuServizio': result.fkMenuServizio,
+                    'fkAssociazione': result.fkAssociazione,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione
+                }
+                for result in results
+            ]
+            
+            # Aggiungi print per il debug
+            print("Dati restituiti da get_info_by_fk_menu_servizio:", data)
+            
+            return data
+        except Exception as e:
+            # Restituisci un messaggio di errore se si verifica un'eccezione
+            print(f"Errore: {str(e)}")
+            return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
+
+
 
     def create(self, fkMenuServizio, fkAssociazione, utenteInserimento, dataInserimento=None):
         try:

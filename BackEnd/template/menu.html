@@ -34,6 +34,11 @@ Calendario Menu - Gestione Cucina
                 {% endfor %}
             </select>
         </form>
+   
+   
+        <button type="button" class="styled-button" onclick="showClonaMeseForm()">Clona Mese</button>
+   
+   
     </div>
     
     <table border="1">
@@ -45,16 +50,15 @@ Calendario Menu - Gestione Cucina
             </tr>
         </thead>
         <tbody>
-            {% for week in month_days %}
+            {% for week in full_weeks %}
                 {% for day in week %}
-                    {% if day != 0 %}
-                        {% set current_date = datetime(year, month, day) %}
-                        {% set current_date_str = current_date.strftime('%Y-%m-%d') %}
-                        {% set week_number = week_numbers[(year, month, day)] %}
+                    {% if day %}
+                        {% set current_date_str = day.strftime('%Y-%m-%d') %}
+                        {% set week_number = week_numbers[(day.year, day.month, day.day)] %}
                         {% set roman_week_number = 'I' if week_number == 1 else 'II' if week_number == 2 else 'III' if week_number == 3 else 'IV' %}
                         <tr>
                             <td>
-                                {{ current_date_str }} - {{ weekdays[current_date.weekday()] }}<br>
+                                {{ current_date_str }} - {{ weekdays[day.weekday()] }}<br>
                                 <div class="circle-cell">
                                     <div class="week-circle">{{ roman_week_number }}</div>
                                 </div>
@@ -62,7 +66,7 @@ Calendario Menu - Gestione Cucina
                             {% set servizi = ['Pranzo', 'Cena'] %}
                             {% for servizio in servizi %}
                                 <td>
-                                    {% if current_date_str in menu_per_giorno and servizio in menu_per_giorno[current_date_str] %}
+                                    {% if  current_date_str in menu_per_giorno and servizio in menu_per_giorno[current_date_str] %}
                                         {% set servizio_id = menu_per_giorno[current_date_str].get(servizio) %}
                                         {% if servizio_id %}
                                             {% set piatti_by_category = {'Primi': [], 'Secondi': [], 'Contorni': [], 'Dolci': [] } %}
@@ -134,8 +138,6 @@ Calendario Menu - Gestione Cucina
         </tbody>
     </table>
 
-
-
     <div id="clonaModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close" onclick="closeClonaForm()">×</span>
@@ -155,15 +157,30 @@ Calendario Menu - Gestione Cucina
             </form>
         </div>
     </div>
-    
-    
-    
-    
-    
-    
-    
+
+    <div id="clonaMeseModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeClonaMeseModal()">×</span>
+            <h2>Clona Mese</h2>
+            <form method="POST" action="{{ url_for('app_cucina.menu') }}">
+                {{ clona_mese.hidden_tag() }}  <!-- Includi CSRF token e altri campi nascosti -->
+                <input type="hidden" name="menu_ids" value="{{ menu_ids|join(',') }}">
+                <input type="hidden" name="next_url" id="clona_mese_next_url" value="{{ request.args.to_dict() | urlencode }}"/>
+                <div class="form-group">
+                    {{ clona_mese.clone_date.label }}
+                    {{ clona_mese.clone_date(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ clona_mese.submit(class="btn btn-primary") }}
+                    <button type="button" class="btn btn-secondary" onclick="showClonaMeseForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
  
+    
     
     <script>
         function showMenuForm(id_menu) {
@@ -173,8 +190,6 @@ Calendario Menu - Gestione Cucina
                 alert('Nessun menu disponibile.');
             }
         }
-        
-
 
         function prepareClone(menuId) {
             // Ottieni i parametri della query string dalla URL corrente
@@ -190,8 +205,6 @@ Calendario Menu - Gestione Cucina
             // Mostra il modulo di clonazione
             document.getElementById('clonaModal').style.display = 'block';
         }
-        
-        
         
         function closeClonaForm() {
             console.log('Chiusura del popup.');
@@ -223,6 +236,20 @@ Calendario Menu - Gestione Cucina
                     alert('Errore di rete durante l\'eliminazione del Menu.');
                 });
             }
+        }
+
+
+
+        function showClonaMeseForm() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const nextUrl = `/app_cucina/menu?${urlParams.toString()}`;
+            
+            document.getElementById('clona_mese_next_url').value = nextUrl;
+            document.getElementById('clonaMeseModal').style.display = 'block';
+        }
+    
+        function closeClonaMeseModal() {
+            document.getElementById('clonaMeseModal').style.display = 'none';
         }
     </script>
     

@@ -171,6 +171,32 @@ class RepositoryOrdiniSchede:
                 self.session.close()
 
 
+    def check_letto(self, fkOrdine, fkReparto, data, fkServizio, fkScheda, letto):
+        try:
+            # Esegui la query per recuperare il record con i criteri specificati
+            result = self.session.query(TOrdiniSchede).filter_by(
+                fkOrdine=fkOrdine,
+                fkReparto=fkReparto,
+                data=data,
+                fkServizio=fkServizio,
+                fkScheda=fkScheda,
+                letto=letto,
+                dataCancellazione=None  # Utilizza direttamente l'attributo se è None
+            ).first()
+            
+            # Restituisci True se il record esiste, False altrimenti
+            return result is not None
+        except Exception as e:
+            # Gestisci eventuali errori restituendo un messaggio di errore e un codice di stato 400
+            # Considera l'uso di logging per una tracciabilità migliore
+            return {'Error': str(e)}, 400
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
     def create(self, fkOrdine, fkReparto, data, fkServizio, fkScheda, cognome, nome, letto,  utenteInserimento):
         try:
             ordine = TOrdiniSchede(

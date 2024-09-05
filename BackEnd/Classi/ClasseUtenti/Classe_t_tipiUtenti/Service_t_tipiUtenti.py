@@ -32,3 +32,12 @@ class Service_t_tipiUtenti:
     def delete_tipoUtente(self, id:int):
         UtilityGeneral.checkId(id)
         return self.repository.delete_tipoUtente(id)
+    
+    def get_by_id(self, id):
+        return self.repository.get_by_id(id)
+    
+    def create(self, nomeTipoUtente, fkAutorizzazioni = None):
+        return self.repository.create(nomeTipoUtente, fkAutorizzazioni)
+    
+    def update(self, id, nomeTipoUtente, fkAutorizzazioni = None):
+        return self.repository.update(id, nomeTipoUtente, fkAutorizzazioni)

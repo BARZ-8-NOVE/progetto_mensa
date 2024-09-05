@@ -3,6 +3,7 @@ from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Domain_t_tipiUtenti import TTipiUtenti
 from Classi.ClasseUtility.UtilityGeneral.UtilityMessages import UtilityMessages
 from werkzeug.exceptions import NotFound
+import logging
 
 class Repository_t_tipiUtente:
 
@@ -26,6 +27,22 @@ class Repository_t_tipiUtente:
         return
     
 
+
+    def get_by_id(self, id):
+        try:
+            result = self.session.query(TTipiUtenti).filter_by(id=id).first()
+            if result:
+                return {'id': result.id, 'nomeTipoUtente': result.nomeTipoUtente}
+            else:
+                return {'Error': f'No match found for this ID: {id}'}, 404
+        except Exception as e:
+            logging.error(f"Error getting alimento by ID {id}: {e}")
+            return {'Error': str(e)}, 400
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
         
     def get_tipiUtenti_all(self):
         try:
@@ -42,27 +59,62 @@ class Repository_t_tipiUtente:
             self.session.close()
 
 
+    def create(self, nomeTipoUtente, fkAutorizzazioni=None):
+        try:
+            # Crea l'oggetto TSchede
+            tipo_utente = TTipiUtenti(
+                nomeTipoUtente=nomeTipoUtente,
+                fkAutorizzazioni=fkAutorizzazioni,
+            )
 
-    # def get_tipoUtente_by_id(self, id:int):
-    #     result = self.session.query(TTipiUtenti).filter_by(id=id).first()
-    #     if result:
-    #         self.session.close()
-    #         return UtilityGeneral.getClassDictionaryOrList(result)
-    #     else:
-    #         self.session.close()
-    #         raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'id', id))
-        
-    # def create_tipoUtente(self, nomeTipoUtente:str, fkAutorizzazioni):
-    #     if fkAutorizzazioni:
-    #         autorizzazione = Repository_t_autorizzazioni()
-    #         result = autorizzazione.exists_autorizzazione(fkAutorizzazioni)
-    #         if not result:
-    #             self.session.close()
-    #             raise NotFound(UtilityMessages.notFoundErrorMessage('Autorizzazioni', 'fkAutorizzazioni', fkAutorizzazioni))
-    #     tipoUtente = TTipiUtenti(nomeTipoUtente=nomeTipoUtente, fkAutorizzazioni=fkAutorizzazioni)
-    #     self.session.add(tipoUtente)
-    #     self.session.commit()
-    #     return UtilityGeneral.getClassDictionaryOrList(tipoUtente)
+            # Aggiungi l'oggetto alla sessione
+            self.session.add(tipo_utente)
+
+            # Esegui il commit
+            self.session.commit()
+
+            # Ottieni l'ID del nuovo tipo utente
+            new_id = tipo_utente.id
+
+            print(f"Tipo utente aggiunto con successo! ID: {new_id}")
+            return new_id
+
+        except Exception as e:
+            # Rollback in caso di errore
+            self.session.rollback()
+
+            # Stampa l'errore per il debug
+            print(f"Errore durante il commit al database: {str(e)}")
+
+            return {'Error': str(e)}, 500
+
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+    def update(self, id, nomeTipoUtente, fkAutorizzazioni=None):
+        try:
+            tipoUtente = self.session.query(TTipiUtenti).filter_by(id=id).first()
+            if tipoUtente:
+                tipoUtente.nomeTipoUtente = nomeTipoUtente
+                tipoUtente.fkAutorizzazioni = fkAutorizzazioni
+            
+                self.session.commit()
+                return {'alimento': 'updated!'}, 200
+            else:
+                return {'Error': f'No match found for this ID: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            logging.error(f"Error updating tipo utente with ID {id}: {e}")
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
+
+
+   
     
     def update_tipoUtente_nomeTipoUtente(self, id:int, nomeTipoUtente:str):
         tipoUtente:TTipiUtenti = self.exists_tipoUtente_by_id(id)
@@ -72,20 +124,7 @@ class Repository_t_tipiUtente:
         else:
             raise NotFound('TipoUtente', 'id', id)
         
-    # def update_tipoUtente_fkAutorizzazioni(self, id:int, fkAutorizzazioni):
-    #     tipoUtente:TTipiUtenti = self.exists_tipoUtente_by_id(id)
-    #     if tipoUtente:
-    #         if fkAutorizzazioni:
-    #             autorizzazione = Repository_t_autorizzazioni()
-    #             result = autorizzazione.exists_autorizzazione(fkAutorizzazioni)
-    #             if not result:
-    #                 self.session.close()
-    #                 raise NotFound('Autorizzazioni', 'fkAutorizzazioni', fkAutorizzazioni)
-    #         tipoUtente.fkAutorizzazioni = fkAutorizzazioni
-    #         self.session.commit()
-    #         return
-    #     else:
-    #         raise NotFound('TipoUtente', 'id', id)
+   
         
     def delete_tipoUtente(self, id:int):
         result = self.exists_tipoUtente_by_id(id)

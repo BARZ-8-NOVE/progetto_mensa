@@ -39,4 +39,7 @@ class Service_t_MenuServiziAssociazione:
     
     def close(self):
         return self.repository.session.close()
+    
+    def get_info_by_fk_menu_servizio(self, fkMenuServizio):
+       return self.repository.get_info_by_fk_menu_servizio(fkMenuServizio)
 

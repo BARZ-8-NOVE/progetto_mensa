@@ -280,6 +280,8 @@ th {
     animation: fadeIn 0.5s;
 }
 
+
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -694,7 +696,7 @@ li {
         color-adjust: exact;
     }
 
-    h2.custom-background {
+    .h2.custom-background {
         background-color: {{ ordine_info.scheda.backgroundColor }} !important;
         -webkit-print-color-adjust: exact;
         color-adjust: exact;
@@ -1036,4 +1038,41 @@ select {
     align-items: center; /* Centra il testo verticalmente */
     justify-content: center; /* Centra il testo orizzontalmente */
     font-weight: bold; /* Grassetto per il testo */
+}
+
+
+
+/* Stili per la sezione delle funzionalità e permessi */
+.functionality-permissions {
+    margin-top: 20px; /* Spazio sopra la sezione delle funzionalità e permessi */
+}
+
+/* Stili per ciascun elemento di funzionalità e permessi */
+.permission-item {
+    display: flex; /* Usa flexbox per allineare orizzontalmente i contenuti */
+    align-items: center; /* Allinea verticalmente gli elementi al centro */
+    margin-bottom: 10px; /* Spazio tra le righe di permessi */
+}
+
+/* Nome della funzionalità */
+.functionality-name {
+    font-weight: bold; /* Rende il nome della funzionalità in grassetto */
+    margin-right: 20px; /* Spazio tra il nome della funzionalità e i permessi */
+    flex: 0 0 200px; /* Larghezza fissa per il nome della funzionalità */
+}
+
+/* Permessi associati alla funzionalità */
+.permissions {
+    display: flex; /* Allinea orizzontalmente le opzioni di permesso */
+    flex-wrap: wrap; /* Permette di andare a capo se ci sono troppi permessi su una riga */
+}
+
+.permission-option {
+    display: flex; /* Usa flexbox per allineare l'etichetta e il radio button */
+    align-items: center; /* Allinea verticalmente gli elementi al centro */
+    margin-right: 15px; /* Spazio tra le opzioni di permesso */
+}
+
+.permission-option label {
+    margin-right: 5px; /* Spazio tra l'etichetta e il radio button */
 }

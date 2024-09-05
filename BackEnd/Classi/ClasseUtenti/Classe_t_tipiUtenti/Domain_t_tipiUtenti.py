@@ -8,7 +8,7 @@ class TTipiUtenti(Base):
     id = Column(Integer, autoincrement=True, primary_key=True)
     nomeTipoUtente = Column(String, nullable=True)
     fkAutorizzazioni = Column(Integer, ForeignKey('t_autorizzazioni.id'), nullable=True)
-
+    
     autorizzazioni = relationship('TAutorizzazioni', foreign_keys=[fkAutorizzazioni])
 
     

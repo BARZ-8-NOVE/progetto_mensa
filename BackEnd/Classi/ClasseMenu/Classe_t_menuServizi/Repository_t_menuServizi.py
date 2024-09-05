@@ -179,7 +179,7 @@ class RepositoryMenuServizi:
                     'dataInserimento': result.dataInserimento,
                     'utenteInserimento': result.utenteInserimento,
                     'dataCancellazione': result.dataCancellazione,
-                    'utenteCancellazione': result.utenteCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione
                 }
             else:
                 return None
@@ -188,6 +188,39 @@ class RepositoryMenuServizi:
             logging.error(f"Error getting menu services by menu id and service type: {e}")
             # Ritorna None per gestire gli errori al livello superiore
             return None
+        
+        finally:
+            # Chiudi sempre la sessione
+            if self.session:
+                self.session.close()
+
+    def get_all_by_menu_ids_con_servizio_per_stampa(self, menu_id, fkServizio):
+        try:
+            # Filtra i record con fkMenu e fkServizio
+            results = self.session.query(TMenuServizi).filter(
+                TMenuServizi.fkMenu == menu_id,
+                TMenuServizi.fkServizio == fkServizio,
+                TMenuServizi.dataCancellazione.is_(None)
+            ).all()  # Usa .all() per ottenere tutti i record che corrispondono ai criteri
+            
+            return [
+                {
+                    'id': result.id,
+                    'fkMenu': result.fkMenu,
+                    'fkServizio': result.fkServizio,
+                    'note': result.note,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione
+                }
+                for result in results
+            ]
+            
+        except Exception as e:
+            logging.error(f"Error getting menu services by menu id and service type: {e}")
+            # Ritorna una lista vuota per gestire gli errori al livello superiore
+            return []
         
         finally:
             # Chiudi sempre la sessione

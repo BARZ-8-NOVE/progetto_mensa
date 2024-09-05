@@ -111,8 +111,17 @@ Ordini - Gestione Cucina
         </select>
     </form>
 
-    <!-- Pulsante Stampa -->
-    <button type="button" class="styled-button" onclick="printPage({{ ordine_esistente.id }})">Stampa</button>
+    <div class="dropdown-container">
+        <select id="printOptions" onchange="handlePrintOption()">
+            <option value="">Seleziona un'opzione di stampa</option>
+            <option value="schede">Stampa schede</option>
+            <option value="prospetto">Prospetto ordini</option>
+            <option value="pagina">Stampa pagina</option>
+        </select>
+    </div>
+    
+
+    
 </div>
 
 <table>
@@ -157,6 +166,37 @@ Ordini - Gestione Cucina
 <div id="calendar"></div>
 
 <script>
+
+    function handlePrintOption() {
+        var select = document.getElementById("printOptions");
+        var selectedValue = select.value;
+        var ordineId = {{ ordine_esistente.id }};
+    
+        if (selectedValue === "schede") {
+            printPage(ordineId);
+        } else if (selectedValue === "prospetto") {
+            printProspetto(ordineId);
+        } else if (selectedValue === "pagina") {
+            priint();
+        }
+    }
+    
+
+    function printProspetto(ordineId) {
+        // Costruisci l'URL per la pagina di stampa
+        var url = '/app_cucina/ordini/printProspetto/' + ordineId;
+    
+        // Apri una nuova finestra con la pagina di stampa
+        var printWindow = window.open(url, '_blank', 'width=800,height=600');
+        
+        // Attendere che la finestra venga caricata
+        printWindow.onload = function() {
+            printWindow.print();
+        };
+    }
+
+
+
     function showForm(ordineId, servizioId, repartoId, schedaId) {
         const url = `ordini/schede_piatti/${ordineId}/${servizioId}/${repartoId}/${schedaId}`;
         console.log("Redirecting to URL: " + url);  // Aggiungi questo per vedere l'URL generato

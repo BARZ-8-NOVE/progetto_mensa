@@ -32,3 +32,6 @@ class Service_t_MenuServizi:
     
     def get_all_by_menu_ids_con_servizio(self, menu_ids, fkServizio):
         return self.repository.get_all_by_menu_ids_con_servizio(menu_ids, fkServizio)
+    
+    def get_all_by_menu_ids_con_servizio_per_stampa(self, menu_id, fkServizio):
+        return self.repository.get_all_by_menu_ids_con_servizio_per_stampa(menu_id, fkServizio)

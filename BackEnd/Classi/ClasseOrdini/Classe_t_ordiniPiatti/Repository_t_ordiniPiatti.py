@@ -1,7 +1,9 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Domain_t_ordiniPiatti import TOrdiniPiatti
-
+from Classi.ClasseOrdini.Classe_t_ordiniSchede.Domain_t_ordiniSchede import TOrdiniSchede
+from datetime import datetime
+from sqlalchemy.sql import func
 class RepositoryOrdiniPiatti:
     def __init__(self):
         Session = sessionmaker(bind=engine)
@@ -22,7 +24,11 @@ class RepositoryOrdiniPiatti:
     def get_all_by_ordine_scheda(self, fkOrdineScheda):
         try:
             results = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
-            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
+            return [{'id': result.id, 
+                     'fkOrdineScheda': result.fkOrdineScheda, 
+                     'fkPiatto': result.fkPiatto, 
+                     'quantita': result.quantita, 
+                     'note': result.note} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
         finally:
@@ -119,3 +125,45 @@ class RepositoryOrdiniPiatti:
                     # Assicurati che la sessione venga chiusa per evitare perdite di risorse
                     if self.session:
                         self.session.close()
+
+
+    def get_count_piatti(self, data, servizio: int, fkReparto=None, fkScheda=None):
+        """Conta tutti i piatti da TOrdiniPiatti per un giorno specifico e che non sono stati cancellati."""
+        try:
+           
+            
+            query = self.session.query(
+                TOrdiniSchede.fkReparto,
+                TOrdiniPiatti.fkPiatto,
+                func.sum(TOrdiniPiatti.quantita).label('piatti_count')
+            ).join(
+                TOrdiniSchede,
+                TOrdiniPiatti.fkOrdineScheda == TOrdiniSchede.id
+            ).filter(
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            )
+
+            if fkReparto is not None:
+                query = query.filter(TOrdiniSchede.fkReparto == fkReparto)
+
+            if fkScheda is not None:
+                query = query.filter(TOrdiniSchede.fkScheda == fkScheda)
+
+            results = query.group_by(TOrdiniSchede.fkReparto, TOrdiniPiatti.fkPiatto).all()
+
+            # Organizza i risultati in un dizionario per facile accesso
+            piatti_count = {}
+            for result in results:
+                if result.fkReparto not in piatti_count:
+                    piatti_count[result.fkReparto] = {}
+                piatti_count[result.fkReparto][result.fkPiatto] = result.piatti_count
+
+            return piatti_count
+        except Exception as e:
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()

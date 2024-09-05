@@ -35,6 +35,10 @@ class Service_t_Menu:
         """
         return self.repository.get_by_mese_corrente(year, month, tipo_menu)
     
+
+    def get_by_date_range(self, start_date, end_date, fkTipoMenu: int = None):
+        return self.repository.get_by_date_range(start_date, end_date, fkTipoMenu)
+    
     def get_by_date_and_type(self, year, month, day, fkTipoMenu):
         return self.repository.get_by_date_and_type(year, month, day, fkTipoMenu)
     
