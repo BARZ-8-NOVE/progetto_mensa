@@ -35,9 +35,9 @@ Calendario Menu - Gestione Cucina
             </select>
         </form>
    
-   
+        {% if page_permissions['/app_cucina/menu']['can_write'] %}
         <button type="button" class="styled-button" onclick="showClonaMeseForm()">Clona Mese</button>
-   
+        {% endif %}
    
     </div>
     
@@ -84,10 +84,15 @@ Calendario Menu - Gestione Cucina
                                             
                                             <div class="menu-columns">
                                                 <div class="menu-actions">
+                                                    {% if page_permissions['/app_cucina/menu']['can_write'] %}
                                                     <button type="button" class="clone" onclick="prepareClone('{{ servizio_id }}')">Clona</button>
                                                     <button type="button" class="delete" onclick="deleteMenu('{{ servizio_id }}')">X</button>
+                                                    {% endif %}
+
                                                 </div>
+                                                {% if page_permissions['/app_cucina/menu']['can_write'] %}
                                                 <div class="menu-columns" class="clone" onclick="showMenuForm('{{ servizio_id }}')">   
+                                                {% endif %}
                                                     <div class="column">
                                                         <h4>Primi</h4>
                                                         <ul>
@@ -137,7 +142,8 @@ Calendario Menu - Gestione Cucina
             {% endfor %}
         </tbody>
     </table>
-
+  
+    {% if page_permissions['/app_cucina/menu']['can_write'] %}
     <div id="clonaModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close" onclick="closeClonaForm()">×</span>
@@ -177,7 +183,7 @@ Calendario Menu - Gestione Cucina
             </form>
         </div>
     </div>
-
+    {% endif %}
 
  
     

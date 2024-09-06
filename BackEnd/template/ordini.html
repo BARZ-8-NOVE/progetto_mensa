@@ -110,16 +110,21 @@ Ordini - Gestione Cucina
             {% endfor %}
         </select>
     </form>
-
-    <div class="dropdown-container">
-        <select id="printOptions" onchange="handlePrintOption()">
-            <option value="">Seleziona un'opzione di stampa</option>
-            <option value="schede">Stampa schede</option>
-            <option value="prospetto">Prospetto ordini</option>
-            <option value="pagina">Stampa pagina</option>
-        </select>
-    </div>
     
+    
+    {% if page_permissions['/app_cucina/ordini']['can_write'] %}
+        <div class="dropdown-container">
+            <select id="printOptions" onchange="handlePrintOption()">
+                <option value="">Seleziona un'opzione di stampa</option>
+                <option value="schede">Stampa schede</option>
+                <option value="prospetto">Prospetto ordini</option>
+                <option value="pagina">Stampa pagina</option>
+            </select>
+        </div>
+    
+    {% endif %}
+    
+
 
     
 </div>

@@ -85,7 +85,7 @@ class TFunzionalitaRepository:
             funzionalita = self.session.query(TFunzionalita).filter(TFunzionalita.link == page_link).first()
 
             if not funzionalita:
-                return False, "La funzionalità richiesta non esiste."
+                return False, False  # La funzionalità non esiste, nessun accesso e nessun permesso
 
             # Step 2: Controlla se l'utente ha il permesso di accedere alla funzionalità
             funzionalita_utente = self.session.query(TFunzionalitaUtente).filter(
@@ -94,16 +94,13 @@ class TFunzionalitaRepository:
             ).first()
 
             if not funzionalita_utente:
-                return False, "Accesso negato. Non hai permessi per questa funzionalità."
+                return False, False  # L'utente non ha accesso a questa funzionalità
 
             # Step 3: Restituisci il permesso dell'utente
             if funzionalita_utente.permessi == 1:
-                return True, "Accesso con permesso di modifica."
+                return True, True  # Accesso con permesso di modifica (scrittura)
             else:
-                return True, "Accesso in sola lettura."
-        
-        except Exception as e:
-            return False, f"Errore durante il controllo dell'accesso: {str(e)}"
+                return True, False  # Accesso solo in lettura
 
-    def close_session(self):
-        self.session.close()
+        except Exception as e:
+            return False, False  # Errore durante il controllo dell'accesso

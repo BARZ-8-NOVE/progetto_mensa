@@ -17,10 +17,11 @@
                 <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
                 {% endfor %}
             </select>
-        </div>
-        <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
-    </div>
-
+        {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+            </div>
+                <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
+            </div>
+        {% endif %}
     <table>
         <thead>
             <tr>
@@ -33,7 +34,9 @@
                 <th>Grassi Saturi (g)</th>
                 <th>Allergeni</th>
                 <th>Tipologia</th>
+                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
                 <th></th>
+                {% endif %}
             </tr>
         </thead>
         <tbody id="alimentiTableBody">
@@ -53,7 +56,9 @@
                     {% endfor %}
                 </td>
                 <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
+                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
                 <td><button class="btn btn-elimina" onclick="eliminaAlimento({{ alimento.id }})">X</button></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

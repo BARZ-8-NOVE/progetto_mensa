@@ -1010,7 +1010,10 @@ select {
 
 
 
-
+.error p {
+    color: red;
+    font-size: 0.875em;
+}
 
 
 

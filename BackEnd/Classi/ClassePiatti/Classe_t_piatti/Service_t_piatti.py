@@ -35,10 +35,10 @@ class Service_t_Piatti:
     def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento = None):
         return self.repository.create(fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento)
 
-    def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.update(id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione)
+
+    def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento):
+        return self.repository.update(id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento)
+
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)

@@ -52,6 +52,7 @@ class Service_t_FunzionalitaUtente:
                                 'target': item.target,
                                 'dataCancellazione': item.dataCancellazione,
                                 'nipoti': []
+                                
                             }
                             padre['figli'].append(figlio_dict)
                         break

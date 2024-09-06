@@ -16,25 +16,33 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                 {% endfor %}
             </select>
         </div>
+        {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
         <button onclick="showAddPreparazioniForm()">Aggiungi Preparazione</button>
+        {% endif %}
     </div>
 
     <table>
         <thead>
+            {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
             <th></th>
+            {% endif %}
                 <th>Descrizione</th>
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
                 <th>Invernale</th>
                 <th>Immagine</th>
+                {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <th></th>
+                {% endif %}
             </tr>
         </thead>
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
 
             <tr>
+                {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <td><button class="btn btn-secondary" onclick="showModificaPreparazioneForm({{ preparazione.id }})">Modifica</button></td>
+                {% endif %}
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
                 <td>
@@ -50,12 +58,15 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                     <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Default Immagine" />
                     {% endif %}
                 </td>
+                {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <td><button class="btn btn-elimina" onclick="elimina({{ preparazione.id }})">X</button></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
 
 <!-- Modal Structure -->
 <div id="ingredientsModal" class="modal" style="display: none;">
@@ -203,6 +214,9 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
         </div>
     </div>
 </div>
+
+{% endif %}
+
 
 <script>
 function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataInserimento, immagine) {

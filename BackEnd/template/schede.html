@@ -47,7 +47,7 @@ Creazione Schede - Gestione Cucina
                 <td>{{ 'Sì' if scheda.dipendente else 'No' }}</td>
                 <td>{{ scheda.inizio.strftime('%Y-%m-%d') if scheda.inizio else '' }}</td>
                 <td>{{ scheda.fine.strftime('%Y-%m-%d') if scheda.fine else '' }}</td>
-                <td><button class="btn btn-elimina" onclick="eliminaPiatti({{ scheda.id }})">X</button></td>
+                <td><button class="btn btn-elimina" onclick="elimina({{ scheda.id }})">X</button></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -175,7 +175,7 @@ Creazione Schede - Gestione Cucina
     }
 
 
-    function eliminaPiatti(id) {
+    function elimina(id) {
         if (confirm('Sei sicuro di voler eliminare questo record?')) {
             // Ottieni il token CSRF dal meta tag
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');

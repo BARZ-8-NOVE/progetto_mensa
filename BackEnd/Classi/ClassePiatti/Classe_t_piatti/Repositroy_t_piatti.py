@@ -75,7 +75,7 @@ class RepositoryPiatti:
             return {'Error': str(e)}, 500
         
         
-    def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
+    def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento):
         try:
             piatto = self.session.query(TPiatti).filter_by(id=id).first()
             if piatto:
@@ -85,10 +85,7 @@ class RepositoryPiatti:
                 piatto.descrizione = descrizione
                 piatto.inMenu = inMenu
                 piatto.ordinatore = ordinatore
-                piatto.dataInserimento = dataInserimento
                 piatto.utenteInserimento = utenteInserimento
-                piatto.dataCancellazione = dataCancellazione
-                piatto.utenteCancellazione = utenteCancellazione
                 self.session.commit()
                 return {'piatto': 'updated!'}, 200
             else:
@@ -97,6 +94,10 @@ class RepositoryPiatti:
             self.session.rollback()
             logging.error(f"Error updating piatto with ID {id}: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
+
 
     def delete(self, id, utenteCancellazione):
         try:

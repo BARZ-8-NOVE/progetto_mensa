@@ -168,6 +168,8 @@ def get_page_name_from_path(path):
     # Se il percorso non inizia con 'app_cucina/', restituisci vuoto o il percorso originale
     return ''
 #funzione per clonare il menu
+
+
 def clona_menu(menu_id, clone_date, utente_inserimento):
     try:
         def get_menu_data(menu_id):
@@ -231,6 +233,7 @@ def get_reparti_utente():
     
     # Se 'reparti' è None, restituisce una lista vuota
     return user.get('reparti', []) if user else []
+
 
 @app_cucina.before_request
 def check_token_and_permissions():
@@ -317,24 +320,62 @@ def login():
 
 @app.context_processor
 def inject_user_data():
-
     menu_structure = session.get('menu_structure', [])
     user_id = session.get('user_id')
-    user = service_t_utenti.get_utente_by_id(user_id) if user_id else None
     user_type = session.get('fkTipoUtente')
-    
-    username = user['username'] if user else "Utente"
     token = session.get('token')
 
-    form = LogoutFormNoCSRF()
+    # Recupera le informazioni dell'utente se disponibile
+    user = service_t_utenti.get_utente_by_id(user_id) if user_id else None
+    username = user['username'] if user else "Utente"
 
+    # Prepara i permessi per le pagine presenti nella struttura del menu
+    page_permissions = {}
+    for page in menu_structure:
+        # Controlla i permessi per la pagina principale
+        access_granted, permessi = service_t_funzionalita.can_access(user_type_id=user_type, page_link=page['link'])
+        
+        # Gestisce se l'utente ha permessi di scrittura o solo lettura
+        can_write = bool(permessi)  # Verifica se permessi è 1 (scrittura), altrimenti è False (sola lettura)
+        page_permissions[page['link']] = {
+            'can_write': can_write,  # True se può scrivere, altrimenti False
+        }
+
+        # Se ci sono sotto-pagine, verifica i permessi anche per queste
+        for child in page.get('figli', []):
+            access_granted, permessi = service_t_funzionalita.can_access(user_type_id=user_type, page_link=child['link'])
+            can_write = bool(permessi)
+            page_permissions[child['link']] = {
+                'can_write': can_write,
+            }
+
+            # Se ci sono nipoti, verifica anche i permessi
+            for grandchild in child.get('nipoti', []):
+                access_granted, permessi = service_t_funzionalita.can_access(user_type_id=user_type, page_link=grandchild['link'])
+                can_write = bool(permessi)
+                page_permissions[grandchild['link']] = {
+                    'can_write': can_write,
+                }
+
+    # Stampa i permessi di tutte le pagine per l'utente corrente (per debug)
+
+
+    # Ritorna i dati che devono essere accessibili nei template
     return dict(
         menu_structure=menu_structure,
         username=username,
         token=token,
         user_type=user_type,
-        form=form
+        form=LogoutFormNoCSRF(),
+        current_page_link=request.path,
+        page_permissions=page_permissions  # Aggiungi i permessi delle pagine
     )
+
+
+
+
+
+
 
 
 @app_cucina.route('/index')
@@ -677,12 +718,7 @@ def piatti():
             # Se il salvataggio nel database ha successo, aggiorna la lista dei piatti
             piatti = service_t_Piatti.get_all()
 
-            # Mostra il template con i dati aggiornati
-            return render_template('piatti.html',
-                                   piatti=piatti,
-                                   tipologia_piatti=tipologia_piatti,
-                                   TipoPiatto_map=TipoPiatto_map,
-                                   form=form)
+            return redirect(url_for('app_cucina.piatti'))
     
     # Se il form non è stato inviato o non è valido, mostra il template con il form vuoto o con errori
         return render_template('piatti.html',
@@ -694,6 +730,81 @@ def piatti():
     # Se l'utente non è autenticato, reindirizzalo alla pagina di login
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/piatti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_piatti(id):
+    if 'authenticated' in session:
+
+
+        if request.method == 'GET':
+            piatto = service_t_Piatti.get_by_id(id)
+            
+            # Ensure tipologia_piatti is correctly retrieved
+            tipologia_piatti = service_t_TipiPiatti.get_all()  # Or however you retrieve it
+            
+            # Create the form with existing piatto data
+            form = PiattiForm(obj=piatto)
+            form.fkTipoPiatto.choices = [(tipoPiatto['id'], tipoPiatto['descrizione']) for tipoPiatto in tipologia_piatti]
+            
+            if piatto:
+                return jsonify({
+                    'fkTipoPiatto': piatto.get('fkTipoPiatto'),  # Corretto per restituire il valore del piatto
+                    'codice': piatto.get('codice'),
+                    'titolo': piatto.get('titolo'),
+                    'descrizione': piatto.get('descrizione'),
+                    'inMenu': piatto.get('inMenu'),
+                    'ordinatore': piatto.get('ordinatore')
+                    })
+            else:
+                flash('Piatto non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+
+        if request.method == 'PUT':
+
+            tipologia_piatti = service_t_TipiPiatti.get_all()  # Recupera le opzioni
+            form = PiattiForm(request.form)
+            form.fkTipoPiatto.choices = [(tipoPiatto['id'], tipoPiatto['descrizione']) for tipoPiatto in tipologia_piatti]
+            
+            try:
+                service_t_Piatti.update(
+                    id=id,
+                    fkTipoPiatto=form.fkTipoPiatto.data, 
+                    codice=form.codice.data, 
+                    titolo=form.titolo.data,
+                    descrizione=form.descrizione.data, 
+                    inMenu=form.inMenu.data, 
+                    ordinatore=form.ordinatore.data, 
+                    utenteInserimento=get_username()
+                )
+                app.logger.debug("Piatto creato con successo nel database.")
+            except Exception as e:
+                app.logger.error(f"Errore durante la creazione del piatto: {str(e)}")
+                return {'Error': str(e)}, 500
+
+
+        if request.method == 'DELETE':
+            try:
+                service_t_Piatti.delete(id, utenteCancellazione=get_username())
+                flash('Piatto eliminato con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            
+            except Exception as e:
+                print(f"Error deleting dish: {e}")
+                flash('Errore durante l\'eliminazione del piatto.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+
+
+
 
 
 
@@ -1854,61 +1965,74 @@ def ordini():
 @app_cucina.route('/creazione_utenti', methods=['GET', 'POST'])
 def creazione_utenti():
     if 'authenticated' in session:
-        utenti = service_t_utenti.get_all()
-        tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
-        reparti = service_t_Reparti.get_all()
-        funzionalita = service_t_funzionalita.get_all_menus()
+        try:
+            # Recupera tutti gli utenti
+            utenti = service_t_utenti.get_all()
+            # Recupera tutte le tipologie di utente
+            tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
+            # Recupera tutti i reparti
+            reparti = service_t_Reparti.get_all()
+            # Recupera tutte le funzionalità
+            funzionalita = service_t_funzionalita.get_all_menus()
+            # Prepara le scelte per i campi del modulo
+            tipologieUtente_map = {int(tipologia['id']): tipologia['nomeTipoUtente'] for tipologia in tipologieUtente}
+            reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
+            form = UtenteForm()
+            form.fkTipoUtente.choices = [(tipologia['id'], tipologia['nomeTipoUtente']) for tipologia in tipologieUtente]
+            form.reparti.choices = [(reparto['id'], reparto['descrizione']) for reparto in reparti]
+            form.fkFunzCustom.choices = [(funz['id'], funz['titolo']) for funz in funzionalita]
+            
+            if form.validate_on_submit():
+                try:
+                    # Recupera i dati dal modulo
+                    username = form.username.data
+                    nome = form.nome.data
+                    cognome = form.cognome.data
+                    fkTipoUtente = form.fkTipoUtente.data
+                    fkFunzCustom = form.fkFunzCustom.data
+                    reparti = form.reparti.data
+                    email = form.email.data
+                    password = form.password.data
 
-        tipologieUtente_map = {int(tipologia['id']): tipologia['nomeTipoUtente'] for tipologia in tipologieUtente}
-        reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
 
-        form = UtenteForm()
-        form.fkTipoUtente.choices = [(tipologia['id'], tipologia['nomeTipoUtente']) for tipologia in tipologieUtente]
-        form.reparti.choices = [(reparto['id'], reparto['descrizione']) for reparto in reparti]
-        form.fkFunzCustom.choices = [(funz['id'], funz['titolo']) for funz in funzionalita]
+                    # Chiamata al servizio per creare l'utente
+                    service_t_utenti.create_utente(
+                        username=username,
+                        nome=nome,
+                        cognome=cognome,
+                        fkTipoUtente=fkTipoUtente,
+                        fkFunzCustom=fkFunzCustom,
+                        reparti=reparti,
+                        email=email,
+                        password=password
+                    )
 
-        if form.validate_on_submit():
-            try:
-                # Recupera i dati dal modulo
-                username = form.username.data
-                nome = form.nome.data
-                cognome = form.cognome.data
-                fkTipoUtente = form.fkTipoUtente.data
-                fkFunzCustom = form.fkFunzCustom.data
-                reparti = form.reparti.data
-                email = form.email.data
-                password = form.password.data
+                    flash('Utente creato con successo!', 'success')
+                    return redirect(url_for('app_cucina.creazione_utenti'))
 
-                print(username)
+                except Exception as e:
+                    print(f'Errore durante la creazione dell\'utente: {str(e)}')  # Stampa per debug
+                    flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
+            else:
+                # Visualizza gli errori di validazione
+                error_messages = ', '.join(f"{field}: {', '.join(errors)}" for field, errors in form.errors.items())
+                flash(f"Validation errors: {error_messages}", 'error')
 
-                # Chiamata al servizio per creare l'utente
-                service_t_utenti.create_utente(
-                    username=username,
-                    nome=nome,
-                    cognome=cognome,
-                    fkTipoUtente=fkTipoUtente,
-                    fkFunzCustom=fkFunzCustom,
-                    reparti=reparti,
-                    email=email,
-                    password=password
-                )
-
-                flash('Utente creato con successo!', 'success')
-                return redirect(url_for('app_cucina.creazione_utenti'))
-
-            except Exception as e:
-                print(f'Errore durante la creazione dell\'utente: {str(e)}')  # Stampa per debug
-                flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
-
-        return render_template('creazione_utenti.html',
-                               utenti=utenti,
-                               tipologieUtente=tipologieUtente,
-                               reparti=reparti,
-                               form=form,
-                               tipologieUtente_map=tipologieUtente_map,
-                               reparti_map=reparti_map)
+            return render_template('creazione_utenti.html',
+                                   utenti=utenti,
+                                   tipologieUtente=tipologieUtente,
+                                   reparti=reparti,
+                                   form=form,
+                                   tipologieUtente_map=tipologieUtente_map,
+                                   reparti_map=reparti_map)
+        except Exception as e:
+            print(f'Errore generale nella funzione: {str(e)}')  # Stampa per debug
+            flash(f'Errore generale: {str(e)}', 'error')
+            return redirect(url_for('app_cucina.login'))
     else:
         return redirect(url_for('app_cucina.login'))
+
+
 
 
 
