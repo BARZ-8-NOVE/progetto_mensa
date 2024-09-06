@@ -139,7 +139,10 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
         const submitButton = document.getElementById('submitButton');
         const piattoIdField = document.getElementById('piattoId');
         const addPiattoModal = document.getElementById('addPiattoModal');
-        
+        const searchNameInput = document.getElementById('searchName');  // Aggiunto correttamente
+        const searchTypeSelect = document.getElementById('searchType'); // Aggiunto correttamente
+        const piattiTableBody = document.getElementById('piattiTableBody'); // Tabella piatti
+    
         // Funzione per mostrare il modulo di aggiunta
         window.showAddForm = function() {
             form.reset(); // Resetta i campi del modulo
@@ -150,33 +153,25 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
         };
     
         // Funzione per aprire il modulo di modifica
-       window.showModificaForm = function(id) {
-    console.log(`Showing modify form for id: ${id}`);  // Debugging line
-
-    fetch(`/app_cucina/piatti/${id}`)
-    .then(response => response.json())
-    .then(data => {
-        console.log('Fetched piatto data:', data);  // Debugging line
-
-        // Popola i campi del modulo con i dati del piatto
-        form.elements['fkTipoPiattoSelect'].value = data.fkTipoPiatto; // Imposta il valore del select
-        form.elements['codice'].value = data.codice;
-        form.elements['titolo'].value = data.titolo;
-        form.elements['descrizione'].value = data.descrizione;
-        form.elements['inMenu'].checked = data.inMenu;  // Checkbox should use 'checked'
-        form.elements['ordinatore'].value = data.ordinatore;
-
-        // Imposta l'ID del piatto e aggiorna il testo del pulsante e del titolo
-        piattoIdField.value = id;
-        submitButton.textContent = 'Salva Modifiche';
-        document.getElementById('modalTitle').textContent = 'Modifica Piatto';
-        addPiattoModal.style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error fetching piatto data:', error);  // Debugging line
-    });
-};
-
+        window.showModificaForm = function(id) {
+            fetch(`/app_cucina/piatti/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                form.elements['fkTipoPiattoSelect'].value = data.fkTipoPiatto;
+                form.elements['codice'].value = data.codice;
+                form.elements['titolo'].value = data.titolo;
+                form.elements['descrizione'].value = data.descrizione;
+                form.elements['inMenu'].checked = data.inMenu;
+                form.elements['ordinatore'].value = data.ordinatore;
+                piattoIdField.value = id;
+                submitButton.textContent = 'Salva Modifiche';
+                document.getElementById('modalTitle').textContent = 'Modifica Piatto';
+                addPiattoModal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching piatto data:', error);
+            });
+        };
     
         // Funzione per chiudere il modulo
         window.closeAddPiattoForm = function() {
@@ -185,7 +180,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
     
         // Gestione dell'invio del modulo
         form.addEventListener('submit', function(event) {
-            event.preventDefault(); // Impedisce l'invio del modulo tradizionale
+            event.preventDefault();
             const piattoId = piattoIdField.value;
             const url = piattoId ? `/app_cucina/piatti/${piattoId}` : '/app_cucina/piatti';
             const method = piattoId ? 'PUT' : 'POST';
@@ -199,7 +194,6 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                 if (response.ok) {
                     alert('Operazione completata con successo!');
                     closeAddPiattoForm();
-                    // Ricarica la pagina per aggiornare la tabella
                     location.reload();
                 } else {
                     throw new Error('Errore durante la richiesta.');
@@ -211,20 +205,40 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
             });
         });
     
-        // Funzione per filtrare la tabella
+        // Funzione per filtrare i piatti
         function filterTable() {
-            const searchName = document.getElementById('searchName').value.toLowerCase();
-            const rows = document.getElementById('piattiTableBody').getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const nome = row.cells[3].textContent.toLowerCase(); // Cambia l'indice se necessario
-                row.style.display = nome.includes(searchName) ? '' : 'none';
-            });
+            const searchName = searchNameInput.value.trim().toLowerCase();
+            const searchType = searchTypeSelect.value;
+    
+            const rows = piattiTableBody.getElementsByTagName('tr');
+    
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const nome = row.cells[3].textContent.trim().toLowerCase(); // Nome del piatto nella quarta colonna
+                const tipo = row.cells[1].textContent.trim(); // Tipo del piatto nella seconda colonna
+    
+                const matchesName = nome.includes(searchName);
+                const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
+    
+                if (matchesName && matchesType) {
+                    row.style.display = ''; // Mostra la riga
+                } else {
+                    row.style.display = 'none'; // Nascondi la riga
+                }
+            }
         }
     
-        // Aggiungi eventi ai campi di ricerca
-        document.getElementById('searchName').addEventListener('keyup', filterTable);
+        // Mappa per i tipi di piatto
+        const searchTypeMap = {};
+        {% for tipoPiatto in tipologia_piatti %}
+            searchTypeMap["{{ tipoPiatto.id }}"] = "{{ tipoPiatto.descrizione }}";
+        {% endfor %}
+    
+        // Event listener per i filtri
+        searchNameInput.addEventListener('input', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
     });
-
+    
     function elimina(id) {
         if (confirm('Sei sicuro di voler eliminare questo record?')) {
             // Ottieni il token CSRF dal meta tag

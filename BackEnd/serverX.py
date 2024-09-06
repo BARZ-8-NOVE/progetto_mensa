@@ -763,26 +763,36 @@ def modifica_piatti(id):
 
 
         if request.method == 'PUT':
-
             tipologia_piatti = service_t_TipiPiatti.get_all()  # Recupera le opzioni
             form = PiattiForm(request.form)
             form.fkTipoPiatto.choices = [(tipoPiatto['id'], tipoPiatto['descrizione']) for tipoPiatto in tipologia_piatti]
             
-            try:
-                service_t_Piatti.update(
-                    id=id,
-                    fkTipoPiatto=form.fkTipoPiatto.data, 
-                    codice=form.codice.data, 
-                    titolo=form.titolo.data,
-                    descrizione=form.descrizione.data, 
-                    inMenu=form.inMenu.data, 
-                    ordinatore=form.ordinatore.data, 
-                    utenteInserimento=get_username()
-                )
-                app.logger.debug("Piatto creato con successo nel database.")
-            except Exception as e:
-                app.logger.error(f"Errore durante la creazione del piatto: {str(e)}")
-                return {'Error': str(e)}, 500
+            if form.validate_on_submit():
+                try:
+                    result = service_t_Piatti.update(
+                        id=id,
+                        fkTipoPiatto=form.fkTipoPiatto.data,
+                        codice=form.codice.data,
+                        titolo=form.titolo.data,
+                        descrizione=form.descrizione.data,
+                        inMenu=form.inMenu.data,
+                        ordinatore=form.ordinatore.data,
+                        utenteInserimento=get_username()
+                    )
+
+                    print(result)
+
+                    # Restituisci una risposta JSON senza redirect
+                    return jsonify({'message': 'Piatto aggiornato con successo!'}), 200
+
+                except Exception as e:
+                    print(f"Errore durante l'aggiornamento: {e}")
+                    return jsonify({'error': 'Errore durante l\'aggiornamento del piatto'}), 500
+
+            else:
+                # Gestisci errori di validazione del form
+                return jsonify({'error': 'Errore nella validazione del form'}), 400
+
 
 
         if request.method == 'DELETE':
