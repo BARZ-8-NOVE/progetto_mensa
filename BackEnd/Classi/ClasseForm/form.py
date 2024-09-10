@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
-from wtforms.validators import DataRequired, Optional, Length,  Email
+from wtforms.validators import DataRequired, Optional, Length,  Email, EqualTo
 from wtforms.validators import StopValidation
 from datetime import datetime
 
@@ -143,15 +143,6 @@ class UtenteForm(FlaskForm):
     fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
 
 
-class UtenteModificaForm(FlaskForm):    
-    fkTipoUtente = SelectField('Tipo Operatore', coerce=int, validators=[Optional()])
-    fkFunzCustom= MultiCheckboxField('funzionalità custom', choices=[], coerce=int, validators=[Optional()])
-    reparti = MultiCheckboxField('Reparti', choices=[], coerce=int, validators=[Optional()]) 
-    inizio = DateField('Inizio', format='%Y-%m-%d', validators=[Optional()], default=datetime.today().date())
-    fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
-
-
-
 class TipoUtenteForm(FlaskForm):
     fkTipoUtente = StringField('Tipo Utente', validators=[DataRequired()])  
     fkFunzionalita = MultiCheckboxField('Permessi', choices=[], coerce=int, validators=[Optional()])    
@@ -181,3 +172,14 @@ class ServiziForm(FlaskForm):
     descrizione = StringField('Descrizione', validators=[DataRequired(), Length(max=100)])
     ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
     inMenu = BooleanField('In Menu', validators=[Optional()])
+
+
+class CambioPasswordForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Vecchia Password', validators=[DataRequired()])
+    nuova_password = PasswordField('Nuova Password', validators=[
+        DataRequired(), 
+        EqualTo('ripeti_nuova_password', message='Le password devono corrispondere')
+    ])
+    ripeti_nuova_password = PasswordField('Ripeti Nuova Password', validators=[DataRequired()])
+    submit = SubmitField('Conferma cambio password')

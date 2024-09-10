@@ -7,8 +7,8 @@ Impostazioni - Gestione Cucina e Mensa Ospedaliera
 {% block content %}
 
 <div class="settings-container">
-    <h1>Impostazioni Utente</h1>
-    
+    <h1>Informazioni Utente</h1>
+
     <div class="user-details">
         <p><strong>Nome:</strong> {{ user.nome }}</p>
         <p><strong>Cognome:</strong> {{ user.cognome }}</p>
@@ -17,9 +17,53 @@ Impostazioni - Gestione Cucina e Mensa Ospedaliera
         <p><strong>Tipo Utente:</strong> {{ tipi_utenti_map[user.fkTipoUtente] }}</p>
         <p><strong>Data di Scadenza:</strong> {{ user.fine.strftime('%d-%m-%Y') if user.fine else 'N/A' }}</p>
     </div>
-    
 
+    <!-- Button to open the password change form -->
+    <button type="button" class="styled-button" onclick="showForm()">Modifica Password</button>
+
+    <!-- The Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeForm()">&times;</span>
+            <h2>Cambia Password</h2>
+            <form method="post" action="{{ url_for('app_cucina.impostazioni') }}">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.username.label }}
+                    {{ form.username(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.nuova_password.label }}
+                    {{ form.nuova_password(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.ripeti_nuova_password.label }}
+                    {{ form.ripeti_nuova_password(class="form-control") }}
+                </div>
+                <button type="submit" class="btn btn-primary">Cambia Password</button>
+            </form>
+        </div>
+    </div>
 </div>
-
-
+<script>
+    function showForm() {
+        document.getElementById('passwordModal').style.display = 'block';
+    }
+    
+    function closeForm() {
+        document.getElementById('passwordModal').style.display = 'none';
+    }
+    
+    // Chiudi il popup se l'utente clicca al di fuori del contenuto del popup
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('passwordModal')) {
+            closeForm();
+        }
+    }
+    </script>
+    
 {% endblock %}

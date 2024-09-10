@@ -270,6 +270,16 @@ class Repository_t_utenti:
             return
         else:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        
+
+    def update_utente_password_by_username(self, username: str, password: str):
+        utente: TUtenti = self.exists_utente_by_username(username)
+        if utente:
+            utente.password = password
+            self.session.commit()
+            return
+        else:
+             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
 
     def update_utente_attivo(self, id: int, attivo):
         utente: TUtenti = self.exists_utente_by_id(id)
@@ -291,8 +301,8 @@ class Repository_t_utenti:
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-    
-        
+
+
     def do_login(self, username: str, password: str, token_expires=timedelta(minutes=30)):
         result = self.exists_utente_by_username(username)
         
@@ -335,6 +345,32 @@ class Repository_t_utenti:
             'fine': result.fine
         }
         return utente
+    
+
+
+
+    def check_password(self, username: str, password: str):
+        # Recupera l'utente dal database usando il nome utente
+        user = self.exists_utente_by_username(username)
+        
+        # Se l'utente non esiste, chiudi la sessione e solleva un'eccezione NotFound
+        if not user:
+            self.session.close()
+            raise NotFound(f"Utente con username '{username}' non trovato.")
+        
+        # Verifica la password confrontando l'hash della password memorizzata
+        hashed_password = user.password
+        if not (hashed_password and check_password_hash(hashed_password, password)):
+            self.session.close()
+            raise Forbidden("La password fornita è errata.")
+        
+        # Chiudi la sessione dopo la verifica
+        self.session.close()
+        return True
+
+        
+        
+        
 
 
         

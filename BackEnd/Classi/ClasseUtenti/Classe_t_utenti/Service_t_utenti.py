@@ -129,3 +129,10 @@ class Service_t_utenti:
     
     def update_da_pagina_admin(self, id, fkTipoUtente, reparti, inizio, fine):
         return self.repository.update_da_pagina_admin(id, fkTipoUtente, reparti, inizio, fine)
+    
+    def update_utente_password_by_username(self, username: str, password: str):
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        return self.repository.update_utente_password_by_username(username, hashed_password)
+    
+    def check_password(self, username: str, password: str):
+        return self.repository.check_password(username, password)

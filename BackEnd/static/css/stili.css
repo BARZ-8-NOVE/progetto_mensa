@@ -1079,3 +1079,39 @@ select {
 .permission-option label {
     margin-right: 5px; /* Spazio tra l'etichetta e il radio button */
 }
+
+
+
+
+.settings-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.settings-container h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #07437e;
+    padding-bottom: 10px;
+}
+.user-details {
+    margin: 0;
+    padding: 0;
+}
+.user-details p {
+    font-size: 16px;
+    color: #555;
+    margin: 10px 0;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+.user-details p strong {
+    color: #07437e;
+}
+.user-details p:last-child {
+    border-bottom: none;
+}
