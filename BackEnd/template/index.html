@@ -12,7 +12,7 @@
         <h1>Gestione Cucina e Mensa Ospedaliera</h1>
         <div class="user-info">
             <span>Utente: <span id="username">{{ username }}</span></span>
-            <a href="/impostazioni">Impostazioni</a>
+            <a href="/app_cucina/impostazioni">Impostazioni</a>
             <form method="POST" action="{{ url_for('app_cucina.do_logout') }}" style="display: inline;">
                 {{ form.hidden_tag() }}  <!-- Include il token CSRF nel modulo -->
                 <button type="submit" id="logout">Logout</button>

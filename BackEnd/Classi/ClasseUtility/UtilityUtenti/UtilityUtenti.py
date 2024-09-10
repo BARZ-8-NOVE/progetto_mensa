@@ -1,4 +1,5 @@
 from Classi.ClasseUtility.UtilityUtenti.ConstantsUtenti import ConstantsUtenti
+from datetime import date
 
 class UtilityUtenti:
     """Class for the utility of utenti"""
@@ -127,3 +128,12 @@ class UtilityUtenti:
         if (len(password.strip()) > constants.MAX_LENGTH_PASSWORD) or (password.strip() == ""):
             raise ValueError(f"password cannot be empty or more than {constants.MAX_LENGTH_PASSWORD} characters!")
         
+    @staticmethod
+    def checkFine(fine: date):
+        today = date.today()  # Ottiene la data odierna
+        
+        if fine > today:
+            # Se la data di fine è maggiore di oggi, puoi considerare l'input valido
+            return True
+        else:
+            raise ValueError(f"La data di fine ({fine}) non può essere precedente o uguale alla data odierna ({today}).")

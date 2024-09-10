@@ -59,30 +59,47 @@ class PreparazioniForm(FlaskForm):
     inizio = DateField('Data Inizio', format='%Y-%m-%d', validators=[Optional()])
     fine = DateField('Data Fine', format='%Y-%m-%d', validators=[Optional()])
     immagine = FileField('Immagine', validators=[Optional()])
-
     submit = SubmitField('Aggiungi')
 
+class TipologiaPiattiForm(FlaskForm):   
+    descrizione = StringField('Descrizione', validators=[DataRequired()])
+    descrizionePlurale = StringField('Descrizione Plurale', validators=[DataRequired()])
+    inMenu = BooleanField('in menu', validators=[Optional()])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()]) 
+    color = StringField('Colore', validators=[Optional(), Length(max=7)],
+                                  render_kw={"type": "color"})
+    backgroundColor = StringField('Colore di Sfondo', validators=[Optional(), Length(max=7)],
+                                  render_kw={"type": "color"})
+    submit = SubmitField('Aggiungi')
 
 class PiattiForm(FlaskForm):
     fkTipoPiatto = SelectField('Tipo piatto', coerce=int, validators=[DataRequired()])
     codice = StringField('Codice', validators=[DataRequired()])
     titolo = StringField('Tipo Piatto', validators=[DataRequired()])
     descrizione = StringField('Descrizione', validators=[DataRequired()])
-    inMenu = BooleanField('In Menu', validators=[DataRequired()])
+    inMenu = BooleanField('In Menu', validators=[Optional()])
     ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
-
     submit = SubmitField('Aggiungi')
+
+
+class TipologiaMenuForm(FlaskForm):   
+    color = StringField('Colore', validators=[Optional(), Length(max=7)],
+                                  render_kw={"type": "color"})
+    backgroundColor = StringField('Colore di Sfondo', validators=[Optional(), Length(max=7)],
+                                  render_kw={"type": "color"})
+    descrizione = StringField('Descrizione', validators=[DataRequired()])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()]) 
+    submit = SubmitField('Aggiungi')
+
 
 class MenuForm(FlaskForm):
     # piatto_categoria = RadioField('Categoria', choices=[], validators=[DataRequired()], coerce=int)
     piatti = MultiCheckboxField('piatti', validators=[Optional()], coerce=int)
     preparazioni = SelectMultipleField('Preparazioni', choices=[], coerce=int)
-
     submit = SubmitField('Aggiungi Menu')
 
 
 class schedaForm(FlaskForm):
-
     fkTipoAlimentazione = SelectField('Tipo alimentazione', coerce=int, validators=[DataRequired()])
     fkTipoMenu = SelectField('correlata al menu', coerce=int, validators=[DataRequired()])
     nome = StringField('Nome', validators=[Optional(), Length(max=50)])
@@ -100,14 +117,12 @@ class schedaForm(FlaskForm):
 
 
 class schedaPiattiForm(FlaskForm):
-    
     piatti = SelectField('Piatti', choices=[], coerce=int)
     note = TextAreaField('Note', validators=[Optional()])
     ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
     submit = SubmitField('Aggiungi piatto')
 
 class ordineSchedaForm(FlaskForm):
-
     nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
     cognome = StringField('Cognome', validators=[DataRequired(), Length(max=50)])
     letto = StringField('Letto', validators=[DataRequired(), Length(max=5)])
@@ -115,7 +130,7 @@ class ordineSchedaForm(FlaskForm):
     submit = SubmitField('Salva e conferma')
 
 
-class UtenteForm(FlaskForm):
+class UtenteForm(FlaskForm): 
     username = StringField('Username', validators=[DataRequired()])
     nome = StringField('Nome', validators=[DataRequired()])
     cognome = StringField('Cognome', validators=[DataRequired()])
@@ -124,20 +139,45 @@ class UtenteForm(FlaskForm):
     reparti = MultiCheckboxField('Reparti', choices=[], coerce=int, validators=[Optional()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Salva e conferma')
+    inizio = DateField('Inizio', format='%Y-%m-%d', validators=[Optional()], default=datetime.today().date())
+    fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
+
+
+class UtenteModificaForm(FlaskForm):    
+    fkTipoUtente = SelectField('Tipo Operatore', coerce=int, validators=[Optional()])
+    fkFunzCustom= MultiCheckboxField('funzionalità custom', choices=[], coerce=int, validators=[Optional()])
+    reparti = MultiCheckboxField('Reparti', choices=[], coerce=int, validators=[Optional()]) 
+    inizio = DateField('Inizio', format='%Y-%m-%d', validators=[Optional()], default=datetime.today().date())
+    fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
 
 
 
 class TipoUtenteForm(FlaskForm):
-    fkTipoUtente = StringField('Tipo Utente', validators=[DataRequired()])
-    
-    # Permessi con MultiCheckboxField (presupponendo che esista)
-    fkFunzionalita = MultiCheckboxField('Permessi', choices=[], coerce=int, validators=[Optional()])
-    
+    fkTipoUtente = StringField('Tipo Utente', validators=[DataRequired()])  
+    fkFunzionalita = MultiCheckboxField('Permessi', choices=[], coerce=int, validators=[Optional()])    
     submit = SubmitField('Crea Tipo Utente')
 
 
-class CloneMenuForm(FlaskForm):
-   
+class CloneMenuForm(FlaskForm):     
     clone_date = DateField('Data di Clonazione', format='%Y-%m-%d')
     submit = SubmitField('Conferma Clonazione')
+
+
+
+class RepartiForm(FlaskForm): 
+    codiceAreas = StringField('Codice Area', validators=[DataRequired()])  
+    descrizione = StringField('Descrizione', validators=[DataRequired(), Length(max=100)])
+    sezione = StringField('Sezione', validators=[DataRequired(), Length(max=50)])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
+    padiglione = StringField('Padiglione', validators=[Optional(), Length(max=50)])
+    piano = StringField('Piano', validators=[Optional(), Length(max=50)])
+    lato = StringField('Lato', validators=[Optional(), Length(max=50)])
+    inizio = DateField('Inizio', format='%Y-%m-%d', validators=[Optional()], default=datetime.today().date())
+    fine = DateField('Fine', format='%Y-%m-%d', validators=[Optional()])
+
+
+class ServiziForm(FlaskForm): 
+   
+    descrizione = StringField('Descrizione', validators=[DataRequired(), Length(max=100)])
+    ordinatore = IntegerField('Ordinatore', validators=[DataRequired()])
+    inMenu = BooleanField('In Menu', validators=[Optional()])

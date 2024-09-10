@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+
+{% block title %}
+Impostazioni - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+
+<div class="settings-container">
+    <h1>Impostazioni Utente</h1>
+    
+    <div class="user-details">
+        <p><strong>Nome:</strong> {{ user.nome }}</p>
+        <p><strong>Cognome:</strong> {{ user.cognome }}</p>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email[:3] }}************{{ user.email.split('@')[1] }}</p>
+        <p><strong>Tipo Utente:</strong> {{ tipi_utenti_map[user.fkTipoUtente] }}</p>
+        <p><strong>Data di Scadenza:</strong> {{ user.fine.strftime('%d-%m-%Y') if user.fine else 'N/A' }}</p>
+    </div>
+    
+
+</div>
+
+
+{% endblock %}

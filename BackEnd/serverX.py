@@ -64,7 +64,7 @@ import json
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm 
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, UtenteModificaForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -381,6 +381,7 @@ def inject_user_data():
 @app_cucina.route('/index')
 def index():
     if 'authenticated' in session:
+        
         return render_template('index.html')
     else:
         return redirect(url_for('app_cucina.login'))
@@ -820,40 +821,403 @@ def modifica_piatti(id):
 
 
 
-@app_cucina.route('/tipologia_piatti')
+@app_cucina.route('/tipologia_piatti', methods=['GET', 'POST'])
 def tipologia_piatti():
-    tipologia_piatti = service_t_TipiPiatti.get_all()
     if 'authenticated' in session:
-        return render_template('tipologia_piatti.html',tipologia_piatti=tipologia_piatti)
+        tipologia_piatti = service_t_TipiPiatti.get_all()
+
+        form = TipologiaPiattiForm()
+
+        if form.validate_on_submit():
+            
+            service_t_TipiPiatti.create(descrizione=form.descrizione.data, 
+                                        descrizionePlurale=form.descrizionePlurale.data, 
+                                        inMenu=form.inMenu.data, 
+                                        ordinatore=form.ordinatore.data, 
+                                        color=form.color.data, 
+                                        backgroundColor=form.backgroundColor.data, 
+                                        utenteInserimento=get_username())
+            
+            flash('Scheda aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.tipologia_piatti'))
+            
+    
+        return render_template('tipologia_piatti.html',
+                               tipologia_piatti=tipologia_piatti,
+                               form=form)
     else:
         return redirect(url_for('app_cucina.login'))
-   
-    
 
-@app_cucina.route('/reparti')
+
+
+@app_cucina.route('/tipologia_piatti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_tipologia_piatti(id):
+    if 'authenticated' in session:
+
+
+        if request.method == 'GET':
+            
+            # Ensure tipologia_piatti is correctly retrieved
+            tipologia_piatti = service_t_TipiPiatti.get_by_id(id)  # Or however you retrieve it
+            
+            # Create the form with existing piatto data
+            form = TipologiaPiattiForm(obj=tipologia_piatti)
+            
+            if tipologia_piatti:
+                return jsonify({
+                    'descrizione': tipologia_piatti.get('descrizione'),  
+                    'descrizionePlurale': tipologia_piatti.get('descrizionePlurale'),
+                    'inMenu': tipologia_piatti.get('inMenu'),
+                    'ordinatore': tipologia_piatti.get('ordinatore'),
+                    'color': tipologia_piatti.get('color'),
+                    'backgroundColor': tipologia_piatti.get('backgroundColor')
+                    })
+            else:
+                flash('Tipologia di piatto non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+
+        if request.method == 'PUT':
+            tipologia_piatti = service_t_TipiPiatti.get_all()  # Recupera le opzioni
+            form = TipologiaPiattiForm(request.form)
+            
+            if form.validate_on_submit():
+                try:
+                    service_t_TipiPiatti.update(
+                                        id=id,
+                                        descrizione=form.descrizione.data, 
+                                        descrizionePlurale=form.descrizionePlurale.data, 
+                                        inMenu=form.inMenu.data, 
+                                        ordinatore=form.ordinatore.data, 
+                                        color=form.color.data, 
+                                        backgroundColor=form.backgroundColor.data, 
+                                        utenteInserimento=get_username())
+
+                    
+
+                    # Restituisci una risposta JSON senza redirect
+                    return jsonify({'message': 'Tipologia piatto aggiornato con successo!'}), 200
+
+                except Exception as e:
+                    print(f"Errore durante l'aggiornamento: {e}")
+                    return jsonify({'error': 'Errore durante l\'aggiornamento della tipologia del piatto'}), 500
+
+            else:
+                # Gestisci errori di validazione del form
+                return jsonify({'error': 'Errore nella validazione del form'}), 400
+
+
+
+        if request.method == 'DELETE':
+            try:
+                service_t_TipiPiatti.delete(id, utenteCancellazione=get_username())
+                flash('Tipolgia piatto eliminato con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            
+            except Exception as e:
+                print(f"Error deleting dish: {e}")
+                flash('Errore durante l\'eliminazione della tipologia del piatto.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    else:
+        return redirect(url_for('app_cucina.login'))  
+
+@app_cucina.route('/reparti', methods=['GET', 'POST'])
 def reparti():
-    reparti = service_t_Reparti.get_all()
     if 'authenticated' in session:
-        return render_template('reparti.html',reparti=reparti)
+        reparti = service_t_Reparti.get_all()
+        form = RepartiForm()
+
+        if form.validate_on_submit():
+
+            service_t_Reparti.create(
+                            codiceAreas=form.codiceAreas.data, 
+                            descrizione=form.descrizione.data, 
+                            sezione=form.sezione.data, 
+                            ordinatore=form.ordinatore.data,
+                            padiglione=form.padiglione.data, 
+                            piano=form.piano.data, 
+                            lato=form.lato.data, 
+                            inizio=form.inizio.data,
+                            fine=form.fine.data,
+                            utenteInserimento=get_username()
+                            )
+            
+            flash('Scheda aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.reparti'))
+    
+
+        return render_template('reparti.html',
+                               reparti=reparti,
+                               form=form)
     else:
         return redirect(url_for('app_cucina.login'))
 
-@app_cucina.route('/servizi')
+
+@app_cucina.route('/reparti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_reparti(id):
+    if 'authenticated' in session:
+
+
+        if request.method == 'GET':
+            
+            
+            reparto = service_t_Reparti.get_by_id(id)  
+            
+            # Create the form with existing Reparto data
+            form = RepartiForm(obj=reparto)
+            
+            if reparto:
+                return jsonify({
+                    'codiceAreas': reparto.get('codiceAreas'),
+                    'descrizione': reparto.get('descrizione'),   
+                    'sezione': reparto.get('sezione'),
+                    'ordinatore': reparto.get('ordinatore'),
+                    'padiglione': reparto.get('padiglione'),
+                    'piano': reparto.get('piano'),
+                    'lato': reparto.get('lato'),
+                    'inizio': reparto.get('inizio'), 
+                    'fine': reparto.get('fine')
+
+                    })
+            else:
+                flash('Reparto non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+
+        if request.method == 'PUT':
+            reparto = service_t_Reparti.get_all()  # Recupera le opzioni
+            form = RepartiForm(request.form)
+            
+            if form.validate_on_submit():
+                try:
+                    service_t_Reparti.update(
+                                        id=id,
+                                        codiceAreas=form.codiceAreas.data, 
+                                        descrizione=form.descrizione.data, 
+                                        sezione=form.sezione.data, 
+                                        ordinatore=form.ordinatore.data,
+                                        padiglione=form.padiglione.data, 
+                                        piano=form.piano.data, 
+                                        lato=form.lato.data, 
+                                        inizio=form.inizio.data,
+                                        fine=form.fine.data,
+                                        utenteInserimento=get_username()
+                    )
+
+                    
+                    # Restituisci una risposta JSON senza redirect
+                    return jsonify({'message': 'Reparto aggiornato con successo!'}), 200
+
+                except Exception as e:
+                    print(f"Errore durante l'aggiornamento: {e}")
+                    return jsonify({'error': 'Errore durante l\'aggiornamento del reparto'}), 500
+
+            else:
+                # Gestisci errori di validazione del form
+                return jsonify({'error': 'Errore nella validazione del form'}), 400
+
+
+
+        if request.method == 'DELETE':
+            try:
+                service_t_Reparti.delete(id, utenteCancellazione=get_username())
+                flash('Reparto eliminato con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            
+            except Exception as e:
+                print(f"Error deleting dish: {e}")
+                flash('Errore durante l\'eliminazione della Reparto.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    else:
+        return redirect(url_for('app_cucina.login'))  
+
+
+@app_cucina.route('/servizi', methods=['GET', 'POST'])
 def servizi():
-    servizi = service_t_Servizi.get_all_servizi()
     if 'authenticated' in session:
-        return render_template('servizi.html',servizi=servizi)
-    else:
-        return redirect(url_for('app_cucina.login'))
+        servizi = service_t_Servizi.get_all_servizi()
 
-@app_cucina.route('/tipologia_menu')
-def tipologia_menu():
-    tipologie_menu = service_t_TipiMenu.get_all()
-    if 'authenticated' in session:
-        return render_template('tipologia_menu.html', tipologie_menu=tipologie_menu)
+        form = ServiziForm() 
+
+        if form.validate_on_submit():
+            service_t_Servizi.create_servizio(
+                            descrizione=form.descrizione.data,
+                            ordinatore=form.ordinatore.data,
+                            inMenu=form.inMenu.data
+            )
+
+        return render_template('servizi.html',servizi=servizi, form=form)
     else:
         return redirect(url_for('app_cucina.login'))
     
+
+
+@app_cucina.route('/servizi/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_servizi(id):
+    if 'authenticated' in session:
+
+
+        if request.method == 'GET':
+            
+            
+            servizio = service_t_Servizi.get_servizio_by_id(id)  
+            
+            # Create the form with existing Reparto data
+            form = ServiziForm(obj=servizio)
+            
+            if servizio:
+                return jsonify({
+                    
+                    'descrizione': servizio.get('descrizione'),                     
+                    'ordinatore': servizio.get('ordinatore'),
+                    'inMenu': servizio.get('inMenu')
+
+                    })
+            else:
+                flash('Servizio non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+
+        if request.method == 'PUT':
+            servizio = service_t_Servizi.get_all_servizi()  # Recupera le opzioni
+            form = ServiziForm(request.form)
+            
+            if form.validate_on_submit():
+                try:
+                    service_t_Servizi.update_servizio(
+                                        id=id,                                     
+                                        descrizione=form.descrizione.data, 
+                                        ordinatore=form.ordinatore.data,
+                                        inMenu=form.inMenu.data
+                                       
+                    )
+
+                    
+                    # Restituisci una risposta JSON senza redirect
+                    return jsonify({'message': 'Servizio aggiornato con successo!'}), 200
+
+                except Exception as e:
+                    print(f"Errore durante l'aggiornamento: {e}")
+                    return jsonify({'error': 'Errore durante l\'aggiornamento del Servizio'}), 500
+
+            else:
+                # Gestisci errori di validazione del form
+                return jsonify({'error': 'Errore nella validazione del form'}), 400
+
+
+        # scrivo la delete nel caso servisse ma ho commentato 
+        if request.method == 'DELETE':
+            try:
+                
+            # service_t_Servizi.delete_servizio(id)
+                flash('impossibile eliminare il servizio!', 'success')
+                return '', 204  # Status code 204 No Content
+            
+            except Exception as e:
+                print(f"Error deleting dish: {e}")
+                flash('Errore durante l\'eliminazione della Reparto.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    else:
+        return redirect(url_for('app_cucina.login'))  
+
+
+
+@app_cucina.route('/tipologia_menu', methods=['GET', 'POST'])
+def tipologia_menu():
+    if 'authenticated' in session:
+        tipologie_menu = service_t_TipiMenu.get_all()
+    
+        form = TipologiaMenuForm()
+
+        if form.validate_on_submit():
+            
+            service_t_TipiMenu.create(descrizione=form.descrizione.data, 
+                                        ordinatore=form.ordinatore.data, 
+                                        color=form.color.data, 
+                                        backgroundColor=form.backgroundColor.data, 
+                                        utenteInserimento=get_username())
+            
+            flash('Scheda aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.tipologia_menu'))
+
+
+        return render_template('tipologia_menu.html', 
+                               tipologie_menu=tipologie_menu, 
+                               form=form)
+    else:
+        return redirect(url_for('app_cucina.login'))
+    
+
+@app_cucina.route('/tipologia_menu/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def nodifica_tipologia_menu(id):
+    if 'authenticated' in session:
+
+
+        if request.method == 'GET':
+            
+            # Ensure tipologia_menu is correctly retrieved
+            tipologia_menu = service_t_TipiMenu.get_by_id(id)  # Or however you retrieve it
+            
+            # Create the form with existing menu data
+            form = TipologiaMenuForm(obj=tipologia_menu)
+            
+            if tipologia_menu:
+                return jsonify({
+                    'descrizione': tipologia_menu.get('descrizione'),  # Corretto per restituire il valore del menu
+                    'ordinatore': tipologia_menu.get('ordinatore'),
+                    'color': tipologia_menu.get('color'),
+                    'backgroundColor': tipologia_menu.get('backgroundColor')
+                    })
+            else:
+                flash('Tipologia di Menu non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+
+        if request.method == 'PUT':
+            tipologia_menu = service_t_TipiMenu.get_all()  # Recupera le opzioni
+            form = TipologiaMenuForm(request.form)
+            
+            if form.validate_on_submit():
+                try:
+                    service_t_TipiMenu.update(
+                                        id=id,
+                                        descrizione=form.descrizione.data, 
+                                        ordinatore=form.ordinatore.data, 
+                                        color=form.color.data, 
+                                        backgroundColor=form.backgroundColor.data, 
+                                        utenteInserimento=get_username())
+
+                    
+
+                    # Restituisci una risposta JSON senza redirect
+                    return jsonify({'message': 'Tipologia menu aggiornato con successo!'}), 200
+
+                except Exception as e:
+                    print(f"Errore durante l'aggiornamento: {e}")
+                    return jsonify({'error': 'Errore durante l\'aggiornamento dela tipologia del menu'}), 500
+
+            else:
+                # Gestisci errori di validazione del form
+                return jsonify({'error': 'Errore nella validazione del form'}), 400
+
+
+
+        if request.method == 'DELETE':
+            try:
+                service_t_TipiMenu.delete(id, utenteCancellazione=get_username())
+                flash('Tipolgia MEnu eliminato con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            
+            except Exception as e:
+                print(f"Error deleting dish: {e}")
+                flash('Errore durante l\'eliminazione della tipologia del menu.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    else:
+        return redirect(url_for('app_cucina.login'))  
     
 @app_cucina.route('/menu', methods=['GET', 'POST'])
 def menu():
@@ -1042,6 +1406,7 @@ def menu():
                     associazione_map=associazione_map,
                     piattimenu=piattimenu,  # Passa piattimenu al template
                     piatti=piatti,
+                    servizi=servizi,
                     preparazioni=preparazioni,
                     datetime=datetime,
                     calendar=calendar,
@@ -2003,6 +2368,8 @@ def creazione_utenti():
                     reparti = form.reparti.data
                     email = form.email.data
                     password = form.password.data
+                    inizio = form.inizio.data
+                    fine = form.fine.data
 
 
                     # Chiamata al servizio per creare l'utente
@@ -2014,7 +2381,9 @@ def creazione_utenti():
                         fkFunzCustom=fkFunzCustom,
                         reparti=reparti,
                         email=email,
-                        password=password
+                        password=password,
+                        inizio=inizio,
+                        fine=fine
                     )
 
                     flash('Utente creato con successo!', 'success')
@@ -2044,6 +2413,56 @@ def creazione_utenti():
 
 
 
+
+@app_cucina.route('/creazione_utenti/<int:id>', methods=['GET', 'PUT'])
+def modifica_utente(id):
+    if 'authenticated' in session:
+        if request.method == 'GET':
+            utenti = service_t_utenti.get_utente_by_id(id)
+            
+            if utenti:
+                reparti_ids = utenti.get('reparti').split(',') if utenti.get('reparti') else []
+                return jsonify({
+                    'username': utenti.get('username'),
+                    'nome': utenti.get('nome'),   
+                    'cognome': utenti.get('cognome'),
+                    'fkTipoUtente': utenti.get('fkTipoUtente'),
+                    'fkFunzCustom': utenti.get('fkFunzCustom'),
+                    'inizio': utenti.get('inizio'),
+                    'fine': utenti.get('fine'),
+                    'reparti': reparti_ids,      
+                    'email': utenti.get('email')
+                })
+            else:
+                flash('Utente non trovato.', 'danger')
+                return '', 404  # Status code 404 Not Found
+
+        if request.method == 'PUT':
+            try:
+                json_data = request.get_json()
+                print("Received JSON:", json_data)
+
+                if json_data:
+                    try:
+                        service_t_utenti.update_da_pagina_admin(
+                            id=id,
+                            fkTipoUtente=json_data.get('fkTipoUtente'),
+                            reparti=json_data.get('reparti'),
+                            inizio=json_data.get('inizio'),
+                            fine=json_data.get('fine')
+                        )
+                        return jsonify({'message': 'Reparto aggiornato con successo!'}), 200
+                    except Exception as e:
+                        print(f"Errore durante l'aggiornamento: {e}")
+                        return jsonify({'error': 'Errore durante l\'aggiornamento del reparto'}), 500
+                else:
+                    print("Errori di validazione del form:", json_data)  # For debugging
+                    return jsonify({'error': 'Errore nella validazione dei dati'}), 400
+            except Exception as e:
+                print(f"Errore nella richiesta: {e}")
+                return jsonify({'error': 'Errore nella richiesta'}), 400
+    else:
+        return jsonify({'error': 'Non autorizzato'}), 403  # Forbidden if not authenticated
 
 
 
@@ -2208,7 +2627,24 @@ def qualifiche():
 
 
 
+@app_cucina.route('/impostazioni', methods=['GET', 'POST'])
+def impostazioni():
+    if 'authenticated' in session:
+        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        tipi_utenti = service_t_tipiUtenti.get_tipiUtenti_all()
 
+        tipi_utenti_map = {int(tipo_utente['id']): tipo_utente['nomeTipoUtente'] for tipo_utente in tipi_utenti}
+
+        
+
+
+        return render_template('impostazioni.html',
+                               user=user,
+                               tipi_utenti_map=tipi_utenti_map
+                              
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 

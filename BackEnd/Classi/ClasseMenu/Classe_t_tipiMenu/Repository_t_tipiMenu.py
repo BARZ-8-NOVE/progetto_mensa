@@ -32,14 +32,13 @@ class RepositoryTipiMenu:
         else:
             return {'Error': f'No match found for this id: {id}'}, 404
 
-    def create(self, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento):
+    def create(self, descrizione, color, backgroundColor, ordinatore, utenteInserimento):
         try:
             tipimenu = TTipiMenu(
                 descrizione=descrizione, 
                 color=color, 
                 backgroundColor=backgroundColor,
                 ordinatore=ordinatore, 
-                dataInserimento=dataInserimento,
                 utenteInserimento=utenteInserimento
                                  
             )
@@ -53,7 +52,7 @@ class RepositoryTipiMenu:
             # Chiudi sempre la sessione
             self.session.close()        
 
-    def update(self, id, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento):
+    def update(self, id, descrizione, color, backgroundColor, ordinatore, utenteInserimento):
         try:
             tipimenu = self.session.query(TTipiMenu).filter_by(id=id).first()
             if tipimenu:
@@ -61,7 +60,6 @@ class RepositoryTipiMenu:
                 tipimenu.color = color
                 tipimenu.backgroundColor = backgroundColor
                 tipimenu.ordinatore = ordinatore
-                tipimenu.dataInserimento = dataInserimento
                 tipimenu.utenteInserimento = utenteInserimento
                 self.session.commit()
                 return {'tipimenu': 'updated!'}, 200

@@ -1,32 +1,338 @@
-<!-- Modal for adding/modifying user type -->
-<div id="addUtenteModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeAddUtenteForm()">&times;</span>
-        <h2 id="modalTitle">Aggiungi Tipo Utente</h2>
-        <form id="userTypeForm" method="POST" action="{{ url_for('app_cucina.creazione_tipologia_utenti') }}">
-            {{ form.hidden_tag() }}
-            <input type="hidden" name="tipoUtenteId" id="tipoUtenteId">
+{% extends "index.html" %}
 
-            <div>
-                {{ form.fkTipoUtente.label }} {{ form.fkTipoUtente }}
-            </div>
-            <div class="functionality-permissions">
-                <label for="fkFunzionalita">Funzionalità:</label>
-                <div class="permission-items" id="permissionItems">
-                    {% for funz_id, funz_titolo in funzionalita_map.items() %}
-                        <div class="permission-option">
-                            <label>
-                                <input type="checkbox" name="funzionalita" value="{{ funz_id }}">
-                                {{ funz_titolo }}
-                                <input type="checkbox" name="permesso_{{ funz_id }}" value="true"> Abilitato
-                            </label>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <div>
-                {{ form.submit() }}
-            </div>
-        </form>
+{% block title %}
+Utenti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
+            <select id="searchType" onchange="filterTable()">
+                <option value="">Seleziona tipologia</option>
+                {% for tipologia in tipologieUtente %}
+                <option value="{{ tipologia.id }}">{{ tipologia.nomeTipoUtente }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button onclick="showAddUtenteForm()">Aggiungi nuovo utente</button>
+    </div>
+
+    <div class="utenti-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Username</th>
+                    <th>Cognome</th>
+                    <th>Nome</th>
+                    <th>Ruolo</th>
+                    <th>Inizio</th>
+                    <th>Fine</th>
+                    <th>Abilitazioni</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="utentiTableBody">
+                {% for utente in utenti %}
+                <tr>
+                    <td><button class="btn btn-secondary" onclick="showModificaForm({{ utente.id }})">Modifica</button></td>
+                    <td>{{ utente.username }}</td>
+                    <td>{{ utente.cognome }}</td>
+                    <td>{{ utente.nome }}</td>
+                    <td>{{ tipologieUtente_map[utente.fkTipoUtente] }}</td>
+                    <td>{{ utente.inizio }}</td>
+                    <td>{{ utente.fine }}</td>
+                    <td>
+                        {% set abilitazioni_ids = utente.reparti.split(',') if utente.reparti else [] %}
+                        {% if abilitazioni_ids %}
+                            {% for id in abilitazioni_ids %}
+                                {% set int_id = id.strip() | int %}
+                                {% set reparto = reparti_map.get(int_id, 'Reparto non trovato') %}
+                                {{ reparto }}{% if not loop.last %},<br>{% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td><button onclick="impersonifica({{ utente.id }})">Imp</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+
+<!-- Modal per l'aggiunta degli Utenti -->
+<div id="addModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddForm()">&times;</span>
+            <form id="addUtenteForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="addUtenteId" name="utenteId">
+                <div class="modal-header">
+                    <h5 class="modal-title">Aggiungi Utente</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control") }}
+                        {% for error in form.username.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.cognome
+                        {{ form.cognome(class="form-control") }}
+                        {% for error in form.cognome.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.nome.label(class="form-label") }}
+                        {{ form.nome(class="form-control") }}
+                        {% for error in form.nome.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.fkTipoUtente.label(class="form-label") }}
+                        {{ form.fkTipoUtente(class="form-control") }}
+                        {% for error in form.fkTipoUtente.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.inizio.label(class="form-label") }}
+                        {{ form.inizio(class="form-control") }}
+                        {% for error in form.inizio.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.fine.label(class="form-label") }}
+                        {{ form.fine(class="form-control") }}
+                        {% for error in form.fine.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.reparti.label(class="form-label") }}
+                        {{ form.reparti(class="form-control") }}
+                        {% for error in form.reparti.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control") }}
+                        {% for error in form.email.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% for error in form.password.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="addSubmitButton" class="btn btn-primary">Aggiungi Utente</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal per la modifica degli Utenti -->
+<div id="editModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditForm()">&times;</span>
+            <form id="editUtenteForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="editUtenteId" name="utenteId">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifica Utente</h5>
+                </div>
+                <div class="modal-body">
+                    <h4 class="modal-title" id="editUsername"></h4>
+
+                    <div class="form-group">
+                        {{ form.fkTipoUtente.label(class="form-label") }}
+                        {{ form.fkTipoUtente(class="form-control") }}
+                        {% for error in form.fkTipoUtente.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.inizio.label(class="form-label") }}
+                        {{ form.inizio(class="form-control") }}
+                        {% for error in form.inizio.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.fine.label(class="form-label") }}
+                        {{ form.fine(class="form-control") }}
+                        {% for error in form.fine.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.reparti.label(class="form-label") }}
+                        {{ form.reparti(class="form-control") }}
+                        {% for error in form.reparti.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="editSubmitButton" class="btn btn-primary">Salva Modifiche</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('addUtenteForm');
+        const submitButton = document.getElementById('addSubmitButton');
+        const tipoIdField = document.getElementById('addUtenteId');
+        const addUtenteModal = document.getElementById('addModal');
+        const searchNameInput = document.getElementById('searchName');
+        const searchTypeSelect = document.getElementById('searchType');
+        const utentiTableBody = document.getElementById('utentiTableBody');
+
+        // Funzione per mostrare il modulo di aggiunta
+        window.showAddUtenteForm = function() {
+            console.log('Aggiungi Utente cliccato'); // Verifica se la funzione viene chiamata
+            form.reset();
+            tipoIdField.value = '';
+            submitButton.textContent = 'Aggiungi Utente';
+            document.querySelector('#addModal .modal-title').textContent = 'Aggiungi Utente';
+            addUtenteModal.style.display = 'block';
+        };
+
+        // Funzione per aprire il modulo di modifica
+        window.showModificaForm = function(id) {
+            fetch(`/app_cucina/creazione_utenti/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                // Popola i campi del form
+                form.elements['username'].value = data.username;
+                form.elements['nome'].value = data.nome;
+                form.elements['cognome'].value = data.cognome;
+                form.elements['fkTipoUtente'].value = data.fkTipoUtente;
+                form.elements['inizio'].value = data.inizio;
+                form.elements['fine'].value = data.fine;
+                form.elements['email'].value = data.email;
+        
+                // Popola le checkbox dei reparti
+                const repartiCheckboxes = document.querySelectorAll('input[name="reparti"]');
+                const repartiSelected = data.reparti;
+        
+                repartiCheckboxes.forEach(checkbox => {
+                    if (repartiSelected.includes(checkbox.value)) {
+                        checkbox.checked = true;  // Se il reparto è presente, seleziona la checkbox
+                    } else {
+                        checkbox.checked = false; // Altrimenti, deseleziona
+                    }
+                });
+        
+                tipoIdField.value = id;
+                submitButton.textContent = 'Salva Modifiche';
+                document.querySelector('#editModal .modal-title').textContent = 'Modifica Utente';
+                addUtenteModal.style.display = 'block';
+
+        
+            })
+            .catch(error => {
+                console.error('Error fetching Utente data:', error);
+            });
+        };
+
+        // Funzione per chiudere il modulo di aggiunta
+        window.closeAddForm = function() {
+            addUtenteModal.style.display = 'none';
+        };
+
+        // Funzione per chiudere il modulo di modifica
+        window.closeEditForm = function() {
+            addUtenteModal.style.display = 'none';
+        };
+
+        // Gestione dell'invio del modulo
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const utenteId = tipoIdField.value;
+            const url = utenteId ? `/app_cucina/creazione_utenti/${utenteId}` : '/app_cucina/creazione_utenti';
+            const method = utenteId ? 'PUT' : 'POST';
+            const formData = new FormData(form);
+
+            fetch(url, {
+                method: method,
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Operazione completata con successo!');
+                    closeAddForm();
+                    location.reload();
+                } else {
+                    throw new Error('Errore durante la richiesta.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante l\'operazione.');
+            });
+        });
+
+        // Funzione per filtrare gli Utenti
+        function filterTable() {
+            const searchName = searchNameInput.value.toLowerCase();
+            const searchType = searchTypeSelect.value;
+    
+            const rows = utentiTableBody.getElementsByTagName('tr');
+    
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                const nome = cells[1].textContent.toLowerCase();
+                const tipo = cells[3].textContent;
+    
+                if (
+                    (nome.includes(searchName) || searchName === '') &&
+                    (tipo.includes(searchType) || searchType === '')
+                ) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+
+        // Aggiungi gli eventi per i filtri
+        searchNameInput.addEventListener('input', filterTable);
+        searchTypeSelect.addEventListener('change', filterTable);
+    });
+</script>
+{% endblock %}

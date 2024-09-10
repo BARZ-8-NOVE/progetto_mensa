@@ -16,15 +16,13 @@ class Service_t_Reparti:
     def get_by_ids(self, ids):
         return self.repository.get_by_ids(ids)
 
-    def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()        
-        return self.repository.create(codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento)
+    def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
+           
+        return self.repository.create(codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento)
 
-    def update(self, id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()        
-        return self.repository.update(id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento)
+    def update(self, id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
+       
+        return self.repository.update(id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento)
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)

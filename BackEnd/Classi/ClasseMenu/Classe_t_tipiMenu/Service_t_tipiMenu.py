@@ -11,15 +11,13 @@ class Service_t_TipiMenu:
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
 
-    def create(self, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.create(descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento)
+    def create(self, descrizione, color, backgroundColor, ordinatore, utenteInserimento):
 
-    def update(self, id, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.update(id, descrizione, color, backgroundColor, ordinatore, dataInserimento, utenteInserimento)
+        return self.repository.create(descrizione, color, backgroundColor, ordinatore, utenteInserimento)
+
+    def update(self, id, descrizione, color, backgroundColor, ordinatore, utenteInserimento):
+
+        return self.repository.update(id, descrizione, color, backgroundColor, ordinatore, utenteInserimento)
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)

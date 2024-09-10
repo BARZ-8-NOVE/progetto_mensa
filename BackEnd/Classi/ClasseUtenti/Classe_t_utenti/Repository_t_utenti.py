@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 class Repository_t_utenti:
     
@@ -45,6 +45,9 @@ class Repository_t_utenti:
     def exist_utenti_by_tipoUtente(self, fkTipoUtente):
         results = self.session.query(TUtenti).filter_by(fkTipoUtente=fkTipoUtente).all()
         return results
+    
+
+
 
     def get_all(self):
         try:
@@ -123,7 +126,7 @@ class Repository_t_utenti:
 
 
     def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: int,
-                  fkFunzCustom: str, reparti: str, attivo: int, inizio, email: str, password: str):
+                  fkFunzCustom: str, reparti: str, attivo: int, inizio, email: str, password: str, fine):
         try:
             # Log dei dati di input
             print(f"Creating user with: username={username}, nome={nome}, cognome={cognome}, fkTipoUtente={fkTipoUtente}, fkFunzCustom={fkFunzCustom}, reparti={reparti}, attivo={attivo}, inizio={inizio}, email={email}")
@@ -142,18 +145,18 @@ class Repository_t_utenti:
                 raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
             
             # Creazione dell'oggetto utente
-            
             utente = TUtenti(
                 public_id=str(uuid.uuid4()),
                 username=username,
                 nome=nome,
                 cognome=cognome,
                 fkTipoUtente=fkTipoUtente,
-                fkFunzCustom=','.join(fkFunzCustom) if isinstance(fkFunzCustom, list) else fkFunzCustom,
+                fkFunzCustom=','.join(map(str, fkFunzCustom)) if isinstance(fkFunzCustom, list) else fkFunzCustom,
                 reparti=','.join(map(str, reparti)) if isinstance(reparti, list) else reparti,
                 attivo=attivo,
                 inizio=inizio,
                 email=email,
+                fine=fine,
                 password=password
             )
 
@@ -176,6 +179,7 @@ class Repository_t_utenti:
             # Assicurati che la sessione venga chiusa
             if self.session:
                 self.session.close()
+
 
 
 
@@ -287,33 +291,52 @@ class Repository_t_utenti:
         else:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+    
         
     def do_login(self, username: str, password: str, token_expires=timedelta(minutes=30)):
         result = self.exists_utente_by_username(username)
-        if result:
-            hashed_password = result.password
-            if hashed_password and check_password_hash(hashed_password, password):
-                if result.attivo == 0:
-                    self.update_utente_attivo(result.id, 1)
-                    access_token = create_access_token(identity=result.public_id, expires_delta=token_expires)
-                    response = jsonify(access_token=access_token)
-                    set_access_cookies(response=response, encoded_access_token=access_token)
-                    result.token = access_token
-                    result.expires = datetime.now() + token_expires
-                    self.session.commit()
-                    return {'id': result.id, 'token': access_token, 'username': username, 'reparti': result.reparti,
-                            'nome': result.nome, 'cognome': result.cognome, 'email': result.email,
-                            'fkTipoUtente': result.fkTipoUtente}
-                else:
-                    self.update_utente_attivo(result.id, 0)
-                    self.session.close()
-                    raise Forbidden(UtilityMessages.forbiddenUtenteAlreadyLoggedInError(username, 'in'))
-            else:
-                self.session.close()
-                raise Forbidden(UtilityMessages.forbiddenPasswordIncorrectError(username))
-        else:
+        
+        if not result:
             self.session.close()
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+
+        hashed_password = result.password
+        if not (hashed_password and check_password_hash(hashed_password, password)):
+            self.session.close()
+            raise Forbidden(UtilityMessages.forbiddenPasswordIncorrectError(username))
+
+        # Controlla se l'utente è scaduto
+        if result.fine is not None and isinstance(result.fine, datetime) and result.fine.date() < date.today():
+            self.session.close()
+            raise Forbidden(UtilityMessages.utenteScadutoError(username))
+        
+        # Se l'utente non è attivo, aggiorna lo stato e genera un nuovo token
+        if result.attivo == 0:
+            self.update_utente_attivo(result.id, 1)
+            access_token = create_access_token(identity=result.public_id, expires_delta=token_expires)
+            response = jsonify(access_token=access_token)
+            set_access_cookies(response=response, encoded_access_token=access_token)
+            result.token = access_token
+            result.expires = datetime.now() + token_expires
+            self.session.commit()
+        else:
+            access_token = result.token  # Usa il token esistente se l'utente è già attivo
+
+        # Prepara l'oggetto utente
+        utente = {
+            'id': result.id,
+            'token': access_token,
+            'username': username,
+            'reparti': result.reparti,
+            'nome': result.nome,
+            'cognome': result.cognome,
+            'email': result.email,
+            'fkTipoUtente': result.fkTipoUtente,
+            'fine': result.fine
+        }
+        return utente
+
+
         
 
 
@@ -398,3 +421,33 @@ class Repository_t_utenti:
 
         # Confronta il token attuale con quello salvato nel database
         return user.token == token
+
+
+    def update_da_pagina_admin(self, id, fkTipoUtente: int, reparti: list, inizio, fine):
+        try:
+            print(f"Updating user with id: {id}")
+            Utente = self.session.query(TUtenti).filter_by(id=id).first()
+            if Utente:
+                print(f"Found user: {Utente}")
+                Utente.fkTipoUtente = fkTipoUtente
+                Utente.reparti = ','.join(map(str, reparti)) if isinstance(reparti, list) else reparti
+
+                # Gestisci i valori vuoti per le colonne DATE/DATETIME
+                Utente.inizio = inizio if inizio else None
+                Utente.fine = fine if fine else None
+
+                print("Committing transaction")
+                self.session.commit()
+                return {'Message': 'utente updated successfully!'}, 200
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        except Exception as e:
+            print(f"Exception occurred: {str(e)}")
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
+
+
+    

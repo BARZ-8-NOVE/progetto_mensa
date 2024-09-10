@@ -205,6 +205,12 @@ class RepositoryTSchede:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        
+        finally:
+                # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+                if self.session:
+                    self.session.close()
+
 
     def delete(self, id, utenteCancellazione):
         try:

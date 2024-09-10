@@ -55,6 +55,15 @@ class UtilityMessages:
         return f'The password is incorrect for this username: {username}'
     
     @staticmethod
+    def utenteScadutoError(username:str):
+        """
+        :description: messaggio di errore che avviene quando l'utente ha raqggiunto la sua data di fine
+        :args: fine:data
+        :return: a message of utente non piu valido 
+        """
+        return f'L\'{username} non è piu un utente valido!'
+    
+    @staticmethod
     def forbiddenUtenteAlreadyLoggedInError(username:str, in_or_out:str):
         """
         :description: Static method that concatenate a string passing 2 parameters.

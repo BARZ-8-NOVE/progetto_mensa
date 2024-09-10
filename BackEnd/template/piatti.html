@@ -16,7 +16,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                 {% endfor %}
             </select>
         </div>
-        {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
+        {% if page_permissions['/app_cucina/piatti']['can_write'] %}
             <button onclick="showAddForm()">Aggiungi piatto</button>
         {% endif %}
     </div>
@@ -25,7 +25,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
+                    {% if page_permissions['/app_cucina/piatti']['can_write'] %}
                     <th></th>
                     {% endif %}
                     <th>Tipo piatto</th>
@@ -35,7 +35,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                     <th>Ordinatore</th>
                     <th>Data Inserimento</th>
                     <th>Utente Inserimento</th>
-                    {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
+                    {% if page_permissions['/app_cucina/piatti']['can_write'] %}
                     <th></th>
                     {% endif %}
                 </tr>
@@ -43,7 +43,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
             <tbody id="piattiTableBody">
                 {% for piatto in piatti %}
                 <tr>
-                    {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
+                    {% if page_permissions['/app_cucina/piatti']['can_write'] %}
                         <td><button class="btn btn-secondary" onclick="showModificaForm({{ piatto.id }})">Modifica</button></td>
                     {% endif %}
                     <td>{{ TipoPiatto_map[piatto.fkTipoPiatto] }}</td>
@@ -53,7 +53,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                     <td>{{ piatto.ordinatore }}</td>
                     <td>{{ piatto.dataInserimento }}</td>
                     <td>{{ piatto.utenteInserimento }}</td>
-                    {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                    {% if page_permissions['/app_cucina/piatti']['can_write'] %}
                         <td><button class="btn btn-elimina" onclick="elimina({{ piatto.id }})">X</button></td>
                     {% endif %}
                 </tr>

@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 
 {% block title %}
-Reparti - Gestione Cucina e Mensa Ospedaliera
+Utenti - Gestione Cucina e Mensa Ospedaliera
 {% endblock %}
 
 {% block content %}
@@ -36,7 +36,7 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
         <tbody id="utentiTableBody">
             {% for utente in utenti %}
             <tr>
-                <td><button>modifica</button></td>
+                <td><button class="btn btn-secondary" onclick="showModificaForm({{ utente.id }})">Modifica</button></td>
                 <td>{{ utente.username }}</td>
                 <td>{{ utente.cognome }}</td>
                 <td>{{ utente.nome }}</td>
@@ -53,7 +53,7 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
                         {% endfor %}
                     {% endif %}
                 </td>         
-                <td><button>imp</button></td>
+                <td><button onclick="impersonifica({{ utente.id }})">Imp</button></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -67,45 +67,157 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
         <h2>Aggiungi Utente</h2>
         <form method="POST" action="{{ url_for('app_cucina.creazione_utenti') }}">
             {{ form.hidden_tag() }}
-            <div>
-                {{ form.username.label }} {{ form.username(size=32) }}
+            <div class="form-group">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control") }}
+                {% for error in form.username.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.cognome.label }} {{ form.cognome() }}
+            
+            <div class="form-group">
+                {{ form.cognome.label(class="form-label") }}
+                {{ form.cognome(class="form-control") }}
+                {% for error in form.cognome.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.nome.label }} {{ form.nome() }}
+            
+            <div class="form-group">
+                {{ form.nome.label(class="form-label") }}
+                {{ form.nome(class="form-control") }}
+                {% for error in form.nome.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.fkTipoUtente.label }} {{ form.fkTipoUtente() }}
+            
+            <div class="form-group">
+                {{ form.fkTipoUtente.label(class="form-label") }}
+                {{ form.fkTipoUtente(class="form-control") }}
+                {% for error in form.fkTipoUtente.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.fkFunzCustom.label }} {{ form.fkFunzCustom() }}
+            
+            <div class="form-group">
+                {{ form.inizio.label(class="form-label") }}
+                {{ form.inizio(class="form-control") }}
+                {% for error in form.inizio.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.reparti.label }} {{ form.reparti() }}
+            
+            <div class="form-group">
+                {{ form.fine.label(class="form-label") }}
+                {{ form.fine(class="form-control") }}
+                {% for error in form.fine.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.email.label }} {{ form.email() }}
-                {% if form.email.errors %}
-                    <div class="error">
-                        {% for error in form.email.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+            
+            <div class="form-group">
+                {{ form.reparti.label(class="form-label") }}
+                {{ form.reparti(class="form-control") }}
+                {% for error in form.reparti.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.password.label }} {{ form.password() }}
+            
+            <div class="form-group">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+                {% for error in form.email.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
             </div>
-            <div>
-                {{ form.submit() }}
+            
+            <div class="form-group">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control") }}
+                {% for error in form.password.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salva Utente</button>
+                <button type="button" class="btn btn-secondary" onclick="closeAddUtenteForm()">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Editing Utente -->
+<div id="editUtenteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditUtenteForm()">&times;</span>
+        <h2>Modifica Utente</h2>
+        <form id="editUtenteForm" method="POST">
+            {{ form.hidden_tag() }}
+            <input type="hidden" id="editUtenteId" name="utenteId">
+            
+            <div class="form-group">
+                <label class="form-label">User Name</label>
+                <input type="text" id="editUsername" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input type="text" id="editNome" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Cognome</label>
+                <input type="text" id="editCognome" class="form-control" readonly>
+            </div>
+            
+            <div class="form-group">
+                {{ form.fkTipoUtente.label(class="form-label") }}
+                {{ form.fkTipoUtente(class="form-control") }}
+                {% for error in form.fkTipoUtente.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.inizio.label(class="form-label") }}
+                {{ form.inizio(class="form-control") }}
+                {% for error in form.inizio.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.fine.label(class="form-label") }}
+                {{ form.fine(class="form-control") }}
+                {% for error in form.fine.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.reparti.label(class="form-label") }}
+                {{ form.reparti(class="form-control") }}
+                {% for error in form.reparti.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="text" id="editEmail" class="form-control" readonly>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                <button type="button" class="btn btn-secondary" onclick="closeEditUtenteForm()">Annulla</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    // Funzione per aprire il modulo di aggiunta utente
     function showAddUtenteForm() {
         document.getElementById('addUtenteModal').style.display = 'block';
     }
@@ -114,25 +226,165 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
         document.getElementById('addUtenteModal').style.display = 'none';
     }
 
+    // Funzione per aprire il modulo di modifica
+    function showModificaForm(id) {
+        fetch(`/app_cucina/creazione_utenti/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            // Popola i campi del form con i dati ricevuti
+            document.getElementById('editUsername').value = data.username;
+            document.getElementById('editNome').value = data.nome;
+            document.getElementById('editCognome').value = data.cognome;
+            document.getElementById('editEmail').value = data.email;
+            document.getElementById('editUtenteId').value = id;
+
+            // Aggiorna il valore dei campi del form
+            const form = document.querySelector('#editUtenteForm');
+            form.elements['fkTipoUtente'].value = data.fkTipoUtente;
+            form.elements['inizio'].value = data.inizio;
+            form.elements['fine'].value = data.fine;
+
+            // Popola le checkbox dei reparti
+            const repartiCheckboxes = document.querySelectorAll('input[name="reparti"]');
+            const repartiSelected = data.reparti;
+    
+            repartiCheckboxes.forEach(checkbox => {
+                if (repartiSelected.includes(checkbox.value)) {
+                    checkbox.checked = true;  // Se il reparto è presente, seleziona la checkbox
+                } else {
+                    checkbox.checked = false; // Altrimenti, deseleziona
+                }
+            });
+
+            // Mostra il modal
+            document.getElementById('editUtenteModal').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching Utente data:', error);
+        });
+    }
+
+ // Memorizza i valori iniziali dei checkbox al caricamento della pagina o all'apertura del modal
+ let initialCheckboxValues = new Set();
+
+ document.addEventListener('DOMContentLoaded', () => {
+     // Popola i valori iniziali
+     document.querySelectorAll('input[name="reparti"]:checked').forEach(checkbox => {
+         initialCheckboxValues.add(checkbox.value);
+     });
+ });
+
+// Funzione per gestire l'aggiornamento dell'utente
+document.querySelector('#editUtenteForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Previeni l'invio del form di default
+
+    // Ottieni l'ID dell'utente
+    const id = document.getElementById('editUtenteId').value;
+    const formData = new FormData(this);
+    
+    const repartiValues = [];
+
+    // Cicla su tutte le voci di FormData
+    for (let [key, value] of formData.entries()) {
+        // Filtra solo le voci che corrispondono a 'reparti'
+        if (key.startsWith('reparti')) {
+            repartiValues.push(value);
+            console.log(`Reparti: ${value}`);
+        }
+    }
+
+// Se hai più checkbox per 'reparti', potresti trovare più voci
+console.log('Tutti i valori di reparti:', repartiValues);
+    
+
+    const payload = {
+        id: id,
+        fkTipoUtente: formData.get('fkTipoUtente'),
+        reparti: repartiValues,  // Usa l'array di nuovi reparti
+        inizio: formData.get('inizio'),
+        fine: formData.get('fine')
+    };
+
+    console.log('Payload:', JSON.stringify(payload));  // Stampa il payload
+
+    // Aggiungi il token CSRF all'intestazione della richiesta
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // Invia la richiesta di aggiornamento
+    fetch(`/app_cucina/creazione_utenti/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.text()) // Recupera la risposta come testo
+    .then(text => {
+        console.log('Server Response:', text);
+        
+        // Prova a fare il parsing della risposta in JSON
+        let data;
+        try {
+            data = JSON.parse(text); 
+        } catch (e) {
+            console.error('Errore nel parsing della risposta:', e);
+            alert('Errore nella risposta del server');
+            return;
+        }
+
+        // Controlla se esiste un messaggio di successo
+        if (data.message && data.message.includes('aggiornato con successo')) {
+            alert('Utente aggiornato con successo');
+            closeEditUtenteForm(); // Chiudi il modal
+            
+            // Ricarica la pagina per aggiornare i dati
+            location.reload(); 
+        } else {
+            alert('Errore nell\'aggiornamento dell\'utente');
+        }
+    })
+    .catch(error => {
+        console.error('Errore durante l\'aggiornamento dell\'utente:', error);
+        alert('Errore di rete o server');
+    });
+
+
+
+});
+
+
+ 
+    
+    
+    
+    
+
+
+    function closeEditUtenteForm() {
+        document.getElementById('editUtenteModal').style.display = 'none';
+    }
+
+    // Funzione per filtrare la tabella
     document.addEventListener('DOMContentLoaded', function() {
         const searchNameInput = document.getElementById('searchName');
         const searchTypeSelect = document.getElementById('searchType');
         const utentiTableBody = document.getElementById('utentiTableBody');
-    
+
         function filterTable() {
             const searchName = searchNameInput.value.toLowerCase();
             const searchType = searchTypeSelect.value;
-    
+
             const rows = utentiTableBody.getElementsByTagName('tr');
-    
+
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
                 const username = row.cells[1].textContent.toLowerCase(); // Nome nella seconda colonna
                 const fkTipoUtente = row.cells[4].textContent; // Ruolo nella quinta colonna
-    
+
                 const matchesName = username.includes(searchName);
                 const matchesType = searchType === '' || fkTipoUtente === searchTypeSelect.options[searchTypeSelect.selectedIndex].text;
-    
+
                 if (matchesName && matchesType) {
                     row.style.display = ''; // Mostra la riga
                 } else {
@@ -146,6 +398,9 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
         searchTypeSelect.addEventListener('change', filterTable);
     });
 </script>
+
+
+
 
 
 {% endblock %}

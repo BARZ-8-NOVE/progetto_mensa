@@ -15,15 +15,13 @@ class Service_t_TipiPiatti:
     def get_by_id(self, id):
         return self.repository.get_by_id(id)
 
-    def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.create(descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento)
+    def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
 
-    def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
-        if not dataInserimento:
-            dataInserimento = datetime.now()
-        return self.repository.update(id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione)
+        return self.repository.create(descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento)
+
+    def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
+
+        return self.repository.update(id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento)
 
     def delete(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)

@@ -75,7 +75,7 @@ class RepositoryReparti:
 
 
 
-    def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento):
+    def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
         try:
             reparto = TReparti(
                 codiceAreas=codiceAreas, 
@@ -87,7 +87,6 @@ class RepositoryReparti:
                 lato=lato, 
                 inizio=inizio, 
                 fine=fine,
-                dataInserimento=dataInserimento, 
                 utenteInserimento=utenteInserimento
             )
             self.session.add(reparto)
@@ -97,7 +96,7 @@ class RepositoryReparti:
             self.session.rollback()
             return {'Error': str(e)}, 500
 
-    def update(self, id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, dataInserimento, utenteInserimento):
+    def update(self, id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
         try:
             reparto = self.session.query(TReparti).filter_by(id=id).first()
             if reparto:
@@ -110,7 +109,6 @@ class RepositoryReparti:
                 reparto.lato = lato
                 reparto.inizio = inizio
                 reparto.fine = fine
-                reparto.dataInserimento = dataInserimento
                 reparto.utenteInserimento = utenteInserimento
                 self.session.commit()
                 return {'Message': 'Reparto updated successfully!'}, 200

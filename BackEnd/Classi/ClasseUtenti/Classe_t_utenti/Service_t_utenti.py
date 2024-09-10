@@ -30,7 +30,7 @@ class Service_t_utenti:
     
   
     def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: str,
-                    fkFunzCustom: str, reparti: str, email: str, password: str):
+                    fkFunzCustom: str, reparti: str, email: str, password: str, inizio, fine):
         try:
             # Imposta stato predefinito e data di inizio
             attivo = 0
@@ -46,9 +46,10 @@ class Service_t_utenti:
                 fkFunzCustom=fkFunzCustom,
                 reparti=reparti,
                 attivo=attivo,
-                inizio=inizio,
                 email=email,
-                password=hashed_password
+                password=hashed_password,
+                inizio=inizio,
+                fine=fine
             )
 
         except Exception as e:
@@ -124,4 +125,7 @@ class Service_t_utenti:
         return self.repository.expiredTokens()
     
     def is_token_valid(self, id, token):
-         return self.repository.is_token_valid(id, token)
+        return self.repository.is_token_valid(id, token)
+    
+    def update_da_pagina_admin(self, id, fkTipoUtente, reparti, inizio, fine):
+        return self.repository.update_da_pagina_admin(id, fkTipoUtente, reparti, inizio, fine)

@@ -6,11 +6,22 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
 
 {% block content %}
 <div class="container">
-    <h1>Tipologia Piatti</h1>
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+        </div>
+        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+            <button onclick="showAddForm()">Aggiungi Tipo Piatto</button>
+        {% endif %}
+    </div>
+
+    <!-- Tabella dei piatti -->
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>ID</th>
+                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                <th></th>
+                {% endif %}
                 <th>Descrizione</th>
                 <th>Descrizione Plurale</th>
                 <th>In Menu</th>
@@ -19,12 +30,17 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
                 <th>Colore Sfondo</th>
                 <th>Data Inserimento</th>
                 <th>Utente Inserimento</th>
+                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                <th></th>
+                {% endif %}
             </tr>
         </thead>
-        <tbody>
+        <tbody id="piattiTableBody">
             {% for piatto in tipologia_piatti %}
             <tr>
-                <td>{{ piatto.id }}</td>
+                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                    <td><button class="btn btn-secondary" onclick="showModificaForm({{ piatto.id }})">Modifica</button></td>
+                {% endif %}  
                 <td>{{ piatto.descrizione }}</td>
                 <td>{{ piatto.descrizionePlurale }}</td>
                 <td>{{ piatto.inMenu }}</td>
@@ -33,9 +49,191 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
                 <td>{{ piatto.backgroundColor }}</td>
                 <td>{{ piatto.dataInserimento }}</td>
                 <td>{{ piatto.utenteInserimento }}</td>
+                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                    <td><button class="btn btn-elimina" onclick="elimina({{ piatto.id }})">X</button></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- Modal per l'aggiunta e la modifica di un piatto -->
+<div id="addModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeForm()">&times;</span>
+            <form id="piattoForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="piattoId" name="piattoId">
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title">Aggiungi Tipo Piatto</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.backgroundColor.label(class="form-label") }}
+                        {{ form.backgroundColor(class="form-control") }}
+                        {% for error in form.backgroundColor.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.color.label(class="form-label") }}
+                        {{ form.color(class="form-control") }}
+                        {% for error in form.color.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.descrizione.label(class="form-label") }}
+                        {{ form.descrizione(class="form-control") }}
+                        {% for error in form.descrizione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.descrizionePlurale.label(class="form-label") }}
+                        {{ form.descrizionePlurale(class="form-control") }}
+                        {% for error in form.descrizionePlurale.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.inMenu.label(class="form-check-label") }}
+                        {{ form.inMenu(class="form-check-input") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.ordinatore.label(class="form-check-label") }}
+                        {{ form.ordinatore(class="form-check-input") }}
+                        {% for error in form.ordinatore.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi Piatto</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('piattoForm');
+        const submitButton = document.getElementById('submitButton');
+        const piattoIdField = document.getElementById('piattoId');
+        const addPiattoModal = document.getElementById('addModal');
+        const searchNameInput = document.getElementById('searchName');
+        const piattiTableBody = document.getElementById('piattiTableBody');
+
+        // Funzione per mostrare il modulo di aggiunta
+        window.showAddForm = function() {
+            form.reset();
+            piattoIdField.value = '';
+            submitButton.textContent = 'Aggiungi Piatto';
+            document.getElementById('modalTitle').textContent = 'Aggiungi Piatto';
+            addPiattoModal.style.display = 'block';
+        };
+
+        // Funzione per aprire il modulo di modifica
+        window.showModificaForm = function(id) {
+            fetch(`/app_cucina/tipologia_piatti/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                form.elements['color'].value = data.color;
+                form.elements['backgroundColor'].value = data.backgroundColor;
+                form.elements['descrizione'].value = data.descrizione;
+                form.elements['descrizionePlurale'].value = data.descrizionePlurale;
+                form.elements['inMenu'].checked = data.inMenu;
+                form.elements['ordinatore'].value = data.ordinatore;
+                piattoIdField.value = id;
+                submitButton.textContent = 'Salva Modifiche';
+                document.getElementById('modalTitle').textContent = 'Modifica Piatto';
+                addPiattoModal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching piatto data:', error);
+            });
+        };
+
+        // Funzione per chiudere il modulo
+        window.closeForm = function() {
+            addPiattoModal.style.display = 'none';
+        };
+
+        // Gestione dell'invio del modulo
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const piattoId = piattoIdField.value;
+            const url = piattoId ? `/app_cucina/tipologia_piatti/${piattoId}` : '/app_cucina/tipologia_piatti';
+            const method = piattoId ? 'PUT' : 'POST';
+            const formData = new FormData(form);
+    
+            fetch(url, {
+                method: method,
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Operazione completata con successo!');
+                    closeForm();
+                    location.reload();
+                } else {
+                    throw new Error('Errore durante la richiesta.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante l\'operazione.');
+            });
+        });
+
+        // Funzione per filtrare i piatti solo per nome
+        function filterTable() {
+            const searchName = searchNameInput.value.trim().toLowerCase();
+            const rows = piattiTableBody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const nameCell = rows[i].getElementsByTagName('td')[1]; // Colonna 'Descrizione'
+                const nameMatches = nameCell && nameCell.textContent.trim().toLowerCase().includes(searchName);
+                
+                if (nameMatches) {
+                    rows[i].style.display = '';
+                } else {
+                    rows[i].style.display = 'none';
+                }
+            }
+        }
+
+        searchNameInput.addEventListener('input', filterTable);
+
+    });  
+
+    function elimina(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`/app_cucina/tipologia_piatti/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken 
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Record eliminato con successo.');
+                    location.reload();
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Error during delete:', error);
+            });
+        }
+    }
+</script>
 {% endblock %}

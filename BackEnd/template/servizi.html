@@ -10,23 +10,38 @@ Servizi - Gestione Cucina e Mensa Ospedaliera
         <div>
             <input type="text" id="searchName" placeholder="Cerca per nome...">
         </div>
-        <button onclick="showAddRepartoForm()">Aggiungi servizio</button>
+        {% if page_permissions['/app_cucina/servizi']['can_write'] %}
+        <button onclick="showAddForm()">Aggiungi Servizio</button>
+        {% endif %}
     </div>
 
     <div class="servizi-list">
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
-                    <th>servizio</th>  
-                    <th>ordinatore</th>
+                    {% if page_permissions['/app_cucina/servizi']['can_write'] %}
+                        <th></th>
+                    {% endif %}
+                    <th>Servizio</th>  
+                    <th>Ordinatore</th>
+                    <th>Attivo</th> 
+                    {% if page_permissions['/app_cucina/servizi']['can_write'] %}
+                        <th></th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody id="serviziTableBody">
                 {% for servizio in servizi %}
                 <tr>
+                    {% if page_permissions['/app_cucina/servizi']['can_write'] %}
+                        <td><button class="btn btn-secondary" onclick="showModificaForm({{ servizio.id }})">Modifica</button></td>
+                    {% endif %}
                     <td>{{ servizio.descrizione }}</td>
-                    <td>{{ servizio.ordinatore}}</td>
-                   
+                    <td>{{ servizio.ordinatore }}</td>
+                    <td>{{ "Si" if servizio.inMenu else "No" }}</td>
+                    {% if page_permissions['/app_cucina/servizi']['can_write'] %}
+                        <td><button class="btn btn-elimina" onclick="elimina({{ servizio.id }})">X</button></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -34,5 +49,156 @@ Servizi - Gestione Cucina e Mensa Ospedaliera
     </div>
 </div>    
 
+<!-- Modal per l'aggiunta e la modifica dei servizi -->
+<div id="addModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeForm()">&times;</span>
+            <form id="serviziForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="serviziId" name="serviziId">
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title">Aggiungi Servizio</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.descrizione.label(class="form-label") }}
+                        {{ form.descrizione(class="form-control") }}
+                        {% for error in form.descrizione.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
 
-    {% endblock %}
+                    <div class="form-group">
+                        {{ form.ordinatore.label(class="form-check-label") }}
+                        {{ form.ordinatore(class="form-check-input") }}
+                        {% for error in form.ordinatore.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.inMenu.label(class="form-check-label") }}
+                        {{ form.inMenu(class="form-check-input") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi Servizio</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('serviziForm');
+        const submitButton = document.getElementById('submitButton');
+        const serviziIdField = document.getElementById('serviziId');
+        const addModal = document.getElementById('addModal');
+        const searchNameInput = document.getElementById('searchName');
+        const serviziTableBody = document.getElementById('serviziTableBody');
+
+        // Funzione per mostrare il modulo di aggiunta
+        window.showAddForm = function() {
+            form.reset();
+            serviziIdField.value = '';
+            submitButton.textContent = 'Aggiungi Servizio';
+            document.getElementById('modalTitle').textContent = 'Aggiungi Servizio';
+            addModal.style.display = 'block';
+        };
+
+        // Funzione per aprire il modulo di modifica
+        window.showModificaForm = function(id) {
+            fetch(`/app_cucina/servizi/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                // Imposta i valori corretti nei campi del form
+                form.elements['descrizione'].value = data.descrizione;
+                form.elements['ordinatore'].value = data.ordinatore;   
+                form.elements['inMenu'].checked = data.inMenu;
+
+                serviziIdField.value = id;
+                submitButton.textContent = 'Salva Modifiche';
+                document.getElementById('modalTitle').textContent = 'Modifica Servizio';
+                addModal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Errore nel recupero dei dati del servizio:', error);
+            });
+        };
+
+        // Funzione per chiudere il modulo
+        window.closeForm = function() {
+            addModal.style.display = 'none';
+        };
+
+        // Gestione dell'invio del modulo
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const serviziId = serviziIdField.value;
+            const url = serviziId ? `/app_cucina/servizi/${serviziId}` : '/app_cucina/servizi';
+            const method = serviziId ? 'PUT' : 'POST';
+            const formData = new FormData(form);
+
+            fetch(url, {
+                method: method,
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Operazione completata con successo!');
+                    closeForm();
+                    location.reload();
+                } else {
+                    throw new Error('Errore durante la richiesta.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante l\'operazione.');
+            });
+        });
+
+        // Funzione per filtrare i servizi per nome
+        function filterTable() {
+            const searchName = searchNameInput.value.trim().toLowerCase();
+            const rows = serviziTableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const servizioName = rows[i].getElementsByTagName('td')[1].textContent.toLowerCase();
+                rows[i].style.display = servizioName.includes(searchName) ? '' : 'none';
+            }
+        }
+
+        searchNameInput.addEventListener('input', filterTable);
+    });
+
+    
+    function elimina(id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`/app_cucina/servizi/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken 
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('non puoi eliminare i servizi!');
+                    location.reload();
+                } else {
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Error during delete:', error);
+            });
+        }
+    }
+</script>
+{% endblock %}

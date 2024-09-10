@@ -82,7 +82,7 @@ class RepositoryTipiPiatti:
             logging.error(f"Error getting tipo piatto by ID {id}: {e}")
             return {'Error': str(e)}, 400
 
-    def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento):
+    def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
         try:
             tipipiatto = TTipiPiatti(
                 descrizione=descrizione,
@@ -91,7 +91,6 @@ class RepositoryTipiPiatti:
                 ordinatore=ordinatore,
                 color=color,
                 backgroundColor=backgroundColor,
-                dataInserimento=dataInserimento,
                 utenteInserimento=utenteInserimento
             )
             self.session.add(tipipiatto)
@@ -101,7 +100,7 @@ class RepositoryTipiPiatti:
             self.session.rollback()
             return {'Error': str(e)}, 500
 
-    def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, dataInserimento, utenteInserimento, dataCancellazione, utenteCancellazione):
+    def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
         try:
             tipipiatto = self.session.query(TTipiPiatti).filter_by(id=id).first()
             if tipipiatto:
@@ -111,10 +110,8 @@ class RepositoryTipiPiatti:
                 tipipiatto.ordinatore = ordinatore
                 tipipiatto.color = color
                 tipipiatto.backgroundColor = backgroundColor
-                tipipiatto.dataInserimento = dataInserimento
                 tipipiatto.utenteInserimento = utenteInserimento
-                tipipiatto.dataCancellazione = dataCancellazione
-                tipipiatto.utenteCancellazione = utenteCancellazione
+
                 self.session.commit()
                 return {'tipipiatto': 'updated!'}, 200
             else:
