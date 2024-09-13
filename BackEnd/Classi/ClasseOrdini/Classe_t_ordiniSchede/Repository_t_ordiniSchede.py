@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseOrdini.Classe_t_ordiniSchede.Domain_t_ordiniSchede import TOrdiniSchede
+from Classi.ClasseSchede.Classe_t_schede.Domani_t_schede import TSchede
 from sqlalchemy.sql import func
 from datetime import datetime
 
@@ -36,6 +37,45 @@ class RepositoryOrdiniSchede:
         except Exception as e:
             return {'Error': str(e)}, 500
         
+
+
+    def get_by_day_and_nome_cognome(self, data, nome: str, cognome: str, servizio: int):
+        """Recupera tutti i record da TOrdiniSchede per un giorno, nome e cognome specifici, e un servizio specifico, solo per dipendenti e che non sono stati cancellati."""
+        try:
+            result = self.session.query(TOrdiniSchede).join(TSchede, TOrdiniSchede.fkScheda == TSchede.id).filter(
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.nome == nome,
+                TOrdiniSchede.cognome == cognome,
+                TOrdiniSchede.fkServizio == servizio,
+                TSchede.dipendente == 1,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).first()
+
+            if result:
+                return {
+                    'id': result.id,
+                    'fkOrdine': result.fkOrdine,
+                    'fkReparto': result.fkReparto,
+                    'data': result.data,
+                    'fkServizio': result.fkServizio,
+                    'fkScheda': result.fkScheda,
+                    'cognome': result.cognome,
+                    'nome': result.nome,
+                    'letto': result.letto,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione
+                }
+            else:
+                return None
+
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+
+        
+
 
     def get_all_by_day_and_reparto(self, data, fkReparto: int, servizio: int, scheda: int):
         """Recupera tutti i record da TOrdiniSchede per un giorno e un reparto specifico e che non sono stati cancellati."""

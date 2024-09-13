@@ -5,7 +5,7 @@
 #initialize_database()
 
 # Importare i controller
-from datetime import datetime, date
+from datetime import datetime, date, timedelta, time, timezone
 
 import calendar
 from functools import wraps
@@ -64,7 +64,7 @@ import json
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, ordinedipendenteForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -146,6 +146,26 @@ def get_username():
     
     return user['username']
 
+
+# Controlla se l'ora corrente è prima delle 14 ore rispetto alla data dell'ordine
+def check_order_time_limit(order_date):
+    today = datetime.now().date()
+    tomorrow = today + timedelta(days=1)
+    
+    # Blocca ordini per oggi o ieri
+    if order_date <= today:
+        return False
+
+    # Controlla solo se l'ordine è per domani e dopo le 10 del mattino
+    current_time = datetime.now().time()
+    time_limit = datetime.strptime("10:00:00", "%H:%M:%S").time()
+
+    if order_date == tomorrow and current_time > time_limit:
+        return False
+
+    return True
+
+
 #struttura il percorso per i vari permessi
 def get_page_name_from_path(path):
     # Rimuovi i caratteri di delimitazione finali e iniziali
@@ -168,6 +188,28 @@ def get_page_name_from_path(path):
     # Se il percorso non inizia con 'app_cucina/', restituisci vuoto o il percorso originale
     return ''
 #funzione per clonare il menu
+
+# utils.py o service_reparti.py
+
+def get_user_reparti(user_id):
+    """
+    Recupera la lista dei reparti accessibili da un determinato utente.
+
+    :param user_id: ID dell'utente
+    :return: Lista di reparti accessibili
+    """
+    # Ottieni la lista dei reparti per l'utente
+    user_reparti_ids = service_t_utenti.get_reparti_list(user_id)
+    
+    # Se l'utente ha reparti associati, recupera solo quelli
+    if user_reparti_ids:
+        response = service_t_Reparti.get_by_ids(user_reparti_ids)
+        if 'Error' in response:
+            return {'Error': 'Errore nel recupero dei reparti'}
+        return response['results']
+    else:
+        # Se non ci sono reparti associati, ritorna tutti i reparti
+        return service_t_Reparti.get_all()
 
 
 def clona_menu(menu_id, clone_date, utente_inserimento):
@@ -235,9 +277,48 @@ def get_reparti_utente():
     return user.get('reparti', []) if user else []
 
 
+def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
+    id_menu = service_t_Menu.get_by_data(ordine_data, scheda_tipo_menu)
+    if 'Error' in id_menu:
+        print("Error retrieving menu:", id_menu)
+        return {}
+
+    menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(id_menu['id'], servizio)
+    if isinstance(menu_servizio, dict) and 'id' in menu_servizio:
+        menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
+        
+        preparazioni_map = {}  # Inizializza la mappa
+
+        for assoc in menu_associazioni:
+            if isinstance(assoc, dict) and 'id' in assoc:
+                assoc_id = assoc['id']
+            else:
+                assoc_id = assoc  # Supponiamo che assoc sia già l'ID
+            
+            fk_associazione_result = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
+
+            if isinstance(fk_associazione_result, tuple):
+                fk_associazione = fk_associazione_result[0]
+            else:
+                fk_associazione = fk_associazione_result
+
+            if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
+                fk_piatto = fk_associazione['fkPiatto']
+                fk_preparazione = fk_associazione.get('fkPreparazione')
+                descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
+                preparazioni_map[fk_piatto] = descrizione_preparazione
+            else:
+                print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa l'errore per il debug
+
+        return preparazioni_map
+    else:
+        return {}
+
+
+
 @app_cucina.before_request
 def check_token_and_permissions():
-    exempt_routes = ['app_cucina.login', 'app_cucina.index' ,'app_cucina.do_logout']
+    exempt_routes = ['app_cucina.login', 'app_cucina.index', 'app_cucina.do_logout']
 
     # Se la rotta corrente è esente, salta il controllo del token e dei permessi
     if request.endpoint in exempt_routes:
@@ -250,9 +331,24 @@ def check_token_and_permissions():
     # Verifica la validità del token JWT
     try:
         user_id = session.get('user_id')
-        if not user_id or not service_t_utenti.is_token_valid(user_id, session.get('token')):
+        if not user_id:
+            return redirect(url_for('app_cucina.login'))
+
+        token = session.get('token')
+        is_token_valid = service_t_utenti.is_token_valid(user_id, token)
+
+        if not is_token_valid:
             session.clear()  # Cancella la sessione se il token non è valido
             return redirect(url_for('app_cucina.login'))
+
+        # Verifica e rinnova il token se necessario
+        response = service_t_utenti.manage_token(user_id, token)
+        if response and 'token' in response.json:
+            # Aggiorna la sessione con il nuovo token e scadenza
+            session['token'] = response.json['token']
+            expires = datetime.now() + timedelta(minutes=30)  # Imposta la nuova scadenza
+            session['expires'] = expires
+            
     except Exception as e:
         logging.error(f"Error verifying token for user_id {user_id}: {str(e)}")
         session.clear()
@@ -273,6 +369,7 @@ def check_token_and_permissions():
     except Exception as e:
         logging.error(f"Error checking permissions for user_id {user_id}: {str(e)}")
         return redirect(url_for('app_cucina.index'))
+
 
 
 @app_cucina.before_request
@@ -317,8 +414,7 @@ def login():
 
 
 
-
-@app.context_processor
+@app_cucina.context_processor
 def inject_user_data():
     menu_structure = session.get('menu_structure', [])
     user_id = session.get('user_id')
@@ -1860,9 +1956,7 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
 @app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
 def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
-
-
-
+        
         # Recupera i dati necessari
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
@@ -1884,49 +1978,28 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         month = ordine_data.month
         day = ordine_data.day
 
-        id_menu = service_t_Menu.get_by_data(ordine_data, scheda['fkTipoMenu'])
-        if 'Error' in id_menu:
-            print("Error retrieving menu:", id_menu)
-        else:
-            menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(id_menu['id'], servizio)
-            
-            if isinstance(menu_servizio, dict) and 'id' in menu_servizio:
-                menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
-                
-                preparazioni_map = {}  # Inizializza la mappa
+        preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
 
-                for assoc in menu_associazioni:
-                    if isinstance(assoc, dict) and 'id' in assoc:
-                        assoc_id = assoc['id']
-                    else:
-                        assoc_id = assoc  # Supponiamo che assoc sia già l'ID
-                    
-                    fk_associazione_result = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
-
-                    if isinstance(fk_associazione_result, tuple):
-                        fk_associazione = fk_associazione_result[0]
-                    else:
-                        fk_associazione = fk_associazione_result
-
-                    if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
-                        fk_piatto = fk_associazione['fkPiatto']
-                        fk_preparazione = fk_associazione.get('fkPreparazione')
-                        descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
-                        preparazioni_map[fk_piatto] = descrizione_preparazione
-                    else:
-                        print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa l'errore per il debug
 
         form = ordineSchedaForm()
         
         piatti_map = {}
         for piatto in piatti:
             piatto_id = int(piatto['id'])
-            piatti_map[piatto_id] = {
-                'id': piatto['id'],
-                'titolo': preparazioni_map.get(piatto_id, piatto['titolo']),  # Usa la descrizione della preparazione se disponibile
-                'codice': piatto['codice'],
-                'fkTipoPiatto': piatto['fkTipoPiatto']
-            }
+            tipo_piatto = piatto['fkTipoPiatto']
+            
+            # Filtra solo i piatti (preparazioni) che fanno parte del menu
+            # Escludi i tipi di piatti 4 e 5 dal filtraggio
+            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
+                piatti_map[piatto_id] = {
+                    'id': piatto['id'],
+                    'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione
+                    'codice': piatto['codice'],
+                    'fkTipoPiatto': piatto['fkTipoPiatto']
+                }
+
+        # Assegna piatti_map alla scheda corrente
+        scheda['piatti'] = piatti_map
 
         # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
         dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
@@ -1969,6 +2042,12 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
 
         if form.validate_on_submit():
+
+            
+            if not check_order_time_limit(get_data['data']):
+                flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
+                return redirect(url_for('app_cucina.ordini'))
+            
             fkOrdine = id
             fkReparto = reparto
             data = get_data['data']
@@ -2226,9 +2305,6 @@ def print_printProspetto(id):
         # Calcolo del totale aziendale
         totale_azienda = sum(count for counts in piatti_count.values() for count in counts.values())
 
-        print("Piatti Count:", piatti_count)
-        print("Preparazioni Totals:", preparazioni_totals)
-        print("Totale Azienda:", totale_azienda)
 
         return render_template(
             'printProspetto.html', 
@@ -2244,13 +2320,274 @@ def print_printProspetto(id):
 
 
 
+@app_cucina.route('/ordina_pasto', methods=['GET', 'POST'])
+def ordina_pasto():
+    if 'authenticated' in session:
+        # Imposta la data per domani
+        tomorrow = datetime.now() + timedelta(days=1)
+        year = request.args.get('year', tomorrow.year, type=int)
+        month = request.args.get('month', tomorrow.month, type=int)
+        day = request.args.get('day', tomorrow.day, type=int)
+        servizio_corrente = request.args.get('servizio', '1')
+        
+        piatti = service_t_Piatti.get_all()
+        # Ottieni i reparti accessibili dall'utente
+       
+        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        nome = user['nome']
+        cognome = user['cognome']
+        data = f'{year}-{month}-{day}'
+
+        # Verifica se esiste già un ordine
+        ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
+        if not ordine_esistente:
+            service_t_Ordini.create(data, servizio_corrente)
+            return redirect(url_for('app_cucina.ordina_pasto'))
+        
+        # Recupera il menu personale e altri dati
+        menu_personale = service_t_Schede.get_all_personale()
+        servizio = service_t_Servizi.get_all_servizi()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+
+        # Inizializza inf_scheda a None
+        inf_scheda = None
+        preparazioni_map = {}
+        piatti_ordine = {}
+        piatti_ordine_map = {}
+
+        # Controlla l'ordine esistente
+        controllo_ordine = service_t_OrdiniSchede.get_by_day_and_nome_cognome(data, nome, cognome, int(servizio_corrente))
+
+        # Supponiamo che piatti_map e preparazioni_map siano già disponibili
+        if controllo_ordine is not None:
+            # Recupera tutti i piatti ordinati associati a quella scheda
+            piatti_ordine = service_t_OrdiniPiatti.get_all_by_ordine_scheda(controllo_ordine['id'])
+            print('piatti_ordine: ', piatti_ordine)
+            
+            # Ottieni le informazioni della scheda associata
+            inf_scheda = service_t_Schede.get_by_id(controllo_ordine['fkScheda'])
+            print('inf_scheda: ', inf_scheda)
+            
+            # Crea una mappa delle preparazioni in base al tipo di menu e al servizio
+            preparazioni_map = get_preparazioni_map(data, inf_scheda['fkTipoMenu'], controllo_ordine['fkServizio'])
+            print('preparazioni_map: ', preparazioni_map)
+            
+            # Crea una nuova mappa per i piatti ordinati
+            
+            
+            # Itera attraverso i piatti ordinati e costruisci la mappa con codice e preparazione
+            for piatto_ordine in piatti_ordine:
+                piatto_id = int(piatto_ordine['fkPiatto'])
+                print('Processing piatto_ordine: ', piatto_ordine)
+                
+                p_m = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+                # Verifica se il piatto esiste in piatti_map
+                if piatto_id in p_m :
+                    print(f"Piatto trovato in piatti_map con ID {piatto_id}: ", p_m [piatto_id])
+                    
+                    # Aggiungi il piatto alla mappa dei piatti ordinati con i dettagli necessari
+                    piatti_ordine_map[piatto_ordine['id']] = {
+                        'id': piatto_ordine['id'],
+                        'fkPiatto': piatto_ordine['fkPiatto'],
+                        'quantita': piatto_ordine['quantita'],
+                        'note': piatto_ordine['note'],
+                        'titolo': preparazioni_map.get(piatto_id, p_m[piatto_id]['titolo']),    # Usa la descrizione della preparazione
+                        'codice': p_m [piatto_id]['codice'],  # Usa il codice del piatto
+                        'fkTipoPiatto': p_m [piatto_id]['fkTipoPiatto']  # Tipo di piatto (es. primo, secondo, etc.)
+                    }
+                else:
+                    print(f"Piatto con ID {piatto_id} non trovato in piatti_map.")
+            
+            print('Final piatti_ordine_map: ', piatti_ordine_map)
+
+
+        else:
+        
+            for scheda in menu_personale:
+                preparazioni_map = get_preparazioni_map(data, scheda['fkTipoMenu'], int(servizio_corrente))
+                
+                piatti_map = {}
+                for piatto in piatti:
+                    piatto_id = int(piatto['id'])
+                    
+                    # Filtra solo i piatti (preparazioni) che fanno parte del menu
+                    if piatto_id in preparazioni_map:
+                        piatti_map[piatto_id] = {
+                            'id': piatto['id'],
+                            'titolo': preparazioni_map.get(piatto_id),  # Usa solo la descrizione della preparazione
+                            'codice': piatto['codice'],
+                            'fkTipoPiatto': piatto['fkTipoPiatto']
+                        }
+
+                # Assegna piatti_map alla scheda corrente
+                scheda['piatti'] = piatti_map
+
+        return render_template(
+            'ordina_pasto.html',
+            year=year,
+            month=month,
+            day=day,
+            menu_personale=menu_personale,
+            servizio_corrente=servizio_corrente,
+            reparti=get_user_reparti(user['id']),
+            servizio=servizio,
+            ordine_esistente=ordine_esistente,
+            tipi_menu_map=tipi_menu_map,
+            preparazioni_map=preparazioni_map,
+            controllo_ordine=controllo_ordine,
+            inf_scheda=inf_scheda,          
+            piatti_ordine_map=piatti_ordine_map
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/ordina_pasto/delete/<int:id>/<int:servizio>/<int:reparto>/<int:ordine_id>', methods=['GET', 'DELETE'])
+def elimina_ordine_schede_dipendente(id, servizio, reparto, ordine_id):
+    if 'authenticated' in session:    
+        # Gestione della richiesta DELETE, se necessario
+        print(f"Request to delete scheda with ID: {id}")  # Aggiungi questo log
+        try:
+            service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
+            service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())         
+            flash('Scheda eliminata con successo!', 'success')
+            return '', 200  # Status code 200 
+        except Exception as e:
+            print(f"Error deleting scheda: {e}")  # Log per l'errore
+            flash('Errore durante l\'eliminazione della scheda.', 'danger')
+            return '', 400  # Status code 400 Bad Request per errori      
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 
 
 
 
+@app_cucina.route('/ordina_pasto/schede_dipendente/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
+@app_cucina.route('/ordina_pasto/schede_dipendente/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST', 'DELETE'])
+def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
+    if 'authenticated' in session:
 
+        # Recupera i dati necessari
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
+        get_data = service_t_Ordini.get_by_id(id)
+        scheda = service_t_Schede.get_by_id(scheda)
+        piatti = service_t_Piatti.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        info_servizio = service_t_Servizi.get_servizio_by_id(servizio)
+        info_reparto = service_t_Reparti.get_by_id(reparto)
+        tipi_piatti = service_t_TipiPiatti.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
+
+        # Costruisci una mappa delle preparazioni
+        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+
+
+        preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
+        
+        piatti_map = {}
+        for piatto in piatti:
+            piatto_id = int(piatto['id'])
+            tipo_piatto = piatto['fkTipoPiatto']
+            
+            # Filtra solo i piatti (preparazioni) che fanno parte del menu
+            # Escludi i tipi di piatti 4 e 5 dal filtraggio
+            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
+                piatti_map[piatto_id] = {
+                    'id': piatto['id'],
+                    'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione
+                    'codice': piatto['codice'],
+                    'fkTipoPiatto': piatto['fkTipoPiatto']
+                }
+
+        # Assegna piatti_map alla scheda corrente
+        scheda['piatti'] = piatti_map
+
+        info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
+             
+        info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+
+        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        nome = user['nome']
+        cognome = user['cognome']
+
+        form = ordinedipendenteForm()
+
+        if request.method == 'POST':
+
+
+            if form.validate_on_submit():
+                
+                ordine_id = request.form.get('ordine_id', default=None, type=int)
+                
+                # Il resto del codice per la gestione dell'ordine
+
+                if ordine_id and ordine_id != 0:
+                    service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
+                    service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
+
+                # Creazione di un nuovo ordine
+                new_scheda_ordine = service_t_OrdiniSchede.create(
+                    fkOrdine=id,
+                    fkReparto=reparto,
+                    data=get_data['data'],
+                    fkServizio=servizio,
+                    fkScheda=scheda['id'],
+                    cognome=cognome,
+                    nome=nome,
+                    letto=None,
+                    utenteInserimento=get_username()
+                )
+
+                piatti_list = json.loads(request.form['piattiList'])
+                for piatto in piatti_list:
+                    try:
+                        service_t_OrdiniPiatti.create(
+                            fkOrdineScheda=new_scheda_ordine,
+                            fkPiatto=int(piatto['fkPiatto']),
+                            quantita=int(piatto['quantita']),
+                            note=str(piatto['note']),
+                        )
+                        print(f"ordine piatti saved: {piatto}")
+                    except (ValueError, KeyError) as e:
+                        print(f"Error processing ordine piatti: {piatto}, error: {e}")
+
+                flash('Preparazione aggiunta con successo!', 'success')
+                return redirect(url_for('app_cucina.ordina_pasto', servizio=servizio, reparto=reparto))
+
+            else:
+                print("Form errors:", form.errors)
+
+        
+       
+
+        return render_template('ordine_schede_dipendente.html',
+            id=id,
+            scheda=scheda,
+            piatti=piatti,
+            schedePiatti=schedePiatti,
+            tipi_piatti=tipi_piatti,
+            piatti_map=piatti_map,
+            tipi_menu_map=tipi_menu_map,
+            schedeDolci=schedeDolci,
+            info_reparto=info_reparto,
+            info_servizio=info_servizio,
+            form=form,
+            servizio=servizio,
+            reparto=reparto,
+            info_utente=info_utente,
+            info_piatti=info_piatti,
+            ordine_id=ordine_id,
+            nome=nome,
+            cognome=cognome
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+    
 
 
 
@@ -2262,25 +2599,17 @@ def print_printProspetto(id):
 @app_cucina.route('/ordini', methods=['GET', 'POST'])
 def ordini():
     if 'authenticated' in session:
-        year = request.args.get('year', datetime.now().year, type=int)
-        month = request.args.get('month', datetime.now().month, type=int)
-        day = request.args.get('day', datetime.now().day, type=int)
+        tomorrow = datetime.now() + timedelta(days=1)
+        year = request.args.get('year', tomorrow.year, type=int)
+        month = request.args.get('month', tomorrow.month, type=int)
+        day = request.args.get('day', tomorrow.day, type=int)
         servizio_corrente = request.args.get('servizio', '1')
         
  
         data = f'{year}-{month}-{day}'
 
-        
-        # Ottieni la lista dei reparti dell'utente
-        user_reparti_ids = service_t_utenti.get_reparti_list(session['user_id'])
-        # Recupera i reparti in base alla lista degli ID
-        if user_reparti_ids:
-            response = service_t_Reparti.get_by_ids(user_reparti_ids)
-            if 'Error' in response:
-                return jsonify(response), 400
-            reparti = response['results']
-        else:
-            reparti = service_t_Reparti.get_all()  # Se la lista è vuota, prendi tutti i reparti
+        user_id = session['user_id']
+        reparti = get_user_reparti(user_id)
 
 
         servizio = service_t_Servizi.get_all_servizi()
@@ -2331,6 +2660,7 @@ def ordini():
                                schede_attive=schede_attive,
                                ordine_esistente=ordine_esistente,
                                form=form
+
                                )
     else:
         return redirect(url_for('app_cucina.login'))

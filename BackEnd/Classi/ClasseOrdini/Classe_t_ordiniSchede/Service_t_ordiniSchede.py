@@ -53,3 +53,7 @@ class Service_t_OrdiniSchede:
                 total_general += count
 
         return schede_count, reparti_totals, schede_totals, total_general
+    
+
+    def get_by_day_and_nome_cognome(self, data, nome: str, cognome: str, servizio: int):
+        return self.repository.get_by_day_and_nome_cognome( data, nome, cognome, servizio)

@@ -16,7 +16,7 @@ class TOrdiniSchede(Base):
     fkScheda =  Column(Integer, ForeignKey('t_schede.id'), nullable=True)
     cognome = Column(String(50))
     nome = Column(String(50))
-    letto = Column(String(10))
+    letto = Column(String(10), nullable=True)
     dataInserimento = Column(DateTime, nullable=True, default=func.now())
     utenteInserimento = Column(String(20), nullable=True)
     dataCancellazione = Column(DateTime, nullable=True)

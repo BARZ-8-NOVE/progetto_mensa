@@ -14,6 +14,9 @@ class Service_t_Schede:
     def get_all_attivi_pazienti(self):
         return self.repository.get_all_attivi_pazienti()
     
+    def get_all_personale(self):
+        return self.repository.get_all_personale()
+    
     def create(self, fkTipoAlimentazione, fkTipoMenu, nome, titolo, sottotitolo, descrizione, backgroundColor, dipendente, note, inizio, fine, utenteInserimento, nominativa):
         return self.repository.create(fkTipoAlimentazione, fkTipoMenu, nome, titolo, sottotitolo, descrizione, backgroundColor, dipendente, note, inizio, fine, utenteInserimento, nominativa)
     

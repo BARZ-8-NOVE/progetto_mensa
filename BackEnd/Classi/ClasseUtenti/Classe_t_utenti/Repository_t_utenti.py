@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask import jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import logging
 class Repository_t_utenti:
     
@@ -486,4 +486,45 @@ class Repository_t_utenti:
                 self.session.close()
 
 
-    
+
+
+
+
+    def manage_token(self, id, token, token_expires=timedelta(minutes=30)):
+        # Recupera l'utente dal database usando l'ID
+        user = self.session.query(TUtenti).filter_by(id=id).first()
+        if not user:
+            raise ValueError("Utente non trovato")
+
+        # Verifica se il token salvato nel database corrisponde a quello passato
+        if user.token != token:
+            raise ValueError("Token non valido")
+
+        # Verifica se la data di scadenza del token è valida
+        if user.expires and isinstance(user.expires, datetime):
+            current_time = datetime.now()  # Usa datetime "naive"
+            # Calcola il tempo rimanente fino alla scadenza
+            time_remaining = user.expires - current_time
+            # Soglia di 5 minuti
+            threshold = timedelta(minutes=5)
+
+            if current_time > user.expires:
+                raise ValueError("Il token è scaduto")
+
+            if time_remaining <= threshold:
+                # Rinnova il token se sta per scadere
+                expires = current_time + token_expires
+                new_token = create_access_token(identity=user.public_id, expires_delta=token_expires)
+
+                # Aggiorna il token e la scadenza nel database
+                user.token = new_token
+                user.expires = expires
+                self.session.commit()
+
+                # Prepara la risposta
+                response = jsonify(token=new_token)
+                set_access_cookies(response, encoded_access_token=new_token)
+                return response
+
+        # Se il token non è vicino alla scadenza, restituisce un messaggio di successo senza rinnovo
+        return jsonify(message="Token is valid and not near expiration")

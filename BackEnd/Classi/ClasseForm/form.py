@@ -129,6 +129,10 @@ class ordineSchedaForm(FlaskForm):
     note = TextAreaField('Note', validators=[Optional()])
     submit = SubmitField('Salva e conferma')
 
+class ordinedipendenteForm(FlaskForm):
+
+    note = TextAreaField('Note', validators=[Optional()])
+    submit = SubmitField('Salva e conferma')
 
 class UtenteForm(FlaskForm): 
     username = StringField('Username', validators=[DataRequired()])

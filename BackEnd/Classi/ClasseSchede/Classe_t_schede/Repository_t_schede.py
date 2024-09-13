@@ -133,6 +133,52 @@ class RepositoryTSchede:
                 self.session.close()
 
 
+
+
+    def get_all_personale(self):
+        try:
+            # Esegui la query per ottenere tutte le schede attive per i dipendenti (dipendente == 1)
+            results = self.session.query(TSchede).filter(
+                TSchede.utenteCancellazione.is_(None),  # Verifica se utenteCancellazione è NULL
+                TSchede.fine.is_(None),  # Verifica se fine è NULL
+                TSchede.dipendente == 1  # Verifica se dipendente è 1
+            ).all()
+            
+            # Costruisci la lista dei risultati
+            return [{
+                'id': result.id, 
+                'fkTipoAlimentazione': result.fkTipoAlimentazione, 
+                'fkTipoMenu': result.fkTipoMenu,
+                'fkSchedaPreconfezionata': result.fkSchedaPreconfezionata, 
+                'nome': result.nome, 
+                'titolo': result.titolo, 
+                'sottotitolo': result.sottotitolo, 
+                'descrizione': result.descrizione, 
+                'backgroundColor': result.backgroundColor, 
+                'color': result.color, 
+                'dipendente': result.dipendente, 
+                'note': result.note,
+                'inizio': result.inizio,
+                'fine': result.fine,
+                'ordinatore': result.ordinatore,
+                'dataInserimento': result.dataInserimento, 
+                'utenteInserimento': result.utenteInserimento, 
+                'dataCancellazione': result.dataCancellazione, 
+                'utenteCancellazione': result.utenteCancellazione, 
+                'nominativa': result.nominativa 
+            } for result in results]
+        
+        except Exception as e:
+            # Log dell'errore (opzionale)
+            # log.error(f"Error fetching data: {str(e)}")
+            return {'Error': str(e)}, 500
+        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
     def create(self, fkTipoAlimentazione, fkTipoMenu, nome, titolo, sottotitolo, descrizione, backgroundColor, dipendente, note, inizio, fine, utenteInserimento, nominativa):
         try:
             # Verifica i valori che stai cercando di inserire

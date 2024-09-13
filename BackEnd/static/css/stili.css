@@ -775,7 +775,7 @@ tbody tr:hover {
 }
 
 .menu-actions button.clone {
-    background-color: #07437e; /* Verde per il pulsante "Clona" */
+    background-color: #07437e; /* blu per il pulsante "Clona" */
 }
 
 .menu-actions button:hover {
@@ -985,6 +985,10 @@ tbody tr:hover {
     background-color: #ffccff; /* Colore per i dolci */
 }
 
+.piatto-row.pane .piatto-code {
+    background-color: #d9d9d9; /* Colore per i dolci */
+}
+
 /* Stile per il select */
 select {
     padding: 9px 10px;
@@ -1115,3 +1119,146 @@ select {
 .user-details p:last-child {
     border-bottom: none;
 }
+
+
+
+.menu-container {
+    display: flex;
+    justify-content: center; /* Centra orizzontalmente gli elementi */
+    align-items: flex-start; /* Allinea gli elementi verso l'inizio del contenitore (superiore) */
+    padding: 10px; /* Riduce il padding */
+    height: 1000px; /* Mantieni l'altezza fissa */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: auto; /* Gestisce il traboccamento del contenuto se necessario */
+}
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: row; /* Dispone gli elementi orizzontalmente */
+    align-items: stretch; /* Fa sì che gli elementi abbiano la stessa altezza */
+    height: 100%;
+    width: 100%;
+}
+
+.menu-item {
+    padding: 20px; /* Aumenta il padding per dare più spazio al testo */
+    flex: 1; /* Permette ai riquadri di espandersi e occupare tutto lo spazio disponibile */
+    min-width: 350px; /* Mantiene una larghezza minima per i riquadri */
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    color: #000000; /* Colore del testo */
+    background-color: #007bff; /* Colore di sfondo per contrastare il testo */
+    font-size: 1.2em; /* Aumenta la dimensione del font */
+    font-weight: bold; /* Rende il testo più audace */
+    transition: background-color 0.3s;
+    margin: 0 5px; /* Spazio laterale tra i riquadri */
+}
+
+.menu-item:hover {
+    background-color: #0056b3; /* Colore di sfondo al passaggio del mouse */
+}
+
+.piatti-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.piatti-category {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.piatto-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.piatto-codice {
+    display: inline-block;
+    padding: 5px;
+    margin-right: 10px;
+    border-radius: 4px;
+    color: #000000;
+    font-weight: bold;
+}
+
+/* Contenitore del menu selezionato */
+.menu-selezionato {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 500px; /* Limita la larghezza */
+    background-color: #f9f9f9;
+    border-radius: 15px; /* Angoli arrotondati */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); /* Ombra elegante */
+    position: relative; /* Necessario per il posizionamento assoluto dei pulsanti */
+}
+
+/* Dettagli del menu */
+.menu-details {
+    width: 100%;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    max-height: 500px; /* Limita l'altezza per evitare che vada in fondo */
+}
+
+/* Pulsanti di azione */
+.action-buttons {
+    position: absolute;
+    top: 30px; /* Spostato 5px più in basso */
+    right: 30px; /* Spostato 5px più a sinistra */
+    display: none; /* Nascondi i pulsanti per default */
+}
+
+/* Pulsante di modifica */
+.modifica-scheda-utente {
+    margin-left: 5px;
+    padding: 5px 5px;
+    background-color: #07437e;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.modifica-scheda-utente:hover {
+    opacity: 0.8; /* Leggero effetto di hover */
+}
+
+/* Pulsante di eliminazione */
+.delete-button-scheda-utente {
+    margin-left: 5px;
+    padding: 5px 5px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.delete-button-scheda-utente:hover {
+    opacity: 0.8; /* Leggero effetto di hover */
+}
+
+/* Mostra i pulsanti quando il mouse è sopra il menu */
+.menu-selezionato:hover .action-buttons {
+    display: block;
+}
+
+

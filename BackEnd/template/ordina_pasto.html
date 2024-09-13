@@ -1,0 +1,230 @@
+{% extends "index.html" %}
+
+{% block title %}
+Ordini - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+<h1>Ordini del giorno {{ day }}/{{ month }}/{{ year }}</h1>
+
+<!-- Contenitore per i pulsanti e i form -->
+<div class="controls-container">
+    <!-- Filtra per servizio -->
+    <form method="GET" action="{{ url_for('app_cucina.ordina_pasto') }}">
+        <input type="hidden" name="day" value="{{ day }}">
+        <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="month" value="{{ month }}">
+        <label for="servizio">Filtra per servizio:</label>
+        <select class="search-container-select-menu" id="servizio" name="servizio" onchange="this.form.submit()">
+            {% for s in servizio %}
+            <option value="{{ s.id }}" {% if request.args.get('servizio', '1') == s.id|string %}selected{% endif %}>
+                {{ s.descrizione }}
+            </option>
+            {% endfor %}
+        </select>
+        <select class="search-container-select-menu" id="reparto" name="reparto" onchange="this.form.submit()">
+            {% if reparti %}
+                {% set default_reparto = reparti[0].id %}
+                {% for r in reparti %}
+                    <option value="{{ r.id }}" {% if r.id|string == request.args.get('reparto', default_reparto)|string %}selected{% endif %}>
+                        {{ r.descrizione }}
+                    </option>
+                {% endfor %}
+            {% endif %}
+        </select>
+        
+        
+        
+    </form>
+</div>
+
+<!-- Visualizzazione dei menu disponibili -->
+{% if controllo_ordine is none %}
+<div class="menu-container">
+    <ul class="menu-list">
+        {% for scheda in menu_personale %}
+        <li class="menu-item" style="background-color: {{ scheda.backgroundColor }};"
+        onclick="showForm2('{{ scheda.id }}', '{{ ordine_esistente.id }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ request.args.get('servizio', '1') }}')">
+   
+            {{ tipi_menu_map[scheda.fkTipoMenu] }}
+            <!-- Display the list of dishes (piatti) under each menu -->
+            <ul class="piatti-list">
+                {% set primi = [] %}
+                {% set secondi = [] %}
+                {% set contorni = [] %}
+                {% for piatto_id, piatto in scheda.piatti.items() %}
+                    {% if piatto.fkTipoPiatto == 1 %}
+                        {% set _ = primi.append(piatto) %}
+                    {% elif piatto.fkTipoPiatto == 2 %}
+                        {% set _ = secondi.append(piatto) %}
+                    {% elif piatto.fkTipoPiatto == 3 %}
+                        {% set _ = contorni.append(piatto) %}
+                    {% endif %}
+                {% endfor %}
+
+                <li class="piatti-category">Primi</li>
+                {% for piatto in primi %}
+                <li class="piatto-item piatto-row primo">
+                    <span class="piatto-code">{{ piatto.codice }}</span>
+                    <span>{{ piatto.titolo }}</span>
+                </li>
+                {% endfor %}
+
+                <li class="piatti-category">Secondi</li>
+                {% for piatto in secondi %}
+                <li class="piatto-item piatto-row secondo">
+                    <span class="piatto-code">{{ piatto.codice }}</span>
+                    <span>{{ piatto.titolo }}</span>
+                </li>
+                {% endfor %}
+
+                <li class="piatti-category">Contorni</li>
+                {% for piatto in contorni %}
+                <li class="piatto-item piatto-row contorno">
+                    <span class="piatto-code">{{ piatto.codice }}</span>
+                    <span>{{ piatto.titolo }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endfor %}
+    </ul>
+
+
+    {% elif controllo_ordine is not none %}
+    <div class="menu-selezionato">
+        <div class="menu-details" style="background-color: {{ inf_scheda.backgroundColor }};">
+            <h1>{{ tipi_menu_map[inf_scheda.fkTipoMenu] }}</h1>
+            <ul class="piatti-list">
+                {% set primi = [] %}
+                {% set secondi = [] %}
+                {% set contorni = [] %}
+                {% set altri = [] %}
+                
+                {% for piatto in piatti_ordine_map.values() %}
+                    {% if piatto.fkTipoPiatto == 1 %}
+                        {% set _ = primi.append(piatto) %}
+                    {% elif piatto.fkTipoPiatto == 2 %}
+                        {% set _ = secondi.append(piatto) %}
+                    {% elif piatto.fkTipoPiatto == 3 %}
+                        {% set _ = contorni.append(piatto) %}
+                    {% else %}
+                        {% set _ = altri.append(piatto) %}
+                    {% endif %}
+                {% endfor %}
+    
+                <li class="piatti-category">Primi</li>
+                {% for piatto in primi %}
+                    <li class="piatto-item piatto-row primo">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                    </li>
+                {% endfor %}
+    
+                <li class="piatti-category">Secondi</li>
+                {% for piatto in secondi %}
+                    <li class="piatto-item piatto-row secondo">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                    </li>
+                {% endfor %}
+    
+                <li class="piatti-category">Contorni</li>
+                {% for piatto in contorni %}
+                <li class="piatto-item piatto-row contorno">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                    </li>
+                {% endfor %}
+                
+                <li class="piatti-category">Dolce e Pane</li>
+                {% for piatto in altri %}
+                    {% if piatto.fkTipoPiatto == 4 %}
+                        <!-- Colore personalizzato per il dolce -->
+                        <li class="piatto-item piatto-row dolce" > <!-- ad esempio, rosso chiaro -->
+                            <span class="piatto-code">{{ piatto.codice }}</span>
+                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                        </li>
+                    {% elif piatto.fkTipoPiatto == 5 %}
+                        <!-- Colore personalizzato per il pane -->
+                        <li class="piatto-item piatto-row pane" > <!-- ad esempio, giallo chiaro -->
+                            <span class="piatto-code">{{ piatto.codice }}</span>
+                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                        </li>
+                    {% endif %}
+                    
+                {% endfor %}
+            </ul>
+        
+    
+        <div class="action-buttons">
+            
+            <button type="button" class="modifica-scheda-utente" onclick="modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id)  }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')">Modifica</button>
+
+            <button type="button" class="delete-button-scheda-utente" onclick="elimina('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id)  }}', '{{ controllo_ordine.id }}')">X</button>
+
+        </div>
+    
+    </div>
+    
+    </div>
+    
+    {% endif %}
+    
+
+
+<!-- Calendario FullCalendar -->
+<div id="calendar"></div>
+
+<script>
+    function showForm2(schedaId, id, repartoId, servizioId) {
+        console.log("Scheda ID: " + schedaId);
+        console.log("ID: " + id);
+        console.log("Reparto ID: " + repartoId);
+        console.log("Servizio ID: " + servizioId);
+
+        // Costruisci l'URL con i parametri nell'ordine corretto
+        let url = `/app_cucina/ordina_pasto/schede_dipendente/${id}/${servizioId}/${repartoId}/${schedaId}`;
+        window.location.href = url;
+    }
+   
+
+    function modifica(id, servizio, reparto, scheda, ordine_id) {
+        const url = `/app_cucina/ordina_pasto/schede_dipendente/${id}/${servizio}/${reparto}/${scheda}/${ordine_id}`;
+        console.log("Redirecting to URL: " + url);  // Aggiungi questo per vedere l'URL generato
+        window.location.href = url;
+    }
+
+
+    function elimina(id, servizio, reparto, ordine_id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`/app_cucina/ordina_pasto/delete/${id}/${servizio}/${reparto}/${ordine_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken 
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Notifica di successo
+                    alert('Record eliminato con successo.');
+                    // Ricarica la pagina per aggiornare i dati
+                    location.reload();
+                } else {
+                    // Notifica di errore
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Error during delete:', error);
+                alert('Errore durante l\'eliminazione del record.');
+            });
+        }
+    }
+    
+    
+</script>
+{% endblock %}

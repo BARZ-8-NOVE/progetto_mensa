@@ -136,3 +136,6 @@ class Service_t_utenti:
     
     def check_password(self, username: str, password: str):
         return self.repository.check_password(username, password)
+    
+    def manage_token(self, id, token):
+        return self.repository.manage_token(id, token)

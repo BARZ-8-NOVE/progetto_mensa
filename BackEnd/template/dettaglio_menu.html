@@ -63,7 +63,9 @@ Modifica Menu - Gestione Cucina
         {% endfor %}
         
         <div>
+            {% if page_permissions['/app_cucina/menu']['can_write'] %}
             <button type="submit" class="styled-button">modifica e salva</button>
+            {%endif%}
             <button type="button" class="styled-button" onclick="redirectToMenu()">annulla</button>
         </div>
     </form>
