@@ -180,8 +180,9 @@ class ServiziForm(FlaskForm):
 
 
 class ContattiForm (FlaskForm): 
-    oggetto_messaggio = StringField('Oggetto del messaggio', validators=[DataRequired(), Length(max=100)])
-    note = TextAreaField('Messaggio', validators=[DataRequired()])
+    oggetto = StringField('Oggetto', validators=[DataRequired(), Length(max=100)])
+    messaggio = TextAreaField('Messaggio', validators=[DataRequired()])
+    submit = SubmitField('Invia')
 
 
 class CambioPasswordForm(FlaskForm):

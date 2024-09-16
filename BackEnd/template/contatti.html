@@ -5,8 +5,32 @@ Contatti - Gestione Cucina
 {% endblock %}
 
 {% block content %}
+<div class="container mt-5">
+    <h2>Contattaci</h2>
+    <p>Se hai riscontrato un problema o hai una richiesta, inviaci un messaggio.</p>
 
+    <form method="POST" action="{{ url_for('app_cucina.contatti') }}">
+        {{ form.hidden_tag() }}
 
+        <div class="form-group">
+            {{ form.oggetto.label(class="form-label") }}
+            {{ form.oggetto(class="form-control") }}
+            {% for error in form.oggetto.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
+        </div>
 
+        <div class="form-group">
+            {{ form.messaggio.label(class="form-label") }}
+            {{ form.messaggio(class="form-control", rows=5) }}
+            {% for error in form.messaggio.errors %}
+                <small class="text-danger">{{ error }}</small>
+            {% endfor %}
+        </div>
 
+        <div class="form-group mt-3">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
 {% endblock %}

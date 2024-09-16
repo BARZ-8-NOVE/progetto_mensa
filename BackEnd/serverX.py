@@ -50,6 +50,7 @@ from Classi.ClasseUtility import *
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, jsonify, Blueprint, request, session, render_template, redirect, url_for, flash
+from flask_mail import Mail, Message
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, unset_jwt_cookies,  verify_jwt_in_request
@@ -63,8 +64,13 @@ import json
 
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
+from Classi.ClasseDB.config import EmailConfig
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, ordinedipendenteForm, ContattiForm
+from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, 
+                                    LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, 
+                                    schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , 
+                                    TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, 
+                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm)
 # Initialize the app and configuration
 import Reletionships
 
@@ -75,10 +81,23 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 app.config['WTF_CSRF_ENABLED'] = True
 
-csrf = CSRFProtect(app)
 
+# Carica configurazioni dell'email
+app.config['MAIL_SERVER'] = EmailConfig.MAIL_SERVER
+app.config['MAIL_PORT'] = EmailConfig.MAIL_PORT
+app.config['MAIL_USERNAME'] = EmailConfig.MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = EmailConfig.MAIL_PASSWORD
+app.config['MAIL_USE_TLS'] = EmailConfig.MAIL_USE_TLS
+app.config['MAIL_USE_SSL'] = EmailConfig.MAIL_USE_SSL
+app.config['MAIL_DEFAULT_SENDER'] = EmailConfig.MAIL_DEFAULT_SENDER
+
+
+csrf = CSRFProtect(app)
+# Initialize e-mail
+mail = Mail(app)
 # Initialize JWT and CORS
 jwt = JWTManager(app)
+
 CORS(app)
 
 # Initialize services
@@ -244,27 +263,21 @@ def clona_menu(menu_id, clone_date, utente_inserimento):
                 raise ValueError("Errore: menu_servizio dovrebbe essere un dizionario")
 
         # Log dei dati per debugging
-        print(f"Menu da clonare: {menu_da_clonare}")
-        print(f"Nuovo menu: {menu_by_data}")
-        print(f"Servizio associato: {menu_servizio}")
-
+       
         # Cancella le associazioni esistenti
         service_t_MenuServiziAssociazione.delete_per_menu(menu_servizio['id'], utenteCancellazione=utente_inserimento)
 
         for associazione in assoc_piatti:
-            print(f"Creando associazione: {associazione}")
             service_t_MenuServiziAssociazione.create(menu_servizio['id'], associazione['id'], utenteInserimento=utente_inserimento)
 
-        flash('Menu clonato con successo!', 'success')
+        
         return True
-
-    except ValueError as ve:
-        flash(f"Errore di validazione: {str(ve)}", 'error')
+    except ValueError as ve:   
         print(f"Errore di validazione: {str(ve)}")
         return False
-
+    
     except Exception as e:
-        flash(f"Errore durante la clonazione del menu: {str(e)}", 'error')
+        
         print(f"Errore durante la clonazione del menu: {str(e)}")
         return False
 
@@ -338,6 +351,7 @@ def check_token_and_permissions():
         is_token_valid = service_t_utenti.is_token_valid(user_id, token)
 
         if not is_token_valid:
+            service_t_utenti.expiredTokens()
             session.clear()  # Cancella la sessione se il token non è valido
             return redirect(url_for('app_cucina.login'))
 
@@ -1450,24 +1464,21 @@ def menu():
                     for index, menu_id_str in enumerate(menu_ids):
                         menu_id = int(menu_id_str)  # Converti menu_id in intero
                         giorno_clonazione = clone_date + timedelta(days=index)
-                        print(f"Clonazione del menu ID {menu_id} per il giorno {giorno_clonazione.strftime('%Y-%m-%d')}")
+                        
 
                         # Trova i servizi associati a questo menu
                         servizi_per_menu = [servizio for servizio in menu_servizi if servizio['fkMenu'] == menu_id]
-                        print(f"Servizi per il menu ID {menu_id}: {servizi_per_menu}")
-
+                        
                         if not servizi_per_menu:
                             print(f"Nessun servizio trovato per il menu ID {menu_id}")
 
                         for servizio in servizi_per_menu:
-                            print(f"Clonazione del servizio ID {servizio['id']} per il giorno {giorno_clonazione.strftime('%Y-%m-%d')}")
                             clona_menu(servizio['id'], giorno_clonazione.strftime('%Y-%m-%d'), utente_inserimento)
 
                     flash('Mese clonato con successo!', 'success')
                     return redirect(next_url)
 
                 except Exception as e:
-                    flash(f"Errore durante la clonazione del mese: {str(e)}", 'error')
                     print(f"Errore: {str(e)}")
 
 
@@ -1483,6 +1494,7 @@ def menu():
 
                     # Chiama la funzione per clonare il menu
                     if clona_menu(menu_id, clone_date, utente_inserimento):
+                        flash('Menu clonato con successo!', 'success')
                         return redirect(next_url)
                     else:
                         return redirect(url_for('app_cucina.menu'))
@@ -2987,19 +2999,37 @@ def impostazioni():
 def contatti():
     if 'authenticated' in session:
         user = service_t_utenti.get_utente_by_id(session['user_id'])
+        nome = user['nome']  # Accesso ai valori del dizionario
+        email = user['email']
         
         form = ContattiForm()
 
         if form.validate_on_submit():
-            pass
-           
+            oggetto = form.oggetto.data
+            messaggio = form.messaggio.data
 
-        return render_template('contatti.html',
-                               user=user
-                               
-                               )
+            # Creiamo il messaggio da inviare
+            msg = Message(f"Segnalazione da {nome}: {oggetto}",
+                          sender=email,  # Usa l'indirizzo dell'utente come mittente
+                          recipients=['ptest2420@gmail.com'])  # L'indirizzo a cui inviare le segnalazioni
+            msg.body = f"Nome: {nome}\nEmail: {email}\n\nMessaggio:\n{messaggio}"
+            msg.reply_to = email  # Imposta l'indirizzo di risposta
+            
+            try:
+                mail.send(msg)
+                flash('Il tuo messaggio è stato inviato con successo!', 'success')
+            except Exception as e:
+                flash('C\'è stato un errore nell\'invio del messaggio. Riprova più tardi.', 'danger')
+                print(str(e))  # Log dell'errore per debug
+
+        return render_template('contatti.html', user=user, form=form)
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
+    
+
 
 
 @app_cucina.route('/do_logout', methods=['POST'])
