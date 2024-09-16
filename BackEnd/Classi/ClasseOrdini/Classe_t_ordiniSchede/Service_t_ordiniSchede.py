@@ -32,8 +32,8 @@ class Service_t_OrdiniSchede:
     def get_all_by_day_and_reparto(self, data, fkReparto, servizio, scheda):
          return self.repository.get_all_by_day_and_reparto(data, fkReparto, servizio, scheda)
     
-    def check_letto(self, fkOrdine, fkReparto, data, fkServizio, fkScheda, letto):
-        return self.repository.check_letto(fkOrdine, fkReparto, data, fkServizio, fkScheda, letto)
+    def check_letto(self, fkOrdine, fkReparto, data, fkServizio, letto):
+        return self.repository.check_letto(fkOrdine, fkReparto, data, fkServizio, letto)
 
     # services.py
 

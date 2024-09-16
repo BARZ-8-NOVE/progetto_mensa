@@ -64,7 +64,7 @@ import json
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
 from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
-from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, ordinedipendenteForm
+from Classi.ClasseForm.form import AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, ordinedipendenteForm, ContattiForm
 # Initialize the app and configuration
 import Reletionships
 
@@ -1039,7 +1039,7 @@ def reparti():
                             utenteInserimento=get_username()
                             )
             
-            flash('Scheda aggiunta con successo!', 'success')
+            flash('reparto aggiunto con successo!', 'success')
             return redirect(url_for('app_cucina.reparti'))
     
 
@@ -1207,13 +1207,13 @@ def modifica_servizi(id):
         if request.method == 'DELETE':
             try:
                 
-            # service_t_Servizi.delete_servizio(id)
+                # service_t_Servizi.delete_servizio(id)
                 flash('impossibile eliminare il servizio!', 'success')
                 return '', 204  # Status code 204 No Content
             
             except Exception as e:
                 print(f"Error deleting dish: {e}")
-                flash('Errore durante l\'eliminazione della Reparto.', 'danger')
+                flash('Errore durante l\'eliminazione del servizio.', 'danger')
                 return '', 400  # Status code 400 Bad Request
 
     else:
@@ -1236,7 +1236,7 @@ def tipologia_menu():
                                         backgroundColor=form.backgroundColor.data, 
                                         utenteInserimento=get_username())
             
-            flash('Scheda aggiunta con successo!', 'success')
+            flash('tipo menu aggiunto con successo!', 'success')
             return redirect(url_for('app_cucina.tipologia_menu'))
 
 
@@ -1304,7 +1304,7 @@ def nodifica_tipologia_menu(id):
         if request.method == 'DELETE':
             try:
                 service_t_TipiMenu.delete(id, utenteCancellazione=get_username())
-                flash('Tipolgia MEnu eliminato con successo!', 'success')
+                flash('Tipolgia Menu eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
             
             except Exception as e:
@@ -1369,9 +1369,13 @@ def menu():
         tipologie_menu = service_t_TipiMenu.get_all()
         menu = service_t_Menu.get_by_date_range(first_week_start, last_week_end, tipo_menu)
         associazione = service_t_AssociazionePiattiPreparazionie.get_all()
-        piatti = service_t_Piatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()
-        servizi = service_t_Servizi.get_all_servizi()
+        
+        servizi = service_t_Servizi.get_all_servizi()      
+        piatti = service_t_Piatti.get_all()   
+        tipologie_piatti = service_t_TipiPiatti.get_all()
+        tipologia_piatti_map = {int(piatto['id']): piatto['descrizionePlurale'] for piatto in tipologie_piatti}
+
         
         # Recupera gli ID dei menu filtrati per il mese corrente
         menu_ids = [m.get('id') for m in menu if m.get('id') is not None]
@@ -1501,15 +1505,16 @@ def menu():
                     preparazioni_map=preparazioni_map,
                     associazione_map=associazione_map,
                     piattimenu=piattimenu,  # Passa piattimenu al template
-                    piatti=piatti,
-                    servizi=servizi,
                     preparazioni=preparazioni,
                     datetime=datetime,
                     calendar=calendar,
                     week_numbers=week_numbers,  # Passa i numeri delle settimane al template
                     form=form,
                     clona_mese=clona_mese,
-                    menu_ids=menu_ids
+                    menu_ids=menu_ids,
+                    servizi=servizi,
+                    piatti=piatti,
+                    tipologia_piatti_map=tipologia_piatti_map
                     
                 )
     else:
@@ -1969,6 +1974,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         tipi_piatti = service_t_TipiPiatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
 
+
+
         # Costruisci una mappa delle preparazioni
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
@@ -1980,6 +1987,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
         preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
 
+
+    
 
         form = ordineSchedaForm()
         
@@ -2004,50 +2013,49 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
         dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
 
-        # Lista di tutti gli ID disponibili
-        lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine]
+        print('dettagli_ordine:', dettagli_ordine)
 
-        lista_id_disponibili.insert(0, 0)
+        # Lista di tutti gli ID disponibili, escludendo la scheda vuota (0)
+        lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine if ordine['id'] != 0]
 
+        print('lista_id_disponibili:', lista_id_disponibili)
+
+        # Aggiungi sempre l'ordine con ID 0 come ultimo elemento se c'è un nuovo ordine
+        lista_id_disponibili.append(0)
+
+        # Gestione dell'ordine_id e current_scheda_index
         if ordine_id is None or ordine_id == 0:
-                # Se non c'è un ordine_id valido o è "new", prepara una scheda vuota
-            info_utente = {
-                    'nome': '',
-                    'cognome': '',
-                    'letto': '',
-                    'note': ''
-                }
+            # Nuovo ordine, quindi è il nuovo elemento nella lista
+            ordine_id = 0
+            current_scheda_index = len(lista_id_disponibili) - 1
+            info_utente = {'nome': '', 'cognome': '', 'letto': '', 'note': ''}
             info_piatti = []
-            prev_order_id = None
-            next_order_id = lista_id_disponibili[1] if len(lista_id_disponibili) > 1 else None
+            # Precedente ordine è l'ultimo dell'elenco, escludendo ID 0
+            prev_order_id = lista_id_disponibili[-2] if len(lista_id_disponibili) > 1 else None
+            next_order_id = None
+        else:
+            if ordine_id not in lista_id_disponibili:
+                ordine_id = lista_id_disponibili[-1]  # Imposta ordine_id come l'ultimo valido
 
-
-        if len(lista_id_disponibili) > 0:
-            if ordine_id is None or ordine_id not in lista_id_disponibili:
-                # Se non c'è un ordine_id valido, seleziona il primo ordine come ordine_id predefinito
-                ordine_id = lista_id_disponibili[0]
-
-            # Trova l'indice dell'ordine corrente
             current_index = lista_id_disponibili.index(ordine_id)
             prev_order_id = lista_id_disponibili[current_index - 1] if current_index > 0 else None
-            next_order_id = lista_id_disponibili[current_index + 1] if current_index < len(lista_id_disponibili) - 1 else None
-        
+            # Il next_order_id non deve includere 0 se l'utente sta visualizzando un ordine esistente
+            next_order_id = lista_id_disponibili[current_index + 1] if current_index < len(lista_id_disponibili) - 2 else None  # Ignora l'ultimo 0
+            current_scheda_index = current_index
+
             info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
-             
             info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
 
-        
-        else:
-            prev_order_id, next_order_id = None, None
+
 
 
         if form.validate_on_submit():
 
-            
+                     # Time limit check
             if not check_order_time_limit(get_data['data']):
                 flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
                 return redirect(url_for('app_cucina.ordini'))
-            
+
             fkOrdine = id
             fkReparto = reparto
             data = get_data['data']
@@ -2055,34 +2063,14 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             fkScheda = scheda['id']
             letto = form.letto.data
 
-            # Verifica personalizzata
-            if service_t_OrdiniSchede.check_letto(fkOrdine, fkReparto, data, fkServizio, fkScheda, letto):
-                form.letto.errors.append('Esiste già un record con questi dati. Modifica il record esistente o inserisci nuovi dati.')
-                return render_template('ordine_schede_piatti.html',
-                                    form=form,
-                                    id=id,
-                                    scheda=scheda,
-                                    piatti=piatti,
-                                    schedePiatti=schedePiatti,
-                                    tipi_piatti=tipi_piatti,
-                                    piatti_map=piatti_map,
-                                    tipi_menu_map=tipi_menu_map,
-                                    schedeDolci=schedeDolci,
-                                    info_reparto=info_reparto,
-                                    info_servizio=info_servizio,
-                                    servizio=servizio,
-                                    prev_order_id=prev_order_id,
-                                    next_order_id=next_order_id,
-                                    reparto=reparto,
-                                    dettagli_ordine=dettagli_ordine,
-                                    info_utente=info_utente,
-                                    info_piatti=info_piatti,
-                                    ordine_id=ordine_id
-                                    )
-
             ordine_id = request.form.get('ordine_id', default=None, type=int)
-
-    # Il resto del codice per la gestione dell'ordine
+        
+            if ordine_id is None or ordine_id == 0:
+                letto_occupato = service_t_OrdiniSchede.check_letto(fkOrdine, fkReparto, data, fkServizio, letto)
+                if letto_occupato:
+                    flash(f"il letto numero {letto} è gia occupato.", 'error')
+                    return redirect(url_for('app_cucina.ordine_schede_piatti', id=id, servizio=servizio, reparto=reparto, scheda=scheda['id']))
+                        
 
             if ordine_id and ordine_id != 0:
                 service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
@@ -2092,12 +2080,12 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             new_scheda_ordine = service_t_OrdiniSchede.create(
                 fkOrdine=id,
                 fkReparto=reparto,
-                data=get_data['data'],
+                data=data,
                 fkServizio=servizio,
-                fkScheda=scheda['id'],
+                fkScheda=fkScheda,
                 cognome=form.cognome.data,
                 nome=form.nome.data,
-                letto=form.letto.data,
+                letto=letto,
                 utenteInserimento=get_username()
             )
 
@@ -2133,11 +2121,16 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             servizio=servizio,
             prev_order_id=prev_order_id,
             next_order_id=next_order_id,
+            total_schede=len(lista_id_disponibili) -1 ,
+            current_scheda_index=current_scheda_index +1,
             reparto=reparto,
             dettagli_ordine=dettagli_ordine,
             info_utente=info_utente,
             info_piatti=info_piatti,
-            ordine_id=ordine_id
+            ordine_id=ordine_id,
+            year=year,
+            month=month,
+            day=day
         )
     else:
         return redirect(url_for('app_cucina.login'))
@@ -2443,19 +2436,18 @@ def ordina_pasto():
         return redirect(url_for('app_cucina.login'))
 
 
-@app_cucina.route('/ordina_pasto/delete/<int:id>/<int:servizio>/<int:reparto>/<int:ordine_id>', methods=['GET', 'DELETE'])
-def elimina_ordine_schede_dipendente(id, servizio, reparto, ordine_id):
+@app_cucina.route('/ordini/delete/<int:ordine_id>', methods=['GET', 'DELETE'])
+def elimina_ordine_schede_dipendente(ordine_id):
     if 'authenticated' in session:    
-        # Gestione della richiesta DELETE, se necessario
-        print(f"Request to delete scheda with ID: {id}")  # Aggiungi questo log
+           
         try:
             service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
             service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())         
-            flash('Scheda eliminata con successo!', 'success')
+            flash('ordine eliminato con successo!', 'success')
             return '', 200  # Status code 200 
         except Exception as e:
             print(f"Error deleting scheda: {e}")  # Log per l'errore
-            flash('Errore durante l\'eliminazione della scheda.', 'danger')
+            flash('Errore durante l\'eliminazione del ordine.', 'danger')
             return '', 400  # Status code 400 Bad Request per errori      
     else:
         return redirect(url_for('app_cucina.login'))
@@ -2556,7 +2548,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
                     except (ValueError, KeyError) as e:
                         print(f"Error processing ordine piatti: {piatto}, error: {e}")
 
-                flash('Preparazione aggiunta con successo!', 'success')
+                flash('ordine aggiunto con successo!', 'success')
                 return redirect(url_for('app_cucina.ordina_pasto', servizio=servizio, reparto=reparto))
 
             else:
@@ -2670,74 +2662,67 @@ def ordini():
 @app_cucina.route('/creazione_utenti', methods=['GET', 'POST'])
 def creazione_utenti():
     if 'authenticated' in session:
-        try:
-            # Recupera tutti gli utenti
-            utenti = service_t_utenti.get_all()
-            # Recupera tutte le tipologie di utente
-            tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
-            # Recupera tutti i reparti
-            reparti = service_t_Reparti.get_all()
-            # Recupera tutte le funzionalità
-            funzionalita = service_t_funzionalita.get_all_menus()
-            # Prepara le scelte per i campi del modulo
-            tipologieUtente_map = {int(tipologia['id']): tipologia['nomeTipoUtente'] for tipologia in tipologieUtente}
-            reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
-            form = UtenteForm()
-            form.fkTipoUtente.choices = [(tipologia['id'], tipologia['nomeTipoUtente']) for tipologia in tipologieUtente]
-            form.reparti.choices = [(reparto['id'], reparto['descrizione']) for reparto in reparti]
-            form.fkFunzCustom.choices = [(funz['id'], funz['titolo']) for funz in funzionalita]
+        
+        # Recupera tutti gli utenti
+        utenti = service_t_utenti.get_all()
+        # Recupera tutte le tipologie di utente
+        tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
+        # Recupera tutti i reparti
+        reparti = service_t_Reparti.get_all()
+        # Recupera tutte le funzionalità
+        funzionalita = service_t_funzionalita.get_all_menus()
+        # Prepara le scelte per i campi del modulo
+        tipologieUtente_map = {int(tipologia['id']): tipologia['nomeTipoUtente'] for tipologia in tipologieUtente}
+        reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
+        form = UtenteForm()
+        form.fkTipoUtente.choices = [(tipologia['id'], tipologia['nomeTipoUtente']) for tipologia in tipologieUtente]
+        form.reparti.choices = [(reparto['id'], reparto['descrizione']) for reparto in reparti]
+        form.fkFunzCustom.choices = [(funz['id'], funz['titolo']) for funz in funzionalita]
             
-            if form.validate_on_submit():
-                try:
-                    # Recupera i dati dal modulo
-                    username = form.username.data
-                    nome = form.nome.data
-                    cognome = form.cognome.data
-                    fkTipoUtente = form.fkTipoUtente.data
-                    fkFunzCustom = form.fkFunzCustom.data
-                    reparti = form.reparti.data
-                    email = form.email.data
-                    password = form.password.data
-                    inizio = form.inizio.data
-                    fine = form.fine.data
+        if form.validate_on_submit():
+            try:
+                # Recupera i dati dal modulo
+                username = form.username.data
+                nome = form.nome.data
+                cognome = form.cognome.data
+                fkTipoUtente = form.fkTipoUtente.data
+                fkFunzCustom = form.fkFunzCustom.data
+                reparti = form.reparti.data
+                email = form.email.data
+                password = form.password.data
+                inizio = form.inizio.data
+                fine = form.fine.data
 
 
-                    # Chiamata al servizio per creare l'utente
-                    service_t_utenti.create_utente(
-                        username=username,
-                        nome=nome,
-                        cognome=cognome,
-                        fkTipoUtente=fkTipoUtente,
-                        fkFunzCustom=fkFunzCustom,
-                        reparti=reparti,
-                        email=email,
-                        password=password,
-                        inizio=inizio,
-                        fine=fine
-                    )
+                # Chiamata al servizio per creare l'utente
+                service_t_utenti.create_utente(
+                    username=username,
+                    nome=nome,                        cognome=cognome,
+                    fkTipoUtente=fkTipoUtente,
+                    fkFunzCustom=fkFunzCustom,
+                    reparti=reparti,
+                    email=email,
+                    password=password,
+                    inizio=inizio,
+                    fine=fine
+                )
 
-                    flash('Utente creato con successo!', 'success')
-                    return redirect(url_for('app_cucina.creazione_utenti'))
+                flash('Utente creato con successo!', 'success')
+                return redirect(url_for('app_cucina.creazione_utenti'))
 
-                except Exception as e:
-                    print(f'Errore durante la creazione dell\'utente: {str(e)}')  # Stampa per debug
-                    flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
-            else:
-                # Visualizza gli errori di validazione
-                error_messages = ', '.join(f"{field}: {', '.join(errors)}" for field, errors in form.errors.items())
-                flash(f"Validation errors: {error_messages}", 'error')
+            except Exception as e:
+                print(f'Errore durante la creazione dell\'utente: {str(e)}')  # Stampa per debug
+                flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
+            
 
-            return render_template('creazione_utenti.html',
-                                   utenti=utenti,
-                                   tipologieUtente=tipologieUtente,
-                                   reparti=reparti,
-                                   form=form,
-                                   tipologieUtente_map=tipologieUtente_map,
-                                   reparti_map=reparti_map)
-        except Exception as e:
-            print(f'Errore generale nella funzione: {str(e)}')  # Stampa per debug
-            flash(f'Errore generale: {str(e)}', 'error')
-            return redirect(url_for('app_cucina.login'))
+        return render_template('creazione_utenti.html',
+                                utenti=utenti,
+                                tipologieUtente=tipologieUtente,
+                                reparti=reparti,
+                                form=form,
+                                tipologieUtente_map=tipologieUtente_map,
+                                reparti_map=reparti_map)
+
     else:
         return redirect(url_for('app_cucina.login'))
 
@@ -2921,11 +2906,11 @@ def modifica_tipo_utente(id):
             try:
                 service_t_FunzionalitaUtente.delete_by_tipo_utente(tipo_utente_id=id)
                 service_t_tipiUtenti.delete_tipoUtente(id=id)
-                flash('Scheda eliminata con successo!', 'success')
+                flash('tipo utente eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
             except Exception as e:
                 print(f"Error deleting scheda: {e}")  # Log per l'errore
-                flash('Errore durante l\'eliminazione della scheda.', 'danger')
+                flash('Errore durante l\'eliminazione del tipo utente.', 'danger')
                 return '', 400  # Status code 400 Bad Request per errori
 
     else:
@@ -2998,8 +2983,23 @@ def impostazioni():
 
 
 
+@app_cucina.route('/contatti', methods=['GET', 'POST'])
+def contatti():
+    if 'authenticated' in session:
+        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        
+        form = ContattiForm()
 
+        if form.validate_on_submit():
+            pass
+           
 
+        return render_template('contatti.html',
+                               user=user
+                               
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/do_logout', methods=['POST'])

@@ -211,7 +211,7 @@ class RepositoryOrdiniSchede:
                 self.session.close()
 
 
-    def check_letto(self, fkOrdine, fkReparto, data, fkServizio, fkScheda, letto):
+    def check_letto(self, fkOrdine, fkReparto, data, fkServizio, letto):
         try:
             # Esegui la query per recuperare il record con i criteri specificati
             result = self.session.query(TOrdiniSchede).filter_by(
@@ -219,21 +219,25 @@ class RepositoryOrdiniSchede:
                 fkReparto=fkReparto,
                 data=data,
                 fkServizio=fkServizio,
-                fkScheda=fkScheda,
                 letto=letto,
-                dataCancellazione=None  # Utilizza direttamente l'attributo se è None
+                dataCancellazione=None  # Verifica che il record non sia stato cancellato
             ).first()
-            
-            # Restituisci True se il record esiste, False altrimenti
-            return result is not None
+
+            # Se esiste un record e appartiene a un altro ordine, restituisci il numero del letto
+            if result:
+                return result.letto  # Restituisce il numero del letto occupato
+            return False  # Letto disponibile
+
         except Exception as e:
-            # Gestisci eventuali errori restituendo un messaggio di errore e un codice di stato 400
-            # Considera l'uso di logging per una tracciabilità migliore
+            # Log l'errore per tracciabilità
+            print(f"Error in check_letto: {str(e)}")  # Puoi sostituirlo con un logger
             return {'Error': str(e)}, 400
+
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
+
 
 
 

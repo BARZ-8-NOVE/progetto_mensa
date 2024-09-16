@@ -13,6 +13,9 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
         </h2>
+        {% if ordine_id %}
+        <button type="button" class="delete-button-scheda" onclick="elimina('{{ ordine_id }}')" title="Elimina scheda">X</button>
+        {% endif %}
     </div>
     <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
         {{ form.hidden_tag() }}
@@ -69,24 +72,35 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             </div>
         </div>
         
-        <div class="navigation-buttons">
-
-
-            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}">
-                <button type="button">Precedente</button>
+        
+            <!-- Bottone Precedente -->
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
+               class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
+               id="prev-button">
+                <button type="button" class="styled-button" {% if not prev_order_id %}disabled{% endif %}>‹ Precedente</button>
             </a>
             
-            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}">
-                <button type="button">Successivo</button>
-            </a>
-
+            <!-- Info Scheda -->
+            <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
             
-            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
-                <button type="button">nuova scheda</button>
+            <!-- Bottone Successivo -->
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
+               class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
+               id="next-button">
+                <button type="button" class="styled-button" {% if not next_order_id %}disabled{% endif %}>Successivo ›</button>
             </a>
-            {{ form.submit() }}
-        </div>
+        
+        
+        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
+            <button type="button" class="styled-button">Nuova Scheda</button>
+        </a>
 
+        <a href="{{ url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio) }}">
+            <button type="button" class="styled-button">Annulla Ordine</button>
+        </a>
+
+        {{ form.submit(class="styled-button") }}
+        
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
     </form>
@@ -138,7 +152,6 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         return document.getElementById('ordineId').value || ''; // Usa il valore del campo nascosto se presente
     }
 
-
     // Seleziona gli elementi che erano già presenti in info_piatti
     document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
         const piattoId = parseInt(item.getAttribute('data-id'));
@@ -146,5 +159,48 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             item.classList.add('selezionato');
         }
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        
+        // Disabilita i bottoni se non ci sono ordini precedenti o successivi
+        if (!{{ prev_order_id|default('') }}) {
+            prevButton.classList.add('disabled');
+        }
+        if (!{{ next_order_id|default('') }}) {
+            nextButton.classList.add('disabled');
+        }
+    });
+
+
+    function elimina(ordine_id) {
+        if (confirm('Sei sicuro di voler eliminare questo record?')) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken 
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Notifica di successo
+                    alert('Record eliminato con successo.');
+                    // Ricarica la pagina per aggiornare i dati
+                    location.reload();
+                } else {
+                    // Notifica di errore
+                    alert('Errore durante l\'eliminazione del record.');
+                }
+            })
+            .catch(error => {
+                console.error('Error during delete:', error);
+                alert('Errore durante l\'eliminazione del record.');
+            });
+        }
+    }
 </script>
 {% endblock %}

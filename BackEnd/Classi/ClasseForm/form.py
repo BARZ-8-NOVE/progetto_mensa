@@ -178,6 +178,12 @@ class ServiziForm(FlaskForm):
     inMenu = BooleanField('In Menu', validators=[Optional()])
 
 
+
+class ContattiForm (FlaskForm): 
+    oggetto_messaggio = StringField('Oggetto del messaggio', validators=[DataRequired(), Length(max=100)])
+    note = TextAreaField('Messaggio', validators=[DataRequired()])
+
+
 class CambioPasswordForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Vecchia Password', validators=[DataRequired()])

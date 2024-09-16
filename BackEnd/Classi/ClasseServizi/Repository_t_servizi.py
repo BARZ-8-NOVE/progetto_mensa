@@ -9,7 +9,7 @@ class RepositoryTServizi:
 
     def get_all_servizi(self):
         try:
-            results = self.session.query(TServizi).all()
+            results = self.session.query(TServizi).order_by(TServizi.ordinatore).all()
             return [{'id': result.id, 'descrizione': result.descrizione, 'ordinatore': result.ordinatore, 'inMenu': result.inMenu} for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500

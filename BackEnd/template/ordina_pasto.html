@@ -161,7 +161,7 @@ Ordini - Gestione Cucina
             
             <button type="button" class="modifica-scheda-utente" onclick="modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id)  }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')">Modifica</button>
 
-            <button type="button" class="delete-button-scheda-utente" onclick="elimina('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id)  }}', '{{ controllo_ordine.id }}')">X</button>
+            <button type="button" class="delete-button-scheda-utente" onclick="elimina('{{ controllo_ordine.id }}')">X</button>
 
         </div>
     
@@ -196,11 +196,11 @@ Ordini - Gestione Cucina
     }
 
 
-    function elimina(id, servizio, reparto, ordine_id) {
+    function elimina(ordine_id) {
         if (confirm('Sei sicuro di voler eliminare questo record?')) {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            fetch(`/app_cucina/ordina_pasto/delete/${id}/${servizio}/${reparto}/${ordine_id}`, {
+            fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

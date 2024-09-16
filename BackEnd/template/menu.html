@@ -45,8 +45,9 @@ Calendario Menu - Gestione Cucina
         <thead>
             <tr>
                 <th>Data</th>
-                <th>Pranzo</th>
-                <th>Cena</th>
+                {% for servizio in servizi %}
+                <th>{{ servizio.descrizione }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
@@ -57,41 +58,40 @@ Calendario Menu - Gestione Cucina
                         {% set week_number = week_numbers[(day.year, day.month, day.day)] %}
                         {% set roman_week_number = 'I' if week_number == 1 else 'II' if week_number == 2 else 'III' if week_number == 3 else 'IV' %}
                         <tr>
-                            <td>
+                            <td class="date-cell">
                                 {{ current_date_str }} - {{ weekdays[day.weekday()] }}<br>
                                 <div class="circle-cell">
                                     <div class="week-circle">{{ roman_week_number }}</div>
                                 </div>
                             </td>
-                            {% set servizi = ['Pranzo', 'Cena'] %}
                             {% for servizio in servizi %}
-                                <td>
-                                    {% if  current_date_str in menu_per_giorno and servizio in menu_per_giorno[current_date_str] %}
-                                        {% set servizio_id = menu_per_giorno[current_date_str].get(servizio) %}
+                                <td class="service-cell">
+                                    {% if current_date_str in menu_per_giorno %}
+                                        {% set menu_item = menu_per_giorno[current_date_str] %}
+                                        {% set servizio_id = menu_item.get(servizio['descrizione']) %}
                                         {% if servizio_id %}
                                             {% set piatti_by_category = {'Primi': [], 'Secondi': [], 'Contorni': [], 'Dolci': [] } %}
                                             {% set piatti_servizio = piattimenu.get(servizio_id, []) %}
                                             {% for piatto in piatti_servizio %}
-                                                {% set associazione = associazione_map.get(piatto.id, {}) %}
-                                                {% if associazione.piatto == 1 %}
-                                                    {% set _ = piatti_by_category['Primi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'yellow'}) %}
-                                                {% elif associazione.piatto == 2 %}
-                                                    {% set _ = piatti_by_category['Secondi'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'brown'}) %}
-                                                {% elif associazione.piatto == 3 %}
-                                                    {% set _ = piatti_by_category['Contorni'].append({'codice': associazione.codice, 'preparazione': associazione.preparazione, 'colore': 'green'}) %}
+                                                {% set associazione = associazione_map.get(piatto['id'], {}) %}
+                                                {% if associazione['piatto'] == 1 %}
+                                                    {% set _ = piatti_by_category['Primi'].append({'codice': associazione['codice'], 'preparazione': associazione['preparazione'], 'colore': 'yellow'}) %}
+                                                {% elif associazione['piatto'] == 2 %}
+                                                    {% set _ = piatti_by_category['Secondi'].append({'codice': associazione['codice'], 'preparazione': associazione['preparazione'], 'colore': 'brown'}) %}
+                                                {% elif associazione['piatto'] == 3 %}
+                                                    {% set _ = piatti_by_category['Contorni'].append({'codice': associazione['codice'], 'preparazione': associazione['preparazione'], 'colore': 'green'}) %}
                                                 {% endif %}
                                             {% endfor %}
                                             
                                             <div class="menu-columns">
                                                 <div class="menu-actions">
                                                     {% if page_permissions['/app_cucina/menu']['can_write'] %}
-                                                    <button type="button" class="clone" onclick="prepareClone('{{ servizio_id }}')">Clona</button>
-                                                    <button type="button" class="delete" onclick="deleteMenu('{{ servizio_id }}')">X</button>
+                                                        <button type="button" class="clone" onclick="prepareClone('{{ servizio_id }}')">Clona</button>
+                                                        <button type="button" class="delete" onclick="deleteMenu('{{ servizio_id }}')">X</button>
                                                     {% endif %}
-
                                                 </div>
                                                 {% if page_permissions['/app_cucina/menu']['can_write'] %}
-                                                <div class="menu-columns" class="clone" onclick="showMenuForm('{{ servizio_id }}')">   
+                                                    <div class="menu-columns" onclick="showMenuForm('{{ servizio_id }}')">
                                                 {% endif %}
                                                     <div class="column">
                                                         <h4>Primi</h4>
@@ -126,13 +126,15 @@ Calendario Menu - Gestione Cucina
                                                             {% endfor %}
                                                         </ul>
                                                     </div>
-                                                </div>
+                                                {% if page_permissions['/app_cucina/menu']['can_write'] %}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         {% else %}
-                                            <p>Nessun piatto disponibile</p>
+                                            Nessun menu disponibile per il giorno selezionato.
                                         {% endif %}
                                     {% else %}
-                                        <p>Nessun servizio disponibile</p>
+                                        Nessun menu disponibile per il giorno selezionato.
                                     {% endif %}
                                 </td>
                             {% endfor %}
@@ -142,6 +144,9 @@ Calendario Menu - Gestione Cucina
             {% endfor %}
         </tbody>
     </table>
+
+
+
   
     {% if page_permissions['/app_cucina/menu']['can_write'] %}
     <div id="clonaModal" class="modal" style="display: none;">
@@ -185,7 +190,7 @@ Calendario Menu - Gestione Cucina
     </div>
     {% endif %}
 
- 
+
     
     
     <script>
