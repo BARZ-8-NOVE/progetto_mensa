@@ -1,0 +1,226 @@
+{% extends "index.html" %}
+
+{% block title %}
+Home - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+
+<h1 class="controls-container">Benvenuto, {{ nome }} {{ cognome }}!</h1>
+<!-- Contenitore per i pulsanti e i form -->
+<div class="controls-container">
+    
+    <!-- Pulsanti di navigazione del giorno -->
+    <form method="GET" action="{{ url_for('app_cucina.home') }}">
+        <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
+        {% set prev_day = day - 1 %}
+        {% set prev_month = month %}
+        {% set prev_year = year %}
+        {% if prev_day < 1 %}
+            {% set prev_month = month - 1 %}
+            {% if prev_month < 1 %}
+                {% set prev_month = 12 %}
+                {% set prev_year = year - 1 %}
+            {% endif %}
+            {% if prev_month in [1, 3, 5, 7, 8, 10, 12] %}
+                {% set prev_day = 31 %}
+            {% elif prev_month in [4, 6, 9, 11] %}
+                {% set prev_day = 30 %}
+            {% elif prev_month == 2 %}
+                {% if (prev_year % 4 == 0 and prev_year % 100 != 0) or (prev_year % 400 == 0) %}
+                    {% set prev_day = 29 %}
+                {% else %}
+                    {% set prev_day = 28 %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        <input type="hidden" name="day" value="{{ prev_day }}">
+        <input type="hidden" name="month" value="{{ prev_month }}">
+        <input type="hidden" name="year" value="{{ prev_year }}">
+        <button type="submit" class="icon-freccia-sx" title="giono precedente"></button>
+    </form>
+    <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
+    <form method="GET" action="{{ url_for('app_cucina.home') }}">
+        <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
+        {% set next_day = day + 1 %}
+        {% set next_month = month %}
+        {% set next_year = year %}
+        {% if next_day > 31 %}
+            {% set next_day = 1 %}
+            {% set next_month = month + 1 %}
+            {% if next_month > 12 %}
+                {% set next_month = 1 %}
+                {% set next_year = year + 1 %}
+            {% endif %}
+        {% endif %}
+        {% if next_month in [1, 3, 5, 7, 8, 10, 12] %}
+            {% if next_day > 31 %}
+                {% set next_day = 1 %}
+                {% set next_month = next_month + 1 %}
+                {% if next_month > 12 %}
+                    {% set next_month = 1 %}
+                    {% set next_year = next_year + 1 %}
+                {% endif %}
+            {% endif %}
+        {% elif next_month in [4, 6, 9, 11] %}
+            {% if next_day > 30 %}
+                {% set next_day = 1 %}
+                {% set next_month = next_month + 1 %}
+                {% if next_month > 12 %}
+                    {% set next_month = 1 %}
+                    {% set next_year = next_year + 1 %}
+                {% endif %}
+            {% endif %}
+        {% elif next_month == 2 %}
+            {% if (next_year % 4 == 0 and next_year % 100 != 0) or (next_year % 400 == 0) %}
+                {% if next_day > 29 %}
+                    {% set next_day = 1 %}
+                    {% set next_month = next_month + 1 %}
+                    {% if next_month > 12 %}
+                        {% set next_month = 1 %}
+                        {% set next_year = next_year + 1 %}
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                {% if next_day > 28 %}
+                    {% set next_day = 1 %}
+                    {% set next_month = next_month + 1 %}
+                    {% if next_month > 12 %}
+                        {% set next_month = 1 %}
+                        {% set next_year = next_year + 1 %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        <input type="hidden" name="day" value="{{ next_day }}">
+        <input type="hidden" name="month" value="{{ next_month }}">
+        <input type="hidden" name="year" value="{{ next_year }}">
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>
+    </form>
+</div>
+{% if page_permissions['/app_cucina/home']['can_write'] %}
+<div class="controls-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Servizio</th>
+                <th>Totale Pazienti</th>
+                <th>Totale Personale</th>
+                <th>Totale Completo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servizio_nome, totali in ordini_totali_per_servizio.items() %}
+                <tr>
+                    <td>{{ servizio_nome }}</td>
+                    <td>{{ totali['totale_pazienti'] }}</td>
+                    <td>{{ totali['totale_personale'] }}</td>
+                    <td>{{ totali['totale_completo'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><strong>Totali</strong></td>
+                <td><strong>{{ totale_pazienti }}</strong></td>
+                <td><strong>{{ totale_personale }}</strong></td>
+                <td><strong>{{ totale_completo }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+{% endif %}
+
+
+<div class="order-container">
+    {% if dizionario_servizi %}
+        {% for servizio_id, servizio_info in dizionario_servizi.items() %}
+            <div class="service-card">
+                {% if servizio_info['controllo_ordine'] == 'Null' %}
+                    <div class="order-reminder">
+                        <a href="{{ url_for('app_cucina.ordina_pasto', servizio_id=servizio_id) }}" class="order-button">
+                            <span class="order-icon">🍽️</span> Effettua l'ordine
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="menu-selezionato">
+                        <div class="menu-details" style="background-color: {{ servizio_info['inf_scheda'].backgroundColor }};">
+                            <h1>{{ servizi_map[servizio_id] }}</h1>
+                            <h1>{{ tipi_menu_map[servizio_info['inf_scheda'].fkTipoMenu] }}</h1>
+                            <ul class="piatti-list">
+                                {% set primi = [] %}
+                                {% set secondi = [] %}
+                                {% set contorni = [] %}
+                                {% set altri = [] %}
+                                
+                                {% for piatto_id, piatto in servizio_info['piatti_ordine_map'].items() %}
+                                    {% if piatto.fkTipoPiatto == 1 %}
+                                        {% set _ = primi.append(piatto) %}
+                                    {% elif piatto.fkTipoPiatto == 2 %}
+                                        {% set _ = secondi.append(piatto) %}
+                                    {% elif piatto.fkTipoPiatto == 3 %}
+                                        {% set _ = contorni.append(piatto) %}
+                                    {% else %}
+                                        {% set _ = altri.append(piatto) %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <li class="piatti-category">Primi</li>
+                                {% for piatto in primi %}
+                                    <li class="piatto-item piatto-row primo">
+                                        <span class="piatto-code">{{ piatto.codice }}</span>
+                                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                    </li>
+                                {% endfor %}
+                                
+                                <li class="piatti-category">Secondi</li>
+                                {% for piatto in secondi %}
+                                    <li class="piatto-item piatto-row secondo">
+                                        <span class="piatto-code">{{ piatto.codice }}</span>
+                                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                    </li>
+                                {% endfor %}
+                                
+                                <li class="piatti-category">Contorni</li>
+                                {% for piatto in contorni %}
+                                    <li class="piatto-item piatto-row contorno">
+                                        <span class="piatto-code">{{ piatto.codice }}</span>
+                                        <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                    </li>
+                                {% endfor %}
+                                
+                                <li class="piatti-category">Dolce e Pane</li>
+                                {% for piatto in altri %}
+                                    {% if piatto.fkTipoPiatto == 4 %}
+                                        <!-- Colore personalizzato per il dolce -->
+                                        <li class="piatto-item piatto-row dolce">
+                                            <span class="piatto-code">{{ piatto.codice }}</span>
+                                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="piatto-item piatto-row pane">
+                                            <span class="piatto-code">{{ piatto.codice }}</span>
+                                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="order-reminder">
+            <a href="{{ url_for('app_cucina.ordina_pasto', servizio_id=servizio_id) }}" class="order-button">
+                <span class="order-icon">🍽️</span> Effettua l'ordine
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+
+
+
+
+{% endblock %}

@@ -34,13 +34,13 @@ Servizi - Gestione Cucina e Mensa Ospedaliera
                 {% for servizio in servizi %}
                 <tr>
                     {% if page_permissions['/app_cucina/servizi']['can_write'] %}
-                        <td><button class="btn btn-secondary" onclick="showModificaForm({{ servizio.id }})">Modifica</button></td>
+                        <td><div class="icon-pencil" onclick="showModificaForm({{ servizio.id }})" title="visualizza servizio"></div></td>
                     {% endif %}
                     <td>{{ servizio.descrizione }}</td>
                     <td>{{ servizio.ordinatore }}</td>
                     <td>{{ "Si" if servizio.inMenu else "No" }}</td>
                     {% if page_permissions['/app_cucina/servizi']['can_write'] %}
-                        <td><button class="btn btn-elimina" onclick="elimina({{ servizio.id }})">X</button></td>
+                        <td><div class="icon-cancella" onclick="elimina({{ servizio.id }})" title='Elimina servizio'></div></td>                      
                     {% endif %}
                 </tr>
                 {% endfor %}

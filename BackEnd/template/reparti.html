@@ -36,7 +36,7 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
                 {% for reparto in reparti %}
                 <tr>
                     {% if page_permissions['/app_cucina/reparti']['can_write'] %}
-                        <td><button class="btn btn-secondary" onclick="showModificaForm({{ reparto.id }})">Modifica</button></td>
+                        <td><div class="icon-pencil" onclick="showModificaForm({{ reparto.id }})" title="visualizza reparto"></div></td>
                     {% endif %}
                     <td>{{ reparto.descrizione }}</td>
                     <td>{{ reparto.sezione }}</td>
@@ -44,7 +44,7 @@ Reparti - Gestione Cucina e Mensa Ospedaliera
                     <td>{{ reparto.inizio }}</td>
                     <td>{{ reparto.fine }}</td>
                     {% if page_permissions['/app_cucina/reparti']['can_write'] %}
-                        <td><button class="btn btn-elimina" onclick="elimina({{ reparto.id }})">X</button></td>
+                        <td><div class="icon-cancella" onclick="elimina({{ reparto.id }})" title='Elimina reparto'></div></td>                      
                     {% endif %}
                 </tr>
                 {% endfor %}

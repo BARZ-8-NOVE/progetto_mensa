@@ -39,7 +39,7 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
             {% for piatto in tipologia_piatti %}
             <tr>
                 {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                    <td><button class="btn btn-secondary" onclick="showModificaForm({{ piatto.id }})">Modifica</button></td>
+                    <td><div class="icon-pencil" onclick="showModificaForm({{ piatto.id }})"title="visualizza tipologia piatti"></div></td>
                 {% endif %}  
                 <td>{{ piatto.descrizione }}</td>
                 <td>{{ piatto.descrizionePlurale }}</td>
@@ -50,7 +50,7 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
                 <td>{{ piatto.dataInserimento }}</td>
                 <td>{{ piatto.utenteInserimento }}</td>
                 {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                    <td><button class="btn btn-elimina" onclick="elimina({{ piatto.id }})">X</button></td>
+                <td><div class="icon-cancella" onclick="elimina({{ piatto.id }})" title='Elimina tipo piatto'></div></td>                      
                 {% endif %}
             </tr>
             {% endfor %}

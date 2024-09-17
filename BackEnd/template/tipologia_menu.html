@@ -38,7 +38,7 @@ Tipologia Menu - Gestione Cucina e Mensa Ospedaliera
                 <tr>
 
                     {% if page_permissions['/app_cucina/tipologia_menu']['can_write'] %}
-                        <td><button class="btn btn-secondary" onclick="showModificaForm({{ tipologiamenu.id }})">Modifica</button></td>
+                        <td><div class="icon-pencil" onclick="showModificaForm({{ tipologiamenu.id }})" title="visualizza tipologia"></div></td>
                     {% endif %}  
 
                     <td>
@@ -51,7 +51,7 @@ Tipologia Menu - Gestione Cucina e Mensa Ospedaliera
                     <td>{{ tipologiamenu.ordinatore }}</td>
 
                     {% if page_permissions['/app_cucina/tipologia_menu']['can_write'] %}
-                        <td><button class="btn btn-elimina" onclick="elimina({{ tipologiamenu.id }})">X</button></td>
+                        <td><div class="icon-cancella" onclick="elimina({{ tipologiamenu.id }})" title='Elimina tipologia menu'></div></td>                      
                     {% endif %}
 
                 </tr>

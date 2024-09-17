@@ -178,6 +178,56 @@ class RepositoryOrdiniSchede:
                     if self.session:
                         self.session.close()
 
+
+
+
+
+
+    def count_totali_per_giorno(self, data, servizio: int):
+        """Conta il totale degli ordini per pazienti e personale in una data specifica, e restituisce i totali complessivi."""
+        try:
+            # Query per il totale degli ordini per pazienti
+            totale_pazienti = self.session.query(func.count()).select_from(
+                TOrdiniSchede
+            ).join(
+                TSchede, TOrdiniSchede.fkScheda == TSchede.id
+            ).filter(
+                TSchede.dipendente == 0,
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).scalar()  # Usa scalar() per ottenere il valore del conteggio direttamente
+
+            # Query per il totale degli ordini per personale
+            totale_personale = self.session.query(func.count()).select_from(
+                TOrdiniSchede
+            ).join(
+                TSchede, TOrdiniSchede.fkScheda == TSchede.id
+            ).filter(
+                TSchede.dipendente == 1,
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).scalar()  # Usa scalar() per ottenere il valore del conteggio direttamente
+
+            # Calcolo del totale complessivo
+            totale_completo = totale_pazienti + totale_personale
+
+            return {
+                'totale_pazienti': totale_pazienti,
+                'totale_personale': totale_personale,
+                'totale_completo': totale_completo
+            }
+        except Exception as e:
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
+
         
     def get_by_id(self, id):
         try:

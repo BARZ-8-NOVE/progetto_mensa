@@ -36,7 +36,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
         <tbody id="utentiTableBody">
             {% for utente in utenti %}
             <tr>
-                <td><button class="btn btn-secondary" onclick="showModificaForm({{ utente.id }})">Modifica</button></td>
+                <td><div class="icon-pencil" onclick="showModificaForm({{ utente.id }})"title="visualizza utente"></div></td>
                 <td>{{ utente.username }}</td>
                 <td>{{ utente.cognome }}</td>
                 <td>{{ utente.nome }}</td>

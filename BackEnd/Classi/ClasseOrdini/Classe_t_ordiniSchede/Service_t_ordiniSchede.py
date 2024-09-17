@@ -57,3 +57,25 @@ class Service_t_OrdiniSchede:
 
     def get_by_day_and_nome_cognome(self, data, nome: str, cognome: str, servizio: int):
         return self.repository.get_by_day_and_nome_cognome( data, nome, cognome, servizio)
+    
+    def count_totali_per_giorno(self, data, servizio: int):
+        return self.repository.count_totali_per_giorno( data, servizio)
+
+
+
+    def calcola_totali_per_giorno(self, data, servizi):
+        ordini_totali_per_servizio = {}
+        totale_pazienti = 0
+        totale_personale = 0
+        totale_completo = 0
+
+        for servizio in servizi:
+            ordini_totali = self.repository.count_totali_per_giorno(data, servizio['id'])
+            servizio_nome = servizio['descrizione']
+            ordini_totali_per_servizio[servizio_nome] = ordini_totali
+            
+            totale_pazienti += ordini_totali['totale_pazienti']
+            totale_personale += ordini_totali['totale_personale']
+            totale_completo += ordini_totali['totale_completo']
+
+        return ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo

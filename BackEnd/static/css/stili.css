@@ -1,6 +1,9 @@
 /* Stili globali */
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
 }
 
 header {
@@ -63,7 +66,7 @@ nav ul {
 }
 
 nav ul li {
-    position: relative;
+    position: absolute;
 }
 
 nav ul li a {
@@ -400,12 +403,23 @@ li {
 
 .rotated-header {
     position: relative;
-    height: 200px; /* Altezza della cella, modifica se necessario */
-    width: 20px; /* Larghezza della cella, modifica se necessario */
-    text-align: center; /* Centra il testo */
-    vertical-align: middle; /* Allinea verticalmente il testo */
-    overflow: hidden; /* Nasconde il testo che esce dai bordi */
+    height: 210px; /* Altezza della cella, modifica se necessario */
+    width: 100px; /* Larghezza della cella, modifica se necessario */
+    text-align: center; /* Centra orizzontalmente il testo */
+    vertical-align: top; /* Allinea verticalmente il testo */
 }
+
+.rotated-nome-text {
+    position: absolute; /* Posiziona il testo in modo assoluto */
+    top: 10px; /* Allinea il testo al top della cella */
+    left: 50%; /* Centra orizzontalmente rispetto alla cella */
+    transform: translateX(-50%); /* Sposta il testo a sinistra di metà della sua larghezza per centrarlo */
+    width: 100%; /* Larghezza al 100% della cella */
+    box-sizing: border-box; /* Include il padding e il bordo nelle dimensioni */
+}
+
+
+
 
 .rotated-header span {
     display: inline-block;
@@ -413,8 +427,8 @@ li {
     transform-origin: left bottom;
     white-space: nowrap;
     position: absolute;
-    left: 35px; /* Modifica il posizionamento a tuo piacimento */
-    top: 10px; /* Modifica il posizionamento a tuo piacimento */
+    left: 43%; /* Modifica il posizionamento a tuo piacimento */
+    top: 30px; /* Modifica il posizionamento a tuo piacimento */
     color: #333; /* Colore del testo, modifica se necessario */
 }
 
@@ -619,7 +633,9 @@ li {
     display: flex;
     gap: 10px; /* Spazio tra gli elementi */
     align-items: center; /* Allinea verticalmente al centro */
-    margin-bottom: 20px; /* Spazio sotto il contenitore */
+    margin-bottom: 20px;
+    margin-right: 20px;
+    margin-left: 20px; /* Spazio sotto il contenitore */
 }
 
 .controls-container form,
@@ -722,16 +738,25 @@ li {
     }
 
     .stampa-item.highlighted, .stampa-custom-column-item.highlighted {
-        background-color: #e0e0e0 !important;
-        -webkit-print-color-adjust: exact;
-        color-adjust: exact;
+        background-color: #e0e0e0 !important; /* Usa !important per forzare la stampa del colore di sfondo */
     }
+    
 
     .h2.custom-background {
-        background-color: {{ ordine_info.scheda.backgroundColor }} !important;
-        -webkit-print-color-adjust: exact;
-        color-adjust: exact;
+        background-color: {{ scheda.backgroundColor }} !important;
     }
+    
+
+    @media print {
+        h2.custom-background {
+            background-color: {{ scheda.backgroundColor }} !important;
+            -webkit-print-color-adjust: exact !important; /* Per WebKit-based browsers */
+            color-adjust: exact !important; /* Per altri browser */
+        }
+    }
+    
+    
+    
 
     .stampa-item {
         height: 110px; /* Mantiene l'altezza dei quadrati fissa nella stampa */
@@ -1378,3 +1403,178 @@ select {
     opacity: 0.8; /* Leggero effetto di hover */
     cursor: pointer; /* Cambia il cursore per indicare che il pulsante è cliccabile */
 }
+
+/* Style for the order button */
+.order-button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 18px;
+    color: #fff;
+    background-color: #07437e;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+
+.order-button:hover {
+    background-color: #002b5e;
+}
+
+.order-icon {
+    font-size: 24px;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+/* Container for the service cards */
+.order-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Individual service card */
+.service-card {
+    flex: 1 1 45%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    padding: 20px;
+}
+
+/* Order reminder */
+.order-reminder {
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Menu details */
+.menu-selezionato {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+}
+
+.menu-details h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* List of dishes */
+.piatti-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.piatti-category {
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+/* Individual dish item */
+.piatto-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.piatto-row {
+    padding: 5px;
+}
+
+
+.icon-pencil {
+    width: 24px;
+    height: 24px;
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+  }
+  
+  .icon-modifica {
+    width: 24px; /* Imposta la larghezza dell'icona */
+    height: 24px; /* Imposta l'altezza dell'icona */
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0 0 15 0m-15 0a7.5 7.5 0 1 1 15 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077 1.41-.513m14.095-5.13 1.41-.513M5.106 17.785l1.15-.964m11.49-9.642 1.149-.964M7.501 19.795l.75-1.3m7.5-12.99.75-1.3m-6.063 16.658.26-1.477m2.605-14.772.26-1.477m0 17.726-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205 12 12m6.894 5.785-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain; /* Adatta l'icona alle dimensioni dell'elemento */
+    cursor: pointer; /* Cambia il cursore in una mano per indicare che è cliccabile */
+    display: inline-block; /* Permette all'elemento di mantenere le dimensioni e comportarsi come un blocco inline */
+    vertical-align: middle; /* Allinea verticalmente l'icona con il testo circostante, se presente */
+  }
+  
+  .icon-bidone {
+    width: 24px;
+    height: 24px;
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="red" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+  }
+  
+  
+  
+  
+
+  .icon-cancella {
+    width: 24px;
+    height: 24px;
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="%23c62828" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+}
+
+  
+
+
+
+
+
+
+
+  .icon-freccia-sx {
+    width: 35px; /* Imposta la larghezza dell'icona */
+    height: 35px; /* Imposta l'altezza dell'icona */
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain; /* Assicura che l'icona si adatti all'elemento */
+    display: inline-block; /* Mantiene l'elemento in linea */
+    vertical-align: middle; /* Allinea verticalmente l'elemento */
+    padding: 10px 20px; /* Spaziatura interna del pulsante */
+    background-color: #07437e; /* Colore di sfondo del pulsante */
+    color: white; /* Colore del testo del pulsante */
+    border: none; /* Rimuove il bordo predefinito */
+    border-radius: 5px; /* Angoli arrotondati */
+    cursor: pointer; /* Cambia il cursore quando si passa sopra l'icona */
+    margin: 20px 0 20px auto; /* Margine per posizionare il pulsante */
+    transition: background-color 0.3s ease; /* Transizione per il colore di sfondo */
+  }
+  
+  .icon-freccia-sx:hover {
+    background-color: #052f6e; /* Colore di sfondo al passaggio del mouse */
+  }
+  
+  .icon-freccia-dx {
+    width: 30px; /* Imposta la larghezza dell'icona */
+    height: 35px; /* Imposta l'altezza dell'icona */
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain; /* Assicura che l'icona si adatti all'elemento */
+    display: inline-block; /* Mantiene l'elemento in linea */
+    vertical-align: middle; /* Allinea verticalmente l'elemento */
+    padding: 10px 20px; /* Spaziatura interna del pulsante */
+    background-color: #07437e; /* Colore di sfondo del pulsante */
+    color: white; /* Colore del testo del pulsante */
+    border: none; /* Rimuove il bordo predefinito */
+    border-radius: 5px; /* Angoli arrotondati */
+    cursor: pointer; /* Cambia il cursore quando si passa sopra l'icona */
+    margin: 20px 0 20px auto; /* Margine per posizionare il pulsante */
+    transition: background-color 0.3s ease; /* Transizione per il colore di sfondo */
+  }
+  
+  .icon-freccia-dx:hover {
+    background-color: #052f6e; /* Colore di sfondo al passaggio del mouse */
+  }
+  

@@ -11,7 +11,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             {{ info_servizio.descrizione }}, {{ info_reparto.codiceAreas }}, {{ info_reparto.descrizione }}
         </h2>
         <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
-            {{ tipi_menu_map[scheda.fkTipoMenu] }}
+            {{ scheda.nome }} - {{scheda.titolo}}
         </h2>
         {% if ordine_id %}
         <button type="button" class="delete-button-scheda" onclick="elimina('{{ ordine_id }}')" title="Elimina scheda">X</button>

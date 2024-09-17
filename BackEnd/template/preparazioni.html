@@ -41,7 +41,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 
             <tr>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
-                <td><button class="btn btn-secondary" onclick="showModificaPreparazioneForm({{ preparazione.id }})">Modifica</button></td>
+                <td> <div class="icon-pencil" onclick="showModificaPreparazioneForm({{ preparazione.id }})"title="visualizza preparazione"></div></td>
                 {% endif %}
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
@@ -59,7 +59,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                     {% endif %}
                 </td>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
-                <td><button class="btn btn-elimina" onclick="elimina({{ preparazione.id }})">X</button></td>
+                <td><div class="icon-cancella" onclick="elimina({{ preparazione.id }})" title='Elimina preparazione'></div></td>                      
                 {% endif %}
             </tr>
             {% endfor %}

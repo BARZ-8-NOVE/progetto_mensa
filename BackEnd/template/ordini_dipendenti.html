@@ -4,12 +4,12 @@
 Ordini - Gestione Cucina
 {% endblock %}
 {% block content %}
-<h1 class="controls-container">Ordini del giorno</h1>
+<h1 class="controls-container">Ordini Dipendenti  </h1>
 
 <!-- Contenitore per i pulsanti e i form -->
 <div class="controls-container">
     <!-- Pulsanti di navigazione del giorno -->
-    <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
+    <form method="GET" action="{{ url_for('app_cucina.ordini_dipendenti') }}">
         <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
         {% set prev_day = day - 1 %}
         {% set prev_month = month %}
@@ -39,7 +39,7 @@ Ordini - Gestione Cucina
     </form>
     <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
 
-    <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
+    <form method="GET" action="{{ url_for('app_cucina.ordini_dipendenti') }}">
         <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
         {% set next_day = day + 1 %}
         {% set next_month = month %}
@@ -94,11 +94,11 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ next_day }}">
         <input type="hidden" name="month" value="{{ next_month }}">
         <input type="hidden" name="year" value="{{ next_year }}">
-        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>   
     </form>
 
     <!-- Filtra per servizio -->
-    <form method="GET" action="{{ url_for('app_cucina.ordini') }}">
+    <form method="GET" action="{{ url_for('app_cucina.ordini_dipendenti') }}">
         <input type="hidden" name="day" value="{{ day }}">
         <input type="hidden" name="year" value="{{ year }}">
         <input type="hidden" name="month" value="{{ month }}">
@@ -129,49 +129,46 @@ Ordini - Gestione Cucina
 
     
 </div>
-
 <div class="controls-container">
-<table>
-    <thead>
+    <table>
         <thead>
-            <tr>
-                <th class="rotated-header"> Reparto</th>
-                {% for scheda in schede_attive %}
-
-                <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
-                    <div class="rotated-nome-text" class="rotated-header">{{ scheda.nome }}</div>
-                    <span>{{ scheda.titolo }}</span>
-                </th>
-                {% endfor %}
-                <th class="rotated-header"> Totali reparti</th>
-            </tr>
+            <thead>
+                <tr>
+                    <th class="rotated-header"> Reparto</th>
+                    {% for scheda in schede_attive %}
+                    <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
+                        <div>{{ scheda.nome }}</div>
+                        <div>{{ scheda.titolo }}</div>
+                    </th>
+                    {% endfor %}
+                    <th class="rotated-header"> Totali reparti</th>
+                </tr>
+                
+            </thead>
+            
         </thead>
-        
-    </thead>
-    <tbody id="schedeTableBody">
-        {% for reparto in reparti %}
-        <tr>
-            <td>{{ reparto.descrizione }}</td>
+        <tbody id="schedeTableBody">
+            {% for reparto in reparti %}
+            <tr>
+                <td>{{ reparto.descrizione }}</td>
 
-            {% for scheda in schede_attive %}
-            <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
-                {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
-            </td>
+                {% for scheda in schede_attive %}
+                <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
+                    {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
+                </td>
+                {% endfor %}
+                <td>{{ reparti_totals[reparto.id] }}</td>
+            </tr>
             {% endfor %}
-            <td>{{ reparti_totals[reparto.id] }}</td>
-        </tr>
-        {% endfor %}
-        {% if page_permissions['/app_cucina/ordini']['can_write'] %}
-        <tr>
-            <td>Totali Schede</td>
-            {% for scheda in schede_attive %}
-            <td>{{ schede_totals[scheda.id] }}</td>
-            {% endfor %}
-            <td>{{ total_general }}</td>      
-        </tr>
-        {% endif %}
-    </tbody>
-</table>
+            <tr>
+                <td>Totali Schede</td>
+                {% for scheda in schede_attive %}
+                <td>{{ schede_totals[scheda.id] }}</td>
+                {% endfor %}
+                <td>{{ total_general }}</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 <!-- Calendario FullCalendar -->
 <div id="calendar"></div>

@@ -96,7 +96,7 @@ class RepositoryTSchede:
                 TSchede.utenteCancellazione.is_(None),  # Verifica se utenteCancellazione è NULL
                 TSchede.fine.is_(None),  # Verifica se fine è NULL
                 TSchede.dipendente == 0  # Verifica se dipendente è 0
-            ).all()
+            ).order_by(TSchede.ordinatore).all()
             
             # Costruisci la lista dei risultati
             return [{

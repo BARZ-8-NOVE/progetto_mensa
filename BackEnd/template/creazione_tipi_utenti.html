@@ -16,16 +16,16 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
     <table>
         <thead>
             <tr>
-                <th>Modifica</th>
+                <th></th>
                 <th>Nome Tipo Utente</th>
                 <th>Funzionalità</th>
-                <th>Elimina</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="utentiTableBody">
             {% for tipoutente in tipologieUtente %}
             <tr>
-                <td><button onclick="openEditUtenteForm({{ tipoutente.id }})">Modifica</button></td>
+                <td><div class="icon-pencil" onclick="openEditUtenteForm({{ tipoutente.id }})"title="visualizza tipo utente"></div></td>
                 <td>{{ tipoutente.nomeTipoUtente }}</td>
                 <td>
                     <ul>
@@ -39,8 +39,7 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
                         {% endfor %}
                     </ul>
                 </td>
-                
-                <td><button class="btn btn-elimina" onclick="elimina({{ tipoutente.id }})">X</button></td>
+                <td><div class="icon-cancella" onclick="elimina({{ tipoutente.id }})" title='Elimina tipo utente'></div></td>
             </tr>
             {% endfor %}
         </tbody>

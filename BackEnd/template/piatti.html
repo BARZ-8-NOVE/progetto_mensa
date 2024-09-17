@@ -44,7 +44,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                 {% for piatto in piatti %}
                 <tr>
                     {% if page_permissions['/app_cucina/piatti']['can_write'] %}
-                        <td><button class="btn btn-secondary" onclick="showModificaForm({{ piatto.id }})">Modifica</button></td>
+                        <td><div class="icon-pencil" onclick="showModificaForm({{ piatto.id }})"title="visualizza piatto"></div></td>
                     {% endif %}
                     <td>{{ TipoPiatto_map[piatto.fkTipoPiatto] }}</td>
                     <td>{{ piatto.codice }}</td>
@@ -54,7 +54,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
                     <td>{{ piatto.dataInserimento }}</td>
                     <td>{{ piatto.utenteInserimento }}</td>
                     {% if page_permissions['/app_cucina/piatti']['can_write'] %}
-                        <td><button class="btn btn-elimina" onclick="elimina({{ piatto.id }})">X</button></td>
+                        <td><div class="icon-cancella" onclick="elimina({{ piatto.id }})" title='Elimina piatto'></div></td>                      
                     {% endif %}
                 </tr>
                 {% endfor %}

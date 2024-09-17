@@ -37,8 +37,8 @@ Creazione Schede - Gestione Cucina
                 <td>
                     <div style="width: 20px; height: 20px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black;"></div>
                 </td>
-                <td><button class="btn btn-secondary" onclick="showModificaSchedaForm({{ scheda.id }})">Modifica</button></td>
-                <td><button class="btn btn-secondary" onclick="showAddSchedaPiattiForm({{ scheda.id }})">Modifica <br> piatti</button></td>
+                <td><div class="icon-pencil" onclick="showModificaSchedaForm({{ scheda.id }})" title="visualizza scheda"></div></td>
+                <td><div class="icon-modifica" onclick="showAddSchedaPiattiForm({{ scheda.id }})" title="configura scheda"></div></td>
                 <td>{{ tipi_alimentazione_map[scheda.fkTipoAlimentazione] }}</td>
                 <td>{{ scheda.nome }}</td>
                 <td>{{ scheda.titolo }}</td>
@@ -47,7 +47,8 @@ Creazione Schede - Gestione Cucina
                 <td>{{ 'Sì' if scheda.dipendente else 'No' }}</td>
                 <td>{{ scheda.inizio.strftime('%Y-%m-%d') if scheda.inizio else '' }}</td>
                 <td>{{ scheda.fine.strftime('%Y-%m-%d') if scheda.fine else '' }}</td>
-                <td><button class="btn btn-elimina" onclick="elimina({{ scheda.id }})">X</button></td>
+                <td><div class="icon-cancella" onclick="elimina({{ scheda.id }})" title='Elimina scheda'></div></td>
+                
             </tr>
             {% endfor %}
         </tbody>

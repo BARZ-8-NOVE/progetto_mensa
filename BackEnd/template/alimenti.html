@@ -57,7 +57,7 @@
                 </td>
                 <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
                 {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
-                <td><button class="btn btn-elimina" onclick="eliminaAlimento({{ alimento.id }})">X</button></td>
+                <td><div class="icon-cancella" onclick="eliminaAlimento({{ alimento.id }})" title='Elimina alimento'></div></td>
                 {% endif %}
             </tr>
             {% endfor %}

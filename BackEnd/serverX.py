@@ -75,6 +75,8 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
 import Reletionships
 
 app = Flask(__name__)
+
+
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -289,7 +291,7 @@ def get_reparti_utente():
     # Se 'reparti' è None, restituisce una lista vuota
     return user.get('reparti', []) if user else []
 
-
+# funzione che per ogni piatto associa la preparazione considerandi il tipo e il giorno del menu 
 def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
     id_menu = service_t_Menu.get_by_data(ordine_data, scheda_tipo_menu)
     if 'Error' in id_menu:
@@ -326,6 +328,84 @@ def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
         return preparazioni_map
     else:
         return {}
+# funzione usata nel ordine personale per creare dinamicamente i menu e visualiuzare gli ordini fatti con i relativi piatti
+def processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_personale):
+    # Inizializza inf_scheda a None
+    inf_scheda = None
+    preparazioni_map = {}
+    piatti_ordine = {}
+    piatti_ordine_map = {}
+
+    # Controlla l'ordine esistente
+    controllo_ordine = service_t_OrdiniSchede.get_by_day_and_nome_cognome(data, nome, cognome, int(servizio_corrente))
+
+    # Supponiamo che piatti_map e preparazioni_map siano già disponibili
+    if controllo_ordine is not None:
+        # Recupera tutti i piatti ordinati associati a quella scheda
+        piatti_ordine = service_t_OrdiniPiatti.get_all_by_ordine_scheda(controllo_ordine['id'])
+        
+        
+        # Ottieni le informazioni della scheda associata
+        inf_scheda = service_t_Schede.get_by_id(controllo_ordine['fkScheda'])
+        
+        
+        # Crea una mappa delle preparazioni in base al tipo di menu e al servizio
+        preparazioni_map = get_preparazioni_map(data, inf_scheda['fkTipoMenu'], controllo_ordine['fkServizio'])
+        
+        
+        # Crea una nuova mappa per i piatti ordinati
+        piatti_ordine_map = {}
+        
+        # Itera attraverso i piatti ordinati e costruisci la mappa con codice e preparazione
+        for piatto_ordine in piatti_ordine:
+            piatto_id = int(piatto_ordine['fkPiatto'])
+            
+            
+            p_m = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
+            # Verifica se il piatto esiste in piatti_map
+            if piatto_id in p_m:
+                
+                
+                # Aggiungi il piatto alla mappa dei piatti ordinati con i dettagli necessari
+                piatti_ordine_map[piatto_ordine['id']] = {
+                    'id': piatto_ordine['id'],
+                    'fkPiatto': piatto_ordine['fkPiatto'],
+                    'quantita': piatto_ordine['quantita'],
+                    'note': piatto_ordine['note'],
+                    'titolo': preparazioni_map.get(piatto_id, p_m[piatto_id]['titolo']),  # Usa la descrizione della preparazione
+                    'codice': p_m[piatto_id]['codice'],  # Usa il codice del piatto
+                    'fkTipoPiatto': p_m[piatto_id]['fkTipoPiatto']  # Tipo di piatto (es. primo, secondo, etc.)
+                }
+            else:
+                print(f"Piatto con ID {piatto_id} non trovato in piatti_map.")
+        
+        
+        
+        return controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map
+    
+    else:
+        # Se non esiste l'ordine, costruisci il menu personale
+        for scheda in menu_personale:
+            preparazioni_map = get_preparazioni_map(data, scheda['fkTipoMenu'], int(servizio_corrente))
+            
+            piatti_map = {}
+            for piatto in piatti:
+                piatto_id = int(piatto['id'])
+                
+                # Filtra solo i piatti (preparazioni) che fanno parte del menu
+                if piatto_id in preparazioni_map:
+                    piatti_map[piatto_id] = {
+                        'id': piatto['id'],
+                        'titolo': preparazioni_map.get(piatto_id),  # Usa solo la descrizione della preparazione
+                        'codice': piatto['codice'],
+                        'fkTipoPiatto': piatto['fkTipoPiatto']
+                    }
+
+            # Assegna piatti_map alla scheda corrente
+            scheda['piatti'] = piatti_map
+        
+        return None, None, preparazioni_map, menu_personale
+
 
 
 
@@ -414,7 +494,7 @@ def login():
                 menu_structure = service_t_FunzionalitaUtente.build_menu_structure(user['id'])
                 session['menu_structure'] = menu_structure
                 
-                return redirect(url_for('app_cucina.index'))
+                return redirect(url_for('app_cucina.home'))
             else:
                 flash('Invalid username or password', 'error')
                 return render_template('loginx.html', form=form)
@@ -2355,78 +2435,8 @@ def ordina_pasto():
         tipi_menu = service_t_TipiMenu.get_all()
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
 
-        # Inizializza inf_scheda a None
-        inf_scheda = None
-        preparazioni_map = {}
-        piatti_ordine = {}
-        piatti_ordine_map = {}
-
-        # Controlla l'ordine esistente
-        controllo_ordine = service_t_OrdiniSchede.get_by_day_and_nome_cognome(data, nome, cognome, int(servizio_corrente))
-
-        # Supponiamo che piatti_map e preparazioni_map siano già disponibili
-        if controllo_ordine is not None:
-            # Recupera tutti i piatti ordinati associati a quella scheda
-            piatti_ordine = service_t_OrdiniPiatti.get_all_by_ordine_scheda(controllo_ordine['id'])
-            print('piatti_ordine: ', piatti_ordine)
-            
-            # Ottieni le informazioni della scheda associata
-            inf_scheda = service_t_Schede.get_by_id(controllo_ordine['fkScheda'])
-            print('inf_scheda: ', inf_scheda)
-            
-            # Crea una mappa delle preparazioni in base al tipo di menu e al servizio
-            preparazioni_map = get_preparazioni_map(data, inf_scheda['fkTipoMenu'], controllo_ordine['fkServizio'])
-            print('preparazioni_map: ', preparazioni_map)
-            
-            # Crea una nuova mappa per i piatti ordinati
-            
-            
-            # Itera attraverso i piatti ordinati e costruisci la mappa con codice e preparazione
-            for piatto_ordine in piatti_ordine:
-                piatto_id = int(piatto_ordine['fkPiatto'])
-                print('Processing piatto_ordine: ', piatto_ordine)
-                
-                p_m = {int(piatto['id']): {'titolo': piatto['titolo'], 'codice': piatto['codice'], 'fkTipoPiatto': piatto['fkTipoPiatto']} for piatto in piatti}
-                # Verifica se il piatto esiste in piatti_map
-                if piatto_id in p_m :
-                    print(f"Piatto trovato in piatti_map con ID {piatto_id}: ", p_m [piatto_id])
-                    
-                    # Aggiungi il piatto alla mappa dei piatti ordinati con i dettagli necessari
-                    piatti_ordine_map[piatto_ordine['id']] = {
-                        'id': piatto_ordine['id'],
-                        'fkPiatto': piatto_ordine['fkPiatto'],
-                        'quantita': piatto_ordine['quantita'],
-                        'note': piatto_ordine['note'],
-                        'titolo': preparazioni_map.get(piatto_id, p_m[piatto_id]['titolo']),    # Usa la descrizione della preparazione
-                        'codice': p_m [piatto_id]['codice'],  # Usa il codice del piatto
-                        'fkTipoPiatto': p_m [piatto_id]['fkTipoPiatto']  # Tipo di piatto (es. primo, secondo, etc.)
-                    }
-                else:
-                    print(f"Piatto con ID {piatto_id} non trovato in piatti_map.")
-            
-            print('Final piatti_ordine_map: ', piatti_ordine_map)
-
-
-        else:
-        
-            for scheda in menu_personale:
-                preparazioni_map = get_preparazioni_map(data, scheda['fkTipoMenu'], int(servizio_corrente))
-                
-                piatti_map = {}
-                for piatto in piatti:
-                    piatto_id = int(piatto['id'])
-                    
-                    # Filtra solo i piatti (preparazioni) che fanno parte del menu
-                    if piatto_id in preparazioni_map:
-                        piatti_map[piatto_id] = {
-                            'id': piatto['id'],
-                            'titolo': preparazioni_map.get(piatto_id),  # Usa solo la descrizione della preparazione
-                            'codice': piatto['codice'],
-                            'fkTipoPiatto': piatto['fkTipoPiatto']
-                        }
-
-                # Assegna piatti_map alla scheda corrente
-                scheda['piatti'] = piatti_map
+        # Elenco delle variabili restituite da processa_ordine
+        controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_personale)
 
         return render_template(
             'ordina_pasto.html',
@@ -2446,6 +2456,7 @@ def ordina_pasto():
         )
     else:
         return redirect(url_for('app_cucina.login'))
+
 
 
 @app_cucina.route('/ordini/delete/<int:ordine_id>', methods=['GET', 'DELETE'])
@@ -2668,6 +2679,78 @@ def ordini():
                                )
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/ordini_dipendenti', methods=['GET', 'POST'])
+def ordini_dipendenti():
+    if 'authenticated' in session:
+        tomorrow = datetime.now() + timedelta(days=1)
+        year = request.args.get('year', tomorrow.year, type=int)
+        month = request.args.get('month', tomorrow.month, type=int)
+        day = request.args.get('day', tomorrow.day, type=int)
+        servizio_corrente = request.args.get('servizio', '1')
+        
+ 
+        data = f'{year}-{month}-{day}'
+
+        user_id = session['user_id']
+        reparti = get_user_reparti(user_id)
+
+
+        servizio = service_t_Servizi.get_all_servizi()
+        schede = service_t_Schede.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_alimentazione = service_t_TipiAlimentazione.get_all()
+        ordiniSchede = service_t_OrdiniSchede.get_all_by_day(year, month, day, servizio_corrente)
+        schede_attive = service_t_Schede.get_all_personale()
+
+        schede_count, reparti_totals, schede_totals, total_general = service_t_OrdiniSchede.get_ordini_data(
+            year, month, day, servizio_corrente, reparti, schede_attive
+        )
+
+        ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
+        print (ordine_esistente)
+        # Se non esiste, crea un nuovo ordine
+        if not ordine_esistente:
+            service_t_Ordini.create(data, servizio_corrente)
+            return redirect(url_for('app_cucina.ordini_dipendenti',servizio_corrente=servizio_corrente, year=year, month=month, day=day))
+        
+
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        tipi_alimentazione_map = {int(tipo_alimentazione['id']): tipo_alimentazione['descrizione'] for tipo_alimentazione in tipi_alimentazione}
+        schede_map = {int(scheda['id']): tipi_menu_map[int(scheda['fkTipoMenu'])] for scheda in schede}
+        reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
+
+        form = ordineSchedaForm()
+
+
+        return render_template('ordini_dipendenti.html',
+                               year=year,
+                               month=month,
+                               day=day,
+                               schede_count=schede_count,
+                               servizio_corrente=servizio_corrente,
+                               servizio=servizio,
+                               schede=schede,
+                               tipi_menu_map=tipi_menu_map,
+                               tipi_alimentazione_map=tipi_alimentazione_map,
+                               reparti=reparti,
+                               reparti_map=reparti_map,
+                               schede_map=schede_map,
+                               ordiniSchede=ordiniSchede,
+                               schede_count_totali=schede_count,
+                               reparti_totals=reparti_totals,
+                               schede_totals=schede_totals,
+                               total_general=total_general,
+                               schede_attive=schede_attive,
+                               ordine_esistente=ordine_esistente,
+                               form=form
+
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
 
 
 
@@ -3000,6 +3083,7 @@ def contatti():
     if 'authenticated' in session:
         user = service_t_utenti.get_utente_by_id(session['user_id'])
         nome = user['nome']  # Accesso ai valori del dizionario
+        cognome = user['cognome']  # Accesso ai valori del dizionario
         email = user['email']
         
         form = ContattiForm()
@@ -3009,7 +3093,7 @@ def contatti():
             messaggio = form.messaggio.data
 
             # Creiamo il messaggio da inviare
-            msg = Message(f"Segnalazione da {nome}: {oggetto}",
+            msg = Message(f"Segnalazione da {cognome} {nome}: {oggetto}",
                           sender=email,  # Usa l'indirizzo dell'utente come mittente
                           recipients=['ptest2420@gmail.com'])  # L'indirizzo a cui inviare le segnalazioni
             msg.body = f"Nome: {nome}\nEmail: {email}\n\nMessaggio:\n{messaggio}"
@@ -3027,8 +3111,86 @@ def contatti():
         return redirect(url_for('app_cucina.login'))
 
 
+@app_cucina.route('/home', methods=['GET', 'POST'])
+def home():
+    if 'authenticated' in session:
+        
+        today = datetime.now()
+        year = request.args.get('year', today.year, type=int)
+        month = request.args.get('month', today.month, type=int)
+        day = request.args.get('day', today.day, type=int)
+        servizi = service_t_Servizi.get_all_servizi()
+       
+        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        
+        data = f'{year}-{month}-{day}'
+        nome = user['nome']
+        cognome = user['cognome']
+ 
 
-    
+        # Dizionario per accumulare i risultati
+        ordini_totali_per_servizio = {}
+
+        # Utilizza il metodo del service per calcolare i totali
+        ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
+            service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
+            
+        print(ordini_totali_per_servizio)
+        print(totale_completo)
+
+        piatti = service_t_Piatti.get_all()
+        # Ottieni i reparti accessibili dall'utente
+        menu_personale = service_t_Schede.get_all_personale()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
+
+        dizionario_servizi = {}
+
+        for servizio in servizi:
+            controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(data, nome, cognome, servizio['id'], piatti, menu_personale)
+            
+            if controllo_ordine is None:
+                # Gestisci il caso in cui controllo_ordine è None
+                dizionario_servizi[servizio['id']] = {
+                    'inf_scheda': inf_scheda,
+                    'piatti_ordine_map': piatti_ordine_map,
+                    'controllo_ordine': 'Null'
+                }
+            else:
+                dizionario_servizi[servizio['id']] = {
+                    'inf_scheda': inf_scheda,
+                    'piatti_ordine_map': piatti_ordine_map,
+                    'controllo_ordine': controllo_ordine
+                }
+                    
+ 
+            
+        print('dizionario_servizi: ', dizionario_servizi)
+            
+
+        return render_template('home.html',
+                               year=year,
+                               month=month,
+                               day=day,
+                               servizi=servizi,
+                               ordini_totali_per_servizio=ordini_totali_per_servizio,
+                               totale_pazienti=totale_pazienti,
+                               totale_personale=totale_personale,
+                               totale_completo=totale_completo,
+                               controllo_ordine=controllo_ordine, 
+                               inf_scheda=inf_scheda,                                                     
+                               piatti_ordine_map=piatti_ordine_map, 
+                               utente=user['username'],
+                               nome=nome,
+                               cognome=cognome,
+                               servizi_map=servizi_map,
+                               dizionario_servizi=dizionario_servizi,
+                               tipi_menu_map=tipi_menu_map
+                               )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
 
 
 
