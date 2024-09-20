@@ -11,6 +11,13 @@ class Service_t_preparazioni:
     def get_preparazione_by_id(self, id):
         return self.repository.get_preparazione_by_id(id)
     
+    def get_all_preparazioni_base(self):
+        return self.repository.get_all_preparazioni_base()
+
+    def update(self, id, fkTipoPreparazione, descrizione, isEstivo, isInvernale, inizio, fine, immagine):
+        return self.repository.update(id, fkTipoPreparazione, descrizione, isEstivo, isInvernale, inizio, fine, immagine)
+
+    
     def get_descrizione_by_id(self, id):
         return self.repository.get_descrizione_by_id(id)
 

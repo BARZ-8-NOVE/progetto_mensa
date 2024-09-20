@@ -1,6 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Domani_t_preparazionicontenuti import TPreparazioniContenuti
+from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
 from datetime import datetime
 
 class Repository_t_preparazionicontenuti:
@@ -57,12 +58,31 @@ class Repository_t_preparazionicontenuti:
             # Chiudi sempre la sessione
             self.session.close()
 
+
+
+    def get_preparazioni_senza_ingredienti(self):
+        try:
+            preparazioni_senza_ingredienti_ids = (
+                self.session.query(TPreparazioni.id)
+                .outerjoin(TPreparazioniContenuti, TPreparazioni.id == TPreparazioniContenuti.fkPreparazione)
+                .filter(TPreparazioniContenuti.id.is_(None))  # Filtra le preparazioni senza contenuti
+                .all()
+            )
+            # Estrai gli ID dalla lista di tuple
+            return [prep_id for (prep_id,) in preparazioni_senza_ingredienti_ids]
+        except Exception as e:
+            return {'Error': str(e)}, 500
+        finally:
+            self.session.close()
+
+
+
     def get_preparazioni_contenuti_by_id_preparazione(self, fkPreparazione):
         try:
             results = self.session.query(TPreparazioniContenuti).filter_by(fkPreparazione=fkPreparazione).filter(TPreparazioniContenuti.dataCancellazione.is_(None)).all()
 
             if not results:
-                return {'Error': f'No match found for fkPreparazione: {fkPreparazione}'}, 404
+                return None
 
             return [{
                 'id': result.id,

@@ -40,7 +40,7 @@ Ordini - Gestione Cucina
 
 <!-- Visualizzazione dei menu disponibili -->
 {% if controllo_ordine is none %}
-<div class="menu-container">
+<div>
     <ul class="menu-list">
         {% for scheda in menu_personale %}
         <li class="menu-item" style="background-color: {{ scheda.backgroundColor }};"

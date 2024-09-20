@@ -37,10 +37,10 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% for scheda_piatto in schedePiatti %}
                 {% if scheda_piatto.fkPiatto in piatti_map %}
                 {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
+                <div class="popup-item" data-id="{{ piatto.id }}" data-type="{{ piatto.fkTipoPiatto }}" onclick="toggleSelection(this, {{ piatto.id }})">
                     <span class="item-id">{{ piatto.codice }}</span>
                     <div class="item-name">{{ piatto.titolo }}</div>
-                </div>       
+                </div>     
                 {% else %}
                 <div class="popup-item unknown"></div>
                 {% endif %}
@@ -51,7 +51,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% for scheda_piatto in schedeDolci %}
                 {% if scheda_piatto.fkPiatto in piatti_map %}
                 {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-custom-column-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
+                <div class="popup-custom-column-item" data-id="{{ piatto.id }}" data-type="{{ piatto.fkTipoPiatto }}" onclick="toggleSelection(this, {{ piatto.id }})">
                     <span class="item-id">{{ piatto.codice }}</span>
                     <div class="item-name">{{ piatto.titolo }}</div>
                 </div>       
@@ -77,29 +77,48 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
     {% for piatto in info_piatti %}
         selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
     {% endfor %}
-
+    
     function toggleSelection(element, piattoId) {
+        const piattoType = element.getAttribute('data-type'); // Assicurati che il tuo elemento abbia questo attributo
+        
+        // Rimuovi la selezione degli altri piatti dello stesso tipo
+        const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
+        itemsToDeselect.forEach(item => {
+            if (item.classList.contains('selezionato')) {
+                item.classList.remove('selezionato');
+                const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === parseInt(item.getAttribute('data-id')));
+                if (index > -1) {
+                    selectedItems.splice(index, 1);
+                }
+            }
+        });
+        
+        // Aggiungi o rimuovi la selezione per il piatto corrente
         element.classList.toggle('selezionato');
         const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
-
+        
         if (index > -1) {
             selectedItems.splice(index, 1);
         } else {
             selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" });
         }
-
+        
         updateHiddenField();
     }
-
+    
+    // Funzione per aggiornare il campo nascosto
     function updateHiddenField() {
         document.getElementById('piattiList').value = JSON.stringify(selectedItems);
     }
-
+    
+    // Inizializza la selezione all'apertura del popup
     document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
         const piattoId = parseInt(item.getAttribute('data-id'));
         if (selectedItems.find(item => item.fkPiatto === piattoId)) {
             item.classList.add('selezionato');
         }
     });
+    
+    
 </script>
 {% endblock %}

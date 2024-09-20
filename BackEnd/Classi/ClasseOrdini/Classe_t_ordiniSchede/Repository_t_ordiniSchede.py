@@ -139,6 +139,127 @@ class RepositoryOrdiniSchede:
                         self.session.close()
 
 
+    def get_all_by_ordine_per_stampa(self, fkOrdine):
+        """Recupera i record da TOrdiniSchede per un giorno specifico, raggruppando i brodi per reparto e lasciando gli altri non raggruppati."""
+        try:
+            # Recupera tutte le schede per l'ordine specificato che non sono cancellate
+            results = self.session.query(TOrdiniSchede).filter(
+                TOrdiniSchede.fkOrdine == fkOrdine,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).order_by(TOrdiniSchede.fkReparto, TOrdiniSchede.letto).all()
+
+            # Dizionario per raggruppare i brodi per reparto (schede con fkScheda == 18)
+            schede_per_reparto = {}
+            response = []
+
+            for result in results:
+                # Se la scheda è diversa da 18, la aggiungiamo direttamente al risultato
+                if result.fkScheda != 18:
+                    response.append({
+                        'id': result.id,
+                        'fkOrdine': result.fkOrdine,
+                        'fkReparto': result.fkReparto,
+                        'data': result.data,
+                        'fkServizio': result.fkServizio,
+                        'fkScheda': result.fkScheda,
+                        'cognome': result.cognome,
+                        'nome': result.nome,
+                        'letto': result.letto,
+                        'dataInserimento': result.dataInserimento,
+                        'utenteInserimento': result.utenteInserimento,
+                        'dataCancellazione': result.dataCancellazione,
+                        'utenteCancellazione': result.utenteCancellazione
+                    })
+                else:
+                    # Raggruppiamo i brodi (schede con fkScheda == 18) per reparto
+                    fkReparto = result.fkReparto
+                    if fkReparto not in schede_per_reparto:
+                        schede_per_reparto[fkReparto] = {
+                            'count': 0,
+                            'first_scheda': None
+                        }
+
+                    # Incrementiamo il conteggio delle schede per il reparto
+                    schede_per_reparto[fkReparto]['count'] += 1
+
+                    # Se questa è la prima scheda del reparto, la salviamo
+                    if schede_per_reparto[fkReparto]['first_scheda'] is None:
+                        schede_per_reparto[fkReparto]['first_scheda'] = {
+                            'id': result.id,
+                            'fkOrdine': result.fkOrdine,
+                            'fkReparto': result.fkReparto,
+                            'data': result.data,
+                            'fkServizio': result.fkServizio,
+                            'fkScheda': result.fkScheda,
+                            'cognome': result.cognome,
+                            'nome': result.nome,
+                            'letto': result.letto,
+                            'dataInserimento': result.dataInserimento,
+                            'utenteInserimento': result.utenteInserimento,
+                            'dataCancellazione': result.dataCancellazione,
+                            'utenteCancellazione': result.utenteCancellazione
+                        }
+
+            # Aggiungiamo le schede dei brodi (fkScheda == 18) con il conteggio per reparto
+            for fkReparto, info in schede_per_reparto.items():
+                first_scheda = info['first_scheda']
+                first_scheda['numeroSchede'] = info['count']  # Aggiungiamo il numero di schede per reparto
+                response.append(first_scheda)
+
+            return response
+
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
+
+
+    def count_brodi(self, data, fkOrdine: int, fkScheda=18):
+        """Conta tutti i record da TOrdiniSchede per un giorno specifico e che non sono stati cancellati."""
+        try:
+            # Costruzione della query
+            query = self.session.query(
+                TOrdiniSchede.fkReparto,
+                TOrdiniSchede.fkScheda,
+                func.count().label('schede_count')
+            ).filter(
+                TOrdiniSchede.data == data,
+                TOrdiniSchede.fkOrdine == fkOrdine,
+                TOrdiniSchede.dataCancellazione.is_(None),
+                TOrdiniSchede.fkScheda == fkScheda,  # Utilizza il parametro fkScheda
+            ).group_by(
+                TOrdiniSchede.fkReparto,
+                TOrdiniSchede.fkScheda
+            )
+
+            # Esecuzione della query
+            results = query.all()
+
+            # Organizzazione dei risultati in un dizionario
+            schede_count = {}
+            for result in results:
+                if result.fkReparto not in schede_count:
+                    schede_count[result.fkReparto] = {}
+                schede_count[result.fkReparto][result.fkScheda] = result.schede_count
+
+            return schede_count
+        except Exception as e:
+            return {'Error': str(e)}, 500
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
+
+
     
     def get_count_filtrati(self, year: int, month: int, day: int, servizio: int, fkReparto=None, fkScheda=None):
         """Conta tutti i record da TOrdiniSchede per un giorno specifico e che non sono stati cancellati."""

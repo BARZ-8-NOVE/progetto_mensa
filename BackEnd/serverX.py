@@ -8,6 +8,7 @@
 from datetime import datetime, date, timedelta, time, timezone
 
 import calendar
+import locale
 from functools import wraps
 import pprint
 import logging
@@ -70,7 +71,7 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
                                     LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, 
                                     schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , 
                                     TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, 
-                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm)
+                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm, BrodoForm)
 # Initialize the app and configuration
 import Reletionships
 
@@ -208,10 +209,9 @@ def get_page_name_from_path(path):
 
     # Se il percorso non inizia con 'app_cucina/', restituisci vuoto o il percorso originale
     return ''
+
+
 #funzione per clonare il menu
-
-# utils.py o service_reparti.py
-
 def get_user_reparti(user_id):
     """
     Recupera la lista dei reparti accessibili da un determinato utente.
@@ -328,6 +328,7 @@ def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
         return preparazioni_map
     else:
         return {}
+    
 # funzione usata nel ordine personale per creare dinamicamente i menu e visualiuzare gli ordini fatti con i relativi piatti
 def processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_personale):
     # Inizializza inf_scheda a None
@@ -547,8 +548,6 @@ def inject_user_data():
                     'can_write': can_write,
                 }
 
-    # Stampa i permessi di tutte le pagine per l'utente corrente (per debug)
-
 
     # Ritorna i dati che devono essere accessibili nei template
     return dict(
@@ -561,13 +560,7 @@ def inject_user_data():
         page_permissions=page_permissions  # Aggiungi i permessi delle pagine
     )
 
-
-
-
-
-
-
-
+#crea indice 
 @app_cucina.route('/index')
 def index():
     if 'authenticated' in session:
@@ -577,7 +570,6 @@ def index():
         return redirect(url_for('app_cucina.login'))
 
 @app_cucina.route('/alimenti', methods=['GET', 'POST'])
-@login_required
 def alimenti():
     if 'authenticated' in session:
 
@@ -646,60 +638,56 @@ def elimina_alimento(id):
 
 
 
-@app_cucina.route('preparazioni/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
-def get_by_fkTipoPreparazione(fkTipoPreparazione):
-    piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
-    tutti_i_piatti = service_t_Piatti.get_all()
-    return jsonify(piatti if piatti else tutti_i_piatti)
 
-@app_cucina.route('/get_piatti/<tipo_piatto>', methods=['GET'])
-def get_piatti_fktipo_piatto(tipo_piatto): 
-    piatti_filtarti_menu = service_t_Piatti.get_by_fkTipoPiatto(tipo_piatto)
-    return jsonify(piatti_filtarti_menu)
-
-
-@app_cucina.route('/get_preparazioni/<tipo_piatto>', methods=['GET'])
-def get_preparazioni_e_associazione(tipo_piatto): 
-    preparazione = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(tipo_piatto)
-    return jsonify(preparazione)
 
 
 
 @app_cucina.route('/preparazioni', methods=['GET', 'POST'])
 def preparazioni():
-    #FACCIAMO TUTTE LE GET CHE CI SEERVONO
-    preparazioni = service_t_preparazioni.get_all_preparazioni()
-    tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
-    preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
-    piatti = service_t_Piatti.get_all()
-    alimenti = service_t_Alimenti.get_all()  # Assuming this method returns a list of alimenti
-    tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
-    associazione = service_t_AssociazionePiattiPreparazionie.get_all()
-
-
-
-    #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
-    piattiform = PiattiForm()
-    form = PreparazioniForm()
-    alimform = AlimentoForm()
-
-    #REIMPIAMO LE POSSIBILI SCELTE DELLE FORM
-    form.fkTipoPreparazione.choices = [
-        (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
-    ]
-
-    alimform.fkAlimento.choices = [
-        (alimento['id'], alimento['alimento']) for alimento in alimenti
-    ]
-
-    alimform.fkTipoQuantita.choices = [
-        (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
-    ]
-
-    TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
-    alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
-    tipo_map = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
     if 'authenticated' in session:
+        #FACCIAMO TUTTE LE GET CHE CI SEERVONO
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+        tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
+        preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
+        piatti = service_t_Piatti.get_all()
+        alimenti = service_t_Alimenti.get_all()  # Assuming this method returns a list of alimenti
+        tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
+        associazione = service_t_AssociazionePiattiPreparazionie.get_all()
+        preparazioni_base = service_t_preparazioni.get_all_preparazioni_base()
+
+
+        preparazioni_senza_ingredienti = service_t_preparazionicontenuti.get_preparazioni_senza_ingredienti()
+        print(preparazioni_senza_ingredienti)        
+      
+                
+
+
+            
+        #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
+        piattiform = PiattiForm()
+        form = PreparazioniForm()
+        alimform = AlimentoForm()
+
+        #REIMPIAMO LE POSSIBILI SCELTE DELLE FORM
+        form.fkTipoPreparazione.choices = [
+            (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
+        ]
+
+        alimform.fkAlimento.choices = [
+            (alimento['id'], alimento['alimento']) for alimento in alimenti
+        ] + [
+            (preparazione['id'] + 100000, preparazione['descrizione']) for preparazione in preparazioni_base
+        ]
+
+        alimform.fkTipoQuantita.choices = [
+            (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
+        ]
+
+        TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
+        alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
+        tipo_map = {int(tipo_quantita['id']): tipo_quantita['tipo'] for tipo_quantita in tipi_quantita}
+        
+    
         if form.validate_on_submit():
             # Handling the image upload
             if form.immagine.data:
@@ -771,14 +759,14 @@ def preparazioni():
             alimento_map=alimento_map,
             piattiform=piattiform,
             piatti=piatti,
-            tipo_map=tipo_map
+            tipo_map=tipo_map,
+            preparazioni_base =preparazioni_base,
+            preparazioni_senza_ingredienti=preparazioni_senza_ingredienti
 
         )
     else:
         flash('Please log in first.', 'warning')
         return redirect(url_for('app_cucina.login'))
-
-
 
         
 @app_cucina.route('/preparazioni/<int:id_preparazione>', methods=['GET', 'POST', 'DELETE'])
@@ -799,17 +787,20 @@ def preparazione_dettagli(id_preparazione):
             associazione = service_t_AssociazionePiattiPreparazionie.get_id_piatto_by_preparazione(id_preparazione)
 
             tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
+            preparazioni_base = service_t_preparazioni.get_all_preparazioni_base()  # Recupera le preparazioni di base
             
+            # Riempie i form
             form = PreparazioniForm(obj=preparazione)
             alimform = AlimentoForm(obj=preparazione)
 
-            # Riempie le possibili scelte dei form
             form.fkTipoPreparazione.choices = [
                 (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
             ]
 
             alimform.fkAlimento.choices = [
                 (alimento['id'], alimento['alimento']) for alimento in alimenti
+            ] + [
+                (preparazione['id'] + 100000, preparazione['descrizione']) for preparazione in preparazioni_base
             ]
 
             alimform.fkTipoQuantita.choices = [
@@ -827,46 +818,107 @@ def preparazione_dettagli(id_preparazione):
                     'fine': preparazione.get('fine').strftime('%Y-%m-%d') if preparazione.get('fine') else '',
                     'immagine': preparazione.get('immagine')
                 },
-                'ingredienti': [
-                    {
-                        'fkAlimento': ingrediente.get('fkAlimento'),
-                        'quantita': ingrediente.get('quantita'),
-                        'fkTipoQuantita': ingrediente.get('fkTipoQuantita'),
-                        'note': ingrediente.get('note')
-                    } for ingrediente in alimentiPerPrep
-                ],
+                'ingredienti': [],
                 'scelte': {
                     'tipiPreparazioni': [(tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni],
                     'alimenti': [(alimento['id'], alimento['alimento']) for alimento in alimenti],
                     'tipiQuantita': [(tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita]
                 }
             }
+
+            # Aggiungi ingredienti solo se presenti
+            if alimentiPerPrep:
+                data['ingredienti'] = [
+                    {
+                        'fkAlimento': ingrediente.get('fkAlimento'),
+                        'quantita': ingrediente.get('quantita'),
+                        'fkTipoQuantita': ingrediente.get('fkTipoQuantita'),
+                        'note': ingrediente.get('note')
+                    } for ingrediente in alimentiPerPrep if isinstance(ingrediente, dict)  # Assicurati che sia un dizionario
+                ]
             
-        
             return jsonify(data)
 
         if request.method == 'POST':
-            # Logica per gestire il POST
-            pass
+                
+            # Recupera i dati dal form
+            fkTipoPreparazione = request.form.get('fkTipoPreparazione')
+            descrizione = request.form.get('descrizione')
+            estivo = request.form.get('estivo') == '1'  # Converte in booleano
+            invernale = request.form.get('invernale') == '1'  # Converte in booleano
+            inizio = request.form.get('inizio') or None
+            fine = request.form.get('fine') or None
+            immagine = request.form.get('immagine')  # Gestisci l'immagine come necessario
+
+
+            print(fkTipoPreparazione)
+            print(descrizione)
+            print(estivo)
+            print(invernale)
+            print(inizio)
+            print(fine)
+            print(immagine)
+            # Aggiorna la preparazione
+
+            
+            try:
+                service_t_preparazioni.update(
+                    id_preparazione,
+                    fkTipoPreparazione=fkTipoPreparazione,
+                    descrizione=descrizione,
+                    isEstivo=estivo,
+                    isInvernale=invernale,
+                    inizio=inizio,
+                    fine=fine,
+                    immagine=immagine
+                )
+                
+                # Gestisci gli ingredienti
+                ingredient_list = json.loads(request.form.get('ingredientList', '[]'))  # Assicurati che sia una lista valida
+                service_t_preparazionicontenuti.delete_preparazioni_contenuti(id_preparazione, utenteCancellazione=get_username())  # Pulisci ingredienti esistenti
+
+                for ingrediente in ingredient_list:
+                    if isinstance(ingrediente, dict):
+                        service_t_preparazionicontenuti.create_preparazioni_contenuti(
+                            fkPreparazione=id_preparazione,
+                            fkAlimento=int(ingrediente.get('fkAlimento')),
+                            quantita=float(ingrediente.get('quantita', 0)),
+                            fkTipoQuantita=int(ingrediente.get('fkTipoQuantita')),
+                            note=ingrediente.get('note', '')
+                        )
+                
+                flash('Preparazione modificata con successo!', 'success')
+                return redirect(url_for('app_cucina.preparazioni'))  # Redirect alla lista delle preparazioni
+
+            except Exception as e:
+                flash(f'Errore durante la modifica della preparazione: {e}', 'danger')
+                return redirect(url_for('app_cucina.preparazioni'))  # Redirect in caso di errore
+
 
         if request.method == 'DELETE':
-            print(f"Request to delete preparazione with ID: {id_preparazione}")  # Log per la richiesta di cancellazione
+            print(f"Request to delete preparazione with ID: {id_preparazione}")
             try:
                 service_t_AssociazionePiattiPreparazionie.delete_associazione(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
                 service_t_preparazionicontenuti.delete_preparazioni_contenuti(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
                 service_t_preparazioni.delete_preparazione(id=id_preparazione, utenteCancellazione=get_username())
                 
                 flash('Preparazione eliminata con successo!', 'success')
-                return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+                return '', 204
             except Exception as e:
-                print(f"Error deleting scheda: {e}")  # Log per l'errore
+                print(f"Error deleting scheda: {e}")
                 flash('Errore durante l\'eliminazione della preparazione.', 'danger')
-                return '', 400  # Status code 400 Bad Request per errori
+                return '', 400
 
     else:
         flash('Please log in first.', 'warning')
         return redirect(url_for('app_cucina.login'))
 
+
+@app_cucina.route('preparazioni/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
+def get_by_fkTipoPreparazione(fkTipoPreparazione):
+    piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
+    tutti_i_piatti = service_t_Piatti.get_all()
+    return jsonify(piatti if piatti else tutti_i_piatti)
 
 
 @app_cucina.route('/piatti', methods=['GET', 'POST'])
@@ -921,7 +973,6 @@ def piatti():
     # Se l'utente non è autenticato, reindirizzalo alla pagina di login
     else:
         return redirect(url_for('app_cucina.login'))
-
 
 
 @app_cucina.route('/piatti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
@@ -985,7 +1036,6 @@ def modifica_piatti(id):
                 return jsonify({'error': 'Errore nella validazione del form'}), 400
 
 
-
         if request.method == 'DELETE':
             try:
                 service_t_Piatti.delete(id, utenteCancellazione=get_username())
@@ -999,16 +1049,6 @@ def modifica_piatti(id):
 
     else:
         return redirect(url_for('app_cucina.login'))
-
-
-
-
-
-
-
-
-
-
 
 
 @app_cucina.route('/tipologia_piatti', methods=['GET', 'POST'])
@@ -1409,9 +1449,11 @@ def nodifica_tipologia_menu(id):
     else:
         return redirect(url_for('app_cucina.login'))  
     
+
 @app_cucina.route('/menu', methods=['GET', 'POST'])
 def menu():
     if 'authenticated' in session:
+        locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
         # Ottieni i parametri dai query string
         year = request.args.get('year', datetime.now().year, type=int)
         month = request.args.get('month', datetime.now().month, type=int)
@@ -1437,6 +1479,8 @@ def menu():
         # Mappa per i giorni della settimana
         weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
         
+        
+
         # Calcola il numero della settimana per ogni giorno
         week_numbers = {}
         previous_iso_week_number = None
@@ -2040,6 +2084,71 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
 
     else:
         return redirect(url_for('app_cucina.login'))
+    
+
+
+@app_cucina.route('/ordini/brodi', methods=['POST'])
+def update_scheda_count():
+    try:
+        # Recupera i dati dalla richiesta JSON
+        data = request.get_json()
+
+        ordine_id = data.get('ordineId')
+        servizio_id = data.get('servizioId')
+        reparto_id = data.get('reparto_id')
+        scheda_id = data.get('scheda_id')
+        new_count = data.get('new_count')
+
+        # Ottieni i dati dell'ordine
+        get_data = service_t_Ordini.get_by_id(ordine_id)
+        ordine_data = get_data['data']
+
+        brodi = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto_id, servizio_id, scheda_id)
+        if brodi:
+            for brodo in brodi:
+                service_t_OrdiniPiatti.delete_by_fkOrdine(brodo['id'])
+                service_t_OrdiniSchede.delete(brodo['id'], utenteCancellazione=get_username())
+
+
+        # Aggiorna o crea i dati della scheda
+        for _ in range(int(new_count)):  # Usa il conteggio per determinare quante schede creare
+            new_scheda_ordine = service_t_OrdiniSchede.create(
+                fkOrdine=ordine_id,
+                fkReparto=reparto_id,
+                data=ordine_data,
+                fkServizio=servizio_id,
+                fkScheda=scheda_id,
+                cognome='*',
+                nome='*',
+                letto=None,
+                utenteInserimento=get_username()
+            )
+
+            # Inserisci il piatto fisso
+            try:
+                service_t_OrdiniPiatti.create(
+                    fkOrdineScheda=new_scheda_ordine,
+                    fkPiatto=21,  # ID fisso del piatto "brodo"
+                    quantita=1,   # Quantità fissa
+                    note=None
+                )
+            except (ValueError, KeyError) as e:
+                print(f"Error processing ordine piatti: {e}")
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Errore: {e}")
+        return jsonify({'success': False, 'message': 'Errore interno del server'}), 500
+
+
+
+       
+
+
+
+
+
 
 
 
@@ -2229,12 +2338,15 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
 
 
+    
 
 @app_cucina.route('/ordini/print/<int:id>', methods=['GET', 'POST'])
 def print_ordini(id):
     if 'authenticated' in session:
         # Recupera tutti gli ordini associati all'ID fornito
-        tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine(id)
+        tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine_per_stampa(id)
+
+        print(tutti_gli_ordini)
 
         tipi_menu = service_t_TipiMenu.get_all()
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
@@ -2252,7 +2364,7 @@ def print_ordini(id):
             scheda = service_t_Schede.get_by_id(ordine['fkScheda'])
             info_reparto = service_t_Reparti.get_by_id(ordine['fkReparto'])
             piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine['id'])
-
+    
             # Aggiunge i piatti ordinati alla lista dei piatti
             for p in piatti_ordinati:
                 piatti = service_t_Piatti.get_by_id(p['fkPiatto'])
@@ -2645,13 +2757,22 @@ def ordini():
             service_t_Ordini.create(data, servizio_corrente)
             return redirect(url_for('app_cucina.ordini',servizio_corrente=servizio_corrente, year=year, month=month, day=day))
         
+        
+
 
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
         tipi_alimentazione_map = {int(tipo_alimentazione['id']): tipo_alimentazione['descrizione'] for tipo_alimentazione in tipi_alimentazione}
         schede_map = {int(scheda['id']): tipi_menu_map[int(scheda['fkTipoMenu'])] for scheda in schede}
         reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
 
-        form = ordineSchedaForm()
+
+            
+
+
+        # controllo_ora = check_order_time_limit(data)
+        # if not controllo_ora:
+        #     flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
+        #     return redirect(url_for('app_cucina.ordini'))
 
 
         return render_template('ordini.html',
@@ -2673,8 +2794,8 @@ def ordini():
                                schede_totals=schede_totals,
                                total_general=total_general,
                                schede_attive=schede_attive,
-                               ordine_esistente=ordine_esistente,
-                               form=form
+                               ordine_esistente=ordine_esistente
+                               
 
                                )
     else:

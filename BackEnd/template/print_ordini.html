@@ -5,63 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stampa Schede</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
-
 </head>
 
 <body>
     <div class="stampa">
         {% for ordine_info in ordini_data %}
             <div class="ordine-page">
-                <div class="stampa-header" style="position: relative;"> <!-- Imposta il contenitore come relativo -->
-                    <h6 style="position: absolute; right: 0; top: 0; margin: 0;">{{ ordine_info.ordine.id }}/ {{ ordine_info.ordine.data }}</h6>
+                <div class="stampa-header" style="position: relative;">
+                    <!-- Imposta il contenitore come relativo -->
+                    <h6 style="position: absolute; right: 0; top: 0; margin: 0;">
+                        {{ ordine_info.ordine.id }}/ {{ ordine_info.ordine.data }}
+                    </h6>
                     <h2>{{ ordine_info.info_reparto.codiceAreas }}, {{ ordine_info.info_reparto.descrizione }}</h2>
                     <h2 class="custom-background" style="width: 400px; height: 30px; background-color: {{ ordine_info.scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
-                        {{ tipi_menu_map[ordine_info.scheda.fkTipoMenu] }} 
+                        {{ tipi_menu_map[ordine_info.scheda.fkTipoMenu] }}
                     </h2>
                 </div>
 
-
-                <div class="stampa-header">
-                    <h3>
-                        {{ ordine_info.ordine.nome }} {{ ordine_info.ordine.cognome }} 
-                    </h3>
-                    <h3 style="position: relative; right: 10px; top: 0; margin: 0;">
-                         Letto: {{ ordine_info.ordine.letto }}
-                    </h3>
-
-                </div>
-                
-                <div class="stampa-content">
-                    <div class="stampa-grid">
-                        {% for scheda_piatto in ordine_info.schedePiatti %}
-                            {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
-                                {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
-                                <div class="stampa-item highlighted" data-id="{{ piatto.id }}"> <!-- Aggiungi 'highlighted' qui -->
-                                    <span class="item-id">{{ piatto.codice }}</span>
-                                    <div class="item-name">{{ piatto.titolo }}</div>
-                                </div>       
-                            {% else %}
-                                <div class="stampa-item unknown"></div>
-                            {% endif %}
-                        {% endfor %}
+                {% if ordine_info.scheda.id == 18 %}
+                    <div class="stampa-header">
+                        <h3>
+                            {{ ordine_info.ordine.nome }} {{ ordine_info.ordine.cognome }} 
+                            <!-- Totale delle schede brodo -->
+                            Totale brodi: {{ ordine_info.ordine.numeroSchede }}
+                        </h3>
+                        <h3>
+                            Letto: {{ ordine_info.ordine.letto }}
+                        </h3>
                     </div>
                     
-                    <div class="stampa-custom-column">
-                        {% for scheda_piatto in ordine_info.schedeDolci %}
-                            {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
-                                {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
-                                <div class="stampa-custom-column-item highlighted" data-id="{{ piatto.id }}"> <!-- Aggiungi 'highlighted' qui -->
-                                    <span class="item-id">{{ piatto.codice }}</span>
-                                    <div class="item-name">{{ piatto.titolo }}</div>
-                                </div>       
-                            {% else %}
-                                <div class="stampa-custom-column-item unknown"></div>
-                            {% endif %}
-                        {% endfor %}
+                    <div class="stampa-content">
+                        <div class="stampa-grid">
+                            {% for scheda_piatto in ordine_info.schedePiatti %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-item highlighted" data-id="{{ piatto.id }}">
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="stampa-custom-column">
+                            {% for scheda_piatto in ordine_info.schedeDolci %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-custom-column-item highlighted" data-id="{{ piatto.id }}">
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-custom-column-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
+
+                {% else %}
+                    <div class="stampa-header">
+                        <h3>
+                            {{ ordine_info.ordine.nome }} {{ ordine_info.ordine.cognome }}
+                        </h3>
+                        <h3>
+                            Letto: {{ ordine_info.ordine.letto }}
+                        </h3>
+                    </div>
+                    
+                    <div class="stampa-content">
+                        <div class="stampa-grid">
+                            {% for scheda_piatto in ordine_info.schedePiatti %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-item highlighted" data-id="{{ piatto.id }}">
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="stampa-custom-column">
+                            {% for scheda_piatto in ordine_info.schedeDolci %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-custom-column-item highlighted" data-id="{{ piatto.id }}">
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-custom-column-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </div> <!-- Fine dell'ordine, interruzione di pagina qui -->
         {% endfor %}
-    </div>    
+    </div>
 </body>
 </html>

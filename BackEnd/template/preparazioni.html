@@ -39,7 +39,8 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
         <tbody id="preparazioniTableBody">
             {% for preparazione in preparazioni %}
 
-            <tr>
+            <tr class="{% if preparazione.id in preparazioni_senza_ingredienti %}warning{% endif %}" 
+                {% if preparazione.id in preparazioni_senza_ingredienti %} title="Preparazione senza ingredienti"{% endif %}>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <td> <div class="icon-pencil" onclick="showModificaPreparazioneForm({{ preparazione.id }})"title="visualizza preparazione"></div></td>
                 {% endif %}
@@ -98,7 +99,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                         {% endfor %}
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" id="piattoSection" style="display: none;">
                         <label for="titoloSelect" class="form-label">Tipo Piatto</label>
                         <select id="titoloSelect" name="titolo" class="form-control">
                             <!-- Le opzioni saranno popolate dinamicamente tramite JavaScript -->
@@ -226,6 +227,9 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
 
     let ingredientList = [];
 
+    const preparazioni = {{ preparazioni | tojson }};
+
+
     // Mappa degli alimenti
     const alimento_map = {
         {% for alimento in alimenti %}
@@ -269,24 +273,68 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
     function updateIngredientList() {
         const ingredientListElement = document.getElementById('ingredientList');
         ingredientListElement.innerHTML = '';
-    
+        
+        // Log per vedere la lista degli ingredienti completa
+        console.log('ingredientList:', ingredientList);
+        
         ingredientList.forEach((ingredient, index) => {
-            const alimentoName = alimento_map[ingredient.fkAlimento]; // Ottieni il nome dell'alimento
-            const quantita = ingredient.quantita;
-            const tipoQuantita = tipo_map[ingredient.fkTipoQuantita]; // Mappa anche il tipo di quantità
+            let nomeIngrediente;
+            const isPreparazioneBase = ingredient.fkAlimento >= 100000;
     
+            // Log per vedere se l'ingrediente è considerato una preparazione di base
+            console.log(`Ingrediente #${index}`, ingredient);
+            console.log(`isPreparazioneBase:`, isPreparazioneBase);
+            
+            if (isPreparazioneBase) {
+                const idPreparazioneReale = ingredient.fkAlimento - 100000;
+                // Log per vedere l'ID reale della preparazione
+                console.log('idPreparazioneReale:', idPreparazioneReale);
+                
+                // Cerca la preparazione nell'elenco delle preparazioni
+                const preparazione = preparazioni.find(prep => prep.id === idPreparazioneReale);
+                
+                if (preparazione) {
+                    nomeIngrediente = `Preparazione di base: ${preparazione.descrizione}`;
+                    // Log per verificare se la descrizione della preparazione è corretta
+                    console.log('Preparazione trovata:', preparazione.descrizione);
+                } else {
+                    nomeIngrediente = `Preparazione non trovata (${idPreparazioneReale})`;
+                    // Log per il caso in cui la preparazione non venga trovata
+                    console.log('Preparazione non trovata per ID:', idPreparazioneReale);
+                }
+            } else {
+                // Usa il nome dell'alimento normale
+                nomeIngrediente = alimento_map[ingredient.fkAlimento];
+                // Log per vedere il nome dell'alimento
+                console.log('Nome alimento:', nomeIngrediente);
+            }
+    
+            const quantita = ingredient.quantita;
+            const tipoQuantita = tipo_map[ingredient.fkTipoQuantita];
+    
+            // Log per verificare quantità e tipo di quantità
+            console.log('Quantità:', quantita);
+            console.log('Tipo Quantità:', tipoQuantita);
+    
+            // Crea l'elemento della lista
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item';
             listItem.innerHTML = `
-                ${alimentoName} - ${quantita} ${tipoQuantita} - ${ingredient.note}
-                <button class="btn btn-danger btn-sm float-right" onclick="removeAlimento(${index})">Elimina</button>
+                <div>${nomeIngrediente}</div>
+                <div>${quantita} ${tipoQuantita}</div>
+                <div>${ingredient.note}</div>
+                <span class="icon-cancella" onclick="removeAlimento(${index})" title='Elimina ingrediente'></span>
             `;
             ingredientListElement.appendChild(listItem);
         });
     
-        // Passa la lista al server
+        // Log finale per l'input nascosto
+        console.log('ingredientListInput value:', JSON.stringify(ingredientList));
+        
         document.getElementById('ingredientListInput').value = JSON.stringify(ingredientList);
     }
+    
+    
     
     
     // Funzione per rimuovere un alimento dalla lista
@@ -343,7 +391,24 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
     }
     
     function closeModal() {
+        // Nascondi il modale
         document.getElementById('preparazioneModal').style.display = 'none';
+    
+        // Ripristina i valori del modulo
+        const form = document.getElementById('PreparazioniForm');
+        form.reset(); // Resetta il modulo
+    
+        // Svuota il select dei titoli
+        const titoloSelect = document.getElementById('titoloSelect');
+        titoloSelect.innerHTML = '';
+    
+        // Svuota la lista degli ingredienti
+        ingredientList = []; // Azzeriamo la lista degli ingredienti
+        updateIngredientList(); // Aggiorniamo la visualizzazione
+    
+        // Altri campi da azzerare, se necessario
+        document.getElementById('preparazioneDescrizione').innerText = '';
+        document.getElementById('ingredientListInput').value = ''; // Svuota l'input nascosto, se esiste
     }
     
     // Close the modal when clicking outside of it
@@ -360,51 +425,54 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             closeModal();
         }
     });
+    
 
 
     document.addEventListener('DOMContentLoaded', function() {
         var fkTipoPreparazioneSelect = document.getElementById('fkTipoPreparazioneSelect');
         var titoloSelect = document.getElementById('titoloSelect');
-        var form = document.querySelector('form'); // Assumi che ci sia solo un form nel template
+        var piattoSection = document.getElementById('piattoSection');
     
         fkTipoPreparazioneSelect.addEventListener('change', function() {
             var selectedTipoPreparazione = fkTipoPreparazioneSelect.value;
     
-            // Chiamata Ajax per ottenere i titoli dei piatti per il tipo di preparazione selezionato
-            fetch('/app_cucina/preparazioni/get_tipi_piatti/' + selectedTipoPreparazione)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(function(data) {
-                    // Pulisci le opzioni correnti
-                    titoloSelect.innerHTML = '';
+            // Svuota il select dei piatti e disabilitalo all'inizio
+            titoloSelect.innerHTML = '';
+            titoloSelect.disabled = true;
     
-                    // Aggiungi le nuove opzioni
-                    data.forEach(function(piatto) {
-                        var option = document.createElement('option');
-                        option.value = piatto.id;
-                        option.textContent = piatto.titolo;
-                        titoloSelect.appendChild(option);
+            if (selectedTipoPreparazione === 1) { // Sostituisci con l'ID reale
+                console.log('Nascondo la sezione del piatto');
+                piattoSection.style.display = 'none'; // Nascondi la sezione del piatto
+            } else {
+                console.log('Mostro la sezione del piatto');
+                piattoSection.style.display = 'block'; // Mostra la sezione del piatto
+                titoloSelect.disabled = false; // Riabilita il select
+    
+                // Chiamata Ajax per ottenere i titoli dei piatti per il tipo di preparazione selezionato
+                fetch('/app_cucina/preparazioni/get_tipi_piatti/' + selectedTipoPreparazione)
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(function(data) {
+                        // Aggiungi le nuove opzioni
+                        data.forEach(function(piatto) {
+                            var option = document.createElement('option');
+                            option.value = piatto.id;
+                            option.textContent = piatto.titolo;
+                            titoloSelect.appendChild(option);
+                        });
+                    })
+                    .catch(function(error) {
+                        console.error('Error fetching piatti:', error);
                     });
-                })
-                .catch(function(error) {
-                    console.error('Error fetching piatti:', error);
-                });
-        });
-    
-        // Aggiungi un evento al submit del form per assicurarti che il valore di titolo venga inviato
-        form.addEventListener('submit', function(event) {
-            // Controlla se un valore è stato selezionato
-            var selectedPiatto = titoloSelect.value;
-            if (!selectedPiatto) {
-                event.preventDefault();
-                alert('Per favore seleziona un tipo piatto.');
             }
         });
     });
+    
+
 
     
 
@@ -480,6 +548,10 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             .catch(error => {
                 console.error('Error fetching preparation data:', error);
                 alert('Errore durante il caricamento dei dettagli della preparazione.');
+                
+                if (error.message.includes('token scaduto')) { // Assicurati di avere un messaggio di errore specifico
+                    location.reload(); // Ricarica la pagina
+                }
             });
     }
     

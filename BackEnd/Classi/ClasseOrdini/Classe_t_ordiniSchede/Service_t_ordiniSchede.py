@@ -14,6 +14,10 @@ class Service_t_OrdiniSchede:
     def get_count_filtrati(self, year: int, month: int, day: int, servizio: int, fkReparto = None, fkScheda = None):
         return self.repository.get_count_filtrati(year, month, day, servizio, fkReparto, fkScheda)
     
+
+    def count_brodi(self, data, fkOrdine: int):
+        return self.repository.count_brodi(data, fkOrdine)
+    
     # def get_all_filtrati(self, year: int, month: int, day: int, servizio: int):
     #     return self.repository.get_all_filtrati(year, month, day, servizio)
 
@@ -34,6 +38,9 @@ class Service_t_OrdiniSchede:
     
     def check_letto(self, fkOrdine, fkReparto, data, fkServizio, letto):
         return self.repository.check_letto(fkOrdine, fkReparto, data, fkServizio, letto)
+    
+    def get_all_by_ordine_per_stampa(self, fkOrdine):
+        return self.repository.get_all_by_ordine_per_stampa(fkOrdine)
 
     # services.py
 

@@ -1,173 +1,120 @@
-@app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
-@app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
-def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
-    if 'authenticated' in session:
-        # Recupera i dati necessari
-        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
-        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
-        get_data = service_t_Ordini.get_by_id(id)
-        scheda = service_t_Schede.get_by_id(scheda)
-        piatti = service_t_Piatti.get_all()
-        tipi_menu = service_t_TipiMenu.get_all()
-        info_servizio = service_t_Servizi.get_servizio_by_id(servizio)
-        info_reparto = service_t_Reparti.get_by_id(reparto)
-        tipi_piatti = service_t_TipiPiatti.get_all()
-        preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stampa Schede</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
+</head>
 
-        # Costruisci una mappa delle preparazioni
-        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
-        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+<body>
+    <div class="stampa">
+        {% for ordine_info in ordini_data %}
+            {% if ordine_info.tipo == 'brodi' %}
+                {% for reparto, totale in ordine_info.brodi_per_reparto.items() %}
+                    <li>Reparto: {{ reparto }}, Totale Brodi: {{ totale }}</li>
+                {% endfor %}
 
-        ordine_data = get_data['data']
-        year = ordine_data.year
-        month = ordine_data.month
-        day = ordine_data.day
+                <div class="ordine-page">
+                    {% if ordine_info.ordine is defined %}
+                        <div class="stampa-header" style="position: relative;"> <!-- Imposta il contenitore come relativo -->
+                            <h6 style="position: absolute; right: 0; top: 0; margin: 0;">{{ ordine_info.ordine.id }}/ {{ ordine_info.ordine.data }}</h6>
+                            <h2>{{ ordine_info.info_reparto.codiceAreas }}, {{ ordine_info.info_reparto.descrizione }}</h2>
+                            <h2 class="custom-background" style="width: 400px; height: 30px; background-color: {{ ordine_info.scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+                                {{ ordine_info.scheda.nome }} - {{ ordine_info.scheda.titolo }}
+                            </h2>
+                        </div>
 
-        preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
+                        <div class="stampa-header">
+                            <h1>
+                                {{ ordine_info.ordine.nome }} - {{ ordine_info.ordine.cognome }} - {{ ordine_info.ordine.totale }}
+                            </h1>
+                        </div>
+                    {% endif %}
 
-        conta_schede = service_t_OrdiniSchede.get_count_filtrati(year, month, day, servizio, reparto, scheda['id'])
+                    <div class="stampa-content">
+                        <div class="stampa-grid">
+                            {% for scheda_piatto in ordine_info.schedePiatti %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-item highlighted" data-id="{{ piatto.id }}"> <!-- Aggiungi 'highlighted' qui -->
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
-        form = ordineSchedaForm()
-        
-        piatti_map = {}
-        for piatto in piatti:
-            piatto_id = int(piatto['id'])
-            tipo_piatto = piatto['fkTipoPiatto']
-            
-            # Filtra solo i piatti (preparazioni) che fanno parte del menu
-            # Escludi i tipi di piatti 4 e 5 dal filtraggio
-            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
-                piatti_map[piatto_id] = {
-                    'id': piatto['id'],
-                    'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione
-                    'codice': piatto['codice'],
-                    'fkTipoPiatto': piatto['fkTipoPiatto']
-                }
+                        <div class="stampa-custom-column">
+                            {% for scheda_piatto in ordine_info.schedeDolci %}
+                                {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                    {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                    <div class="stampa-custom-column-item highlighted" data-id="{{ piatto.id }}">
+                                        <span class="item-id">{{ piatto.codice }}</span>
+                                        <div class="item-name">{{ piatto.titolo }}</div>
+                                    </div>
+                                {% else %}
+                                    <div class="stampa-custom-column-item unknown"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
 
-        # Assegna piatti_map alla scheda corrente
-        scheda['piatti'] = piatti_map
+    {% for ordine_info in ordini_data %}
+        {% if ordine_info.tipo != 'brodi' and ordine_info.ordine is defined %}
+            <div class="ordine-page">
+                <div class="stampa-header" style="position: relative;">
+                    <h6 style="position: absolute; right: 0; top: 0; margin: 0;">{{ ordine_info.ordine.id }}/ {{ ordine_info.ordine.data }}</h6>
+                    <h2>{{ ordine_info.info_reparto.codiceAreas }}, {{ ordine_info.info_reparto.descrizione }}</h2>
+                    <h2 class="custom-background" style="width: 400px; height: 30px; background-color: {{ ordine_info.scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+                        {{ ordine_info.scheda.nome }} - {{ ordine_info.scheda.titolo }}
+                    </h2>
+                </div>
 
-        # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
-        dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
+                <div class="stampa-header">
+                    <h3>{{ ordine_info.ordine.nome }} {{ ordine_info.ordine.cognome }}</h3>
+                    <h3 style="position: relative; right: 10px; top: 0; margin: 0;">
+                        Letto: {{ ordine_info.ordine.letto }}
+                    </h3>
+                </div>
 
-        print('dettagli_ordine:', dettagli_ordine)
+                <div class="stampa-content">
+                    <div class="stampa-grid">
+                        {% for scheda_piatto in ordine_info.schedePiatti %}
+                            {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                <div class="stampa-item highlighted" data-id="{{ piatto.id }}">
+                                    <span class="item-id">{{ piatto.codice }}</span>
+                                    <div class="item-name">{{ piatto.titolo }}</div>
+                                </div>
+                            {% else %}
+                                <div class="stampa-item unknown"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
 
-        # Lista di tutti gli ID disponibili, escludendo la scheda vuota
-        lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine if ordine['id'] != 0]
-
-        print('lista_id_disponibili:', lista_id_disponibili)
-
-        # Se non ci sono ordini, includi solo la scheda vuota
-        if len(lista_id_disponibili) == 0:
-            lista_id_disponibili = [0]
-
-        # Gestione dell'ordine_id e current_scheda_index
-        if ordine_id is None or ordine_id == 0:
-            # Imposta l'ordine predefinito come l'ultimo ordine nella lista o la scheda vuota
-            if len(lista_id_disponibili) > 0:
-                ordine_id = lista_id_disponibili[-1]
-                current_scheda_index = len(lista_id_disponibili)  # Nuovo ordine sarà al termine della lista esistente
-            else:
-                ordine_id = 0
-                current_scheda_index = 0  # Nuova scheda vuota
-            info_utente = {
-                'nome': '',
-                'cognome': '',
-                'letto': '',
-                'note': ''
-            }
-            info_piatti = []
-            prev_order_id = lista_id_disponibili[-1] if len(lista_id_disponibili) > 0 else None
-            next_order_id = None
-        else:
-            if ordine_id not in lista_id_disponibili:
-                ordine_id = lista_id_disponibili[-1]  # Se non c'è un ordine_id valido, seleziona l'ultimo ordine come predefinito
-            
-            current_index = lista_id_disponibili.index(ordine_id)
-            prev_order_id = lista_id_disponibili[current_index - 1] if current_index > 0 else None
-            next_order_id = lista_id_disponibili[current_index + 1] if current_index < len(lista_id_disponibili) - 1 else None
-            current_scheda_index = current_index
-
-            info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
-            info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
-
-        if form.validate_on_submit():
-            # Time limit check
-            if not check_order_time_limit(get_data['data']):
-                flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
-                return redirect(url_for('app_cucina.ordini'))
-
-            fkOrdine = id
-            fkReparto = reparto
-            data = get_data['data']
-            fkServizio = servizio
-            fkScheda = scheda['id']
-            letto = form.letto.data
-
-            ordine_id = request.form.get('ordine_id', default=None, type=int)
-        
-            if ordine_id is None or ordine_id == 0:
-                letto_occupato = service_t_OrdiniSchede.check_letto(fkOrdine, fkReparto, data, fkServizio, letto)
-                if letto_occupato:
-                    flash(f"Il letto numero {letto} è già occupato.", 'error')
-                    return redirect(url_for('app_cucina.ordine_schede_piatti', id=id, servizio=servizio, reparto=reparto, scheda=scheda['id']))
-                        
-            if ordine_id and ordine_id != 0:
-                service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
-                service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
-
-            # Creazione di un nuovo ordine
-            new_scheda_ordine = service_t_OrdiniSchede.create(
-                fkOrdine=id,
-                fkReparto=reparto,
-                data=data,
-                fkServizio=servizio,
-                fkScheda=fkScheda,
-                cognome=form.cognome.data,
-                nome=form.nome.data,
-                letto=letto,
-                utenteInserimento=get_username()
-            )
-
-            piatti_list = json.loads(request.form['piattiList'])
-            for piatto in piatti_list:
-                try:
-                    service_t_OrdiniPiatti.create(
-                        fkOrdineScheda=new_scheda_ordine,
-                        fkPiatto=int(piatto['fkPiatto']),
-                        quantita=int(piatto['quantita']),
-                        note=str(piatto['note']),
-                    )
-                    print(f"Ordine piatti salvato: {piatto}")
-                except (ValueError, KeyError) as e:
-                    print(f"Errore durante l'elaborazione dell'ordine piatti: {piatto}, errore: {e}")
-
-            flash('Preparazione aggiunta con successo!', 'success')
-            return redirect(url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio))
-
-        return render_template('ordine_schede_piatti.html',
-            id=id,
-            scheda=scheda,
-            piatti=piatti,
-            schedePiatti=schedePiatti,
-            tipi_piatti=tipi_piatti,
-            piatti_map=piatti_map,
-            tipi_menu_map=tipi_menu_map,
-            schedeDolci=schedeDolci,
-            info_reparto=info_reparto,
-            info_servizio=info_servizio,
-            form=form,
-            servizio=servizio,
-            prev_order_id=prev_order_id,
-            next_order_id=next_order_id,
-            total_schede=len(lista_id_disponibili)  ,
-            current_scheda_index=current_scheda_index +1 ,
-            reparto=reparto,
-            dettagli_ordine=dettagli_ordine,
-            info_utente=info_utente,
-            info_piatti=info_piatti,
-            count_schede=conta_schede,
-            ordine_id=ordine_id
-        )
-    else:
-        return redirect(url_for('app_login.login'))
+                    <div class="stampa-custom-column">
+                        {% for scheda_piatto in ordine_info.schedeDolci %}
+                            {% if scheda_piatto.fkPiatto in ordine_info.piatti_map %}
+                                {% set piatto = ordine_info.piatti_map[scheda_piatto.fkPiatto] %}
+                                <div class="stampa-custom-column-item highlighted" data-id="{{ piatto.id }}">
+                                    <span class="item-id">{{ piatto.codice }}</span>
+                                    <div class="item-name">{{ piatto.titolo }}</div>
+                                </div>
+                            {% else %}
+                                <div class="stampa-custom-column-item unknown"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>

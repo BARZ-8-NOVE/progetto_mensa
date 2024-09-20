@@ -85,8 +85,9 @@ Calendario Menu - Gestione Cucina
                                             <div class="menu-columns">
                                                 <div class="menu-actions">
                                                     {% if page_permissions['/app_cucina/menu']['can_write'] %}
-                                                        <button type="button" class="clone" onclick="prepareClone('{{ servizio_id }}')">Clona</button>
-                                                        <button type="button" class="delete" onclick="deleteMenu('{{ servizio_id }}')">X</button>
+                                                        <div class="icon-clona" onclick="prepareClone('{{ servizio_id }}')" title='clona menu'></div>
+                                                        <div class="icon-bidone" onclick="deleteMenu('{{ servizio_id }}')" title='Elimina menu'></div>
+                                                        
                                                     {% endif %}
                                                 </div>
                                                 {% if page_permissions['/app_cucina/menu']['can_write'] %}

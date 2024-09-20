@@ -13,6 +13,10 @@ class Service_t_preparazionicontenuti:
 
     def get_preparazioni_contenuti_by_id_preparazione(self, id_perparazione):
         return self.repository.get_preparazioni_contenuti_by_id_preparazione(id_perparazione)
+    
+    def get_preparazioni_senza_ingredienti(self):
+        return self.repository.get_preparazioni_senza_ingredienti()
+
 
     def create_preparazioni_contenuti(self, fkPreparazione, fkAlimento, quantita, fkTipoQuantita, note=None, dataInserimento=None, utenteInserimento=None, dataCancellazione=None, utenteCancellazione=None):
         return self.repository.create_preparazioni_contenuti(

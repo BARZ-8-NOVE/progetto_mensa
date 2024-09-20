@@ -2,8 +2,15 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
+    height: 100%; /* Assicurati che il body occupi l'intera altezza della finestra */
     padding: 0;
     background-color: #f8f9fa;
+}
+
+.wrapper {
+    max-width: 1200px; /* o un valore appropriato */
+    margin: 0 auto; /* Centra il wrapper */
+    padding: 20px; /* Spazio interno */
 }
 
 header {
@@ -175,7 +182,7 @@ nav ul li a {
 
 .search-container-select {
     padding: 12px 15px;
-    border: 1px solid #ced4da;
+    border: 1px solid #0079f2;
     border-radius: 5px;
     background-color: #ffffff;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -472,12 +479,21 @@ li {
     justify-content: space-between;
 }
 
+.scheda-griglia {
+    display: flex;
+    
+
+    
+}
+
 .popup-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     row-gap: 0; /* Rimuove lo spazio tra le righe verticalmente */
     column-gap: 0; /* Rimuove lo spazio tra le colonne orizzontalmente */
     margin: 0; /* Rimuove lo spazio tra gli elementi della griglia */
+    width: 100%;
+    height: 100%; 
 }
 
 .popup-item {
@@ -486,10 +502,11 @@ li {
     justify-content: center;
     align-items: center;
     padding: 10px;
-    height: 80px;
+    height: 100px;
     border: 1px solid #ccc;
     text-align: center;
     margin: 0;
+    cursor: pointer; /* Cambia il cursore a puntatore */
     position: relative; /* Ensure this is positioned relative to contain absolutely positioned child elements */
 }
 
@@ -521,28 +538,33 @@ li {
 .popup-item.selezionato { background-color: #00881d; }
 
 .popup-custom-column {
+
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     border: 1px solid #ccc;
     text-align: center;
+    
+    height: 100%; 
 
-    width: 150px; /* Aggiungi una larghezza fissa per la colonna personalizzata */
+   
 }
 
 .popup-custom-column-item {
+    
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10px;
+    
     width: 120px; /* Larghezza fissa per gli elementi della colonna personalizzata */
-    height: 22px; /* Altezza fissa per gli elementi della colonna personalizzata */
+    height: 59px; /* Altezza fissa per gli elementi della colonna personalizzata */
     border: 1px solid #ccc;
     text-align: center;
     margin: 0;
-    position: relative; /* Ensure this is positioned relative to contain absolutely positioned child elements */
+    
+    /* Ensure this is positioned relative to contain absolutely positioned child elements */
 }
 
 
@@ -644,7 +666,7 @@ li {
 }
 
 .stampa {
-    width: 100%; /* Adatta la larghezza della stampa all'intera pagina */
+    
     margin: 0;
     padding: 10mm; /* Spazio interno per staccare i contenuti dai bordi */
     border: 1px solid #ccc;
@@ -661,14 +683,17 @@ li {
 
 .stampa-content {
     display: flex;
-    justify-content: space-between;
+    
 }
 
 .stampa-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr); /* 6 colonne uguali */
-    gap: 0; /* Nessuno spazio tra le righe e le colonne */
-    margin: 0;
+    row-gap: 0; /* Rimuove lo spazio tra le righe verticalmente */
+    column-gap: 0; /* Rimuove lo spazio tra le colonne orizzontalmente */
+    margin: 0; /* Rimuove lo spazio tra gli elementi della griglia */
+    width: 100%;
+    height: 100%;
 }
 
 .stampa-item {
@@ -677,10 +702,11 @@ li {
     justify-content: center;
     align-items: center;
     padding: 10px;
-    height: 110px; /* Altezza fissa per i quadrati */
+    height: 100px; /* Altezza fissa per i quadrati */
     border: 1px solid #ccc;
     text-align: center;
     margin: 0; /* Rimuove i margini tra gli elementi della griglia */
+    position: relative; /* Ensure this is positioned relative to contain absolutely positioned child elements */
 }
 
 .stampa-item .item-id {
@@ -695,7 +721,7 @@ li {
     align-items: center;
     border: 1px solid #ccc;
     text-align: center;
-    width: 150px; /* Larghezza fissa per la colonna personalizzata */
+    height: 100%; /* Larghezza fissa per la colonna personalizzata */
 }
 
 .stampa-custom-column-item {
@@ -703,9 +729,9 @@ li {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10px;
-    width: 110px; /* Larghezza fissa */
-    height: 35px; /* Altezza fissa */
+
+    width: 120px; /* Larghezza fissa per gli elementi della colonna personalizzata */
+    height: 100%; /* Altezza fissa */
     border: 1px solid #ccc;
     text-align: center;
     margin: 0;
@@ -1183,12 +1209,13 @@ select {
     justify-content: center; /* Centra orizzontalmente gli elementi */
     align-items: flex-start; /* Allinea gli elementi verso l'inizio del contenitore (superiore) */
     padding: 10px; /* Riduce il padding */
-    height: 1000px; /* Mantieni l'altezza fissa */
+    margin: 20px auto; /* Assicurati che non ci siano margini che spostano il footer */
+    padding: 20px; /* Regola il padding come necessario */
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    overflow: auto; /* Gestisce il traboccamento del contenuto se necessario */
+    
 }
 
 .menu-list {
@@ -1255,7 +1282,7 @@ select {
 .menu-selezionato {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     margin: 20px auto;
     padding: 20px;
     max-width: 500px; /* Limita la larghezza */
@@ -1507,15 +1534,40 @@ select {
     display: inline-block; /* Permette all'elemento di mantenere le dimensioni e comportarsi come un blocco inline */
     vertical-align: middle; /* Allinea verticalmente l'icona con il testo circostante, se presente */
   }
+
+  .icon-clona {
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 6px;
+    right: 35px;
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+}
+
+
   
   .icon-bidone {
     width: 24px;
     height: 24px;
+    position: absolute;
+    top: 6px;
+    right: 2px;
     background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="red" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
     background-size: contain;
     cursor: pointer;
   }
   
+
+  .icon-bidone-ordine {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="red" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
+    background-size: contain;
+    cursor: pointer;
+  }
   
   
   
@@ -1578,3 +1630,43 @@ select {
     background-color: #052f6e; /* Colore di sfondo al passaggio del mouse */
   }
   
+
+  .list-group {
+    list-style-type: none; /* Rimuove i pallini predefiniti */
+    padding: 0; /* Rimuove il padding predefinito */
+}
+
+.list-group-item {
+    display: grid;
+    grid-template-columns: 7fr 2fr 1fr auto; /* Colonne per nome, quantità, note e icona */
+    align-items: center; /* Allinea verticalmente al centro */
+    gap: 10px; /* Spaziatura fissa tra le colonne */ /* Usa il flexbox per allineare gli elementi */
+    
+    align-items: center; /* Allinea verticalmente gli elementi */
+    padding: 10px; /* Padding interno */
+    margin: 5px 0; /* Margine tra gli elementi */
+    background-color: #f8f9fa; /* Colore di sfondo (puoi modificarlo) */
+    border: 1px solid #ced4da; /* Bordo leggero per separare gli elementi */
+    border-radius: 5px; /* Angoli arrotondati */
+    
+}
+  
+
+  footer {
+    width: 100%; /* Assicurati che occupi tutta la larghezza */
+    padding: 10px; /* Spazio interno */
+    background-color: #f1f1f1; /* Colore di sfondo del footer */
+    display: flex;
+    align-items: center; /* Centra verticalmente il contenuto */
+    justify-content: center; /* Centra orizzontalmente il contenuto */
+}
+
+.logo-BeTeam {
+    height: 15px; 
+    margin-top: -2px; 
+    margin-bottom: -2px;
+}
+
+.warning {
+    background-color: #ffcccb; /* Rosso chiaro per il warning */
+}

@@ -29,7 +29,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
     </div>
     <button class="styled-button" onclick="showPiattoModal()">Aggiungi Piatto</button>
 
-    <div class="popup-content">
+    <div class="scheda-griglia">
         <div class="popup-grid">
             {% for scheda_piatto in schedePiatti %}
             {% if scheda_piatto.fkPiatto in piatti_map %}

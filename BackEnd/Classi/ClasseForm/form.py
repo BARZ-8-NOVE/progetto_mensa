@@ -52,8 +52,8 @@ class AlimentoForm(FlaskForm):
     note = StringField('Note', validators=[Optional()])
 
 class PreparazioniForm(FlaskForm):
-    descrizione = StringField('Descrizione', validators=[DataRequired()])
-    fkTipoPreparazione = SelectField('Tipo Preparazione', coerce=int, validators=[DataRequired()])
+    descrizione = StringField('Descrizione', validators=[Optional()])
+    fkTipoPreparazione = SelectField('Tipo Preparazione', coerce=int, validators=[Optional()])
     isEstivo = BooleanField('Estivo', validators=[Optional()])
     isInvernale = BooleanField('Invernale', validators=[Optional()])
     inizio = DateField('Data Inizio', format='%Y-%m-%d', validators=[Optional()])
@@ -194,3 +194,8 @@ class CambioPasswordForm(FlaskForm):
     ])
     ripeti_nuova_password = PasswordField('Ripeti Nuova Password', validators=[DataRequired()])
     submit = SubmitField('Conferma cambio password')
+
+class BrodoForm(FlaskForm):
+    quantita = IntegerField('Quantità', validators=[DataRequired()])
+    note = StringField('Note', validators=[Optional()])
+    submit = SubmitField('Conferma')

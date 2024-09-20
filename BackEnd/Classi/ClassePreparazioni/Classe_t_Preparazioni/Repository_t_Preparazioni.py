@@ -30,6 +30,32 @@ class Repository_t_preparazioni:
             } for result in results]
         except Exception as e:
             return {'Error': str(e)}, 500
+        
+
+    def get_all_preparazioni_base(self):
+        try:
+            results = self.session.query(TPreparazioni).filter(
+                TPreparazioni.fkTipoPreparazione == 1,
+                TPreparazioni.dataCancellazione.is_(None)
+            ).all()
+            return [{
+                'id': result.id,
+                'fkTipoPreparazione': result.fkTipoPreparazione,
+                'descrizione': result.descrizione,
+                'isEstivo': result.isEstivo,
+                'isInvernale': result.isInvernale,
+                'allergeni': result.allergeni,
+                'inizio': result.inizio,
+                'fine': result.fine,
+                'dataInserimento': result.dataInserimento,
+                'utenteInserimento': result.utenteInserimento,
+                'dataCancellazione': result.dataCancellazione,
+                'utenteCancellazione': result.utenteCancellazione,
+                'immagine': result.immagine
+            } for result in results]
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
 
 
     def  get_descrizione_by_id(self, id):
@@ -42,6 +68,29 @@ class Repository_t_preparazioni:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
             return {'Error': str(e)}, 400
+
+    def update(self, id, fkTipoPreparazione, descrizione, isEstivo, isInvernale, inizio, fine, immagine):
+        try:
+            preparazione = self.session.query(TPreparazioni).filter_by(id=id).first()
+            if preparazione:
+                preparazione.fkTipoPreparazione = fkTipoPreparazione
+                preparazione.descrizione = descrizione
+                preparazione.isEstivo = isEstivo
+                preparazione.isInvernale = isInvernale
+                preparazione.inizio = inizio
+                preparazione.fine = fine
+                preparazione.immagine = immagine
+                self.session.commit()
+                return {'preparazione': 'updated!', 'id': id}, 200
+            else:
+                return {'Error': f'No match found for this ID: {id}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
+
 
 
     def get_preparazione_by_id(self, id):

@@ -10,11 +10,12 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         <h2>
             {{ info_servizio.descrizione }}, {{ info_reparto.codiceAreas }}, {{ info_reparto.descrizione }}
         </h2>
-        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0;">
+        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0; ">
             {{ scheda.nome }} - {{scheda.titolo}}
         </h2>
         {% if ordine_id %}
-        <button type="button" class="delete-button-scheda" onclick="elimina('{{ ordine_id }}')" title="Elimina scheda">X</button>
+        <div class="icon-bidone-ordine" onclick="elimina('{{ ordine_id }}')" title='Elimina Ordine'></div>
+        
         {% endif %}
     </div>
     <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
@@ -73,22 +74,22 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         </div>
         
         
-            <!-- Bottone Precedente -->
-            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
-               class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
-               id="prev-button">
-                <button type="button" class="styled-button" {% if not prev_order_id %}disabled{% endif %}>‹ Precedente</button>
-            </a>
-            
-            <!-- Info Scheda -->
-            <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
-            
-            <!-- Bottone Successivo -->
-            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
-               class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
-               id="next-button">
-                <button type="button" class="styled-button" {% if not next_order_id %}disabled{% endif %}>Successivo ›</button>
-            </a>
+                        <!-- Bottone Precedente -->
+                        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
+                        class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
+                        id="prev-button">
+                         <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %}></button>
+                     </a>
+                     
+                     <!-- Info Scheda -->
+                     <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
+                     
+                     <!-- Bottone Successivo -->
+                     <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
+                        class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
+                        id="next-button">
+                         <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}></button>
+                     </a>
         
         
         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">

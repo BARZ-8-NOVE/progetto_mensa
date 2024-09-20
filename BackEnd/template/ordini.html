@@ -154,11 +154,19 @@ Ordini - Gestione Cucina
             <td>{{ reparto.descrizione }}</td>
 
             {% for scheda in schede_attive %}
+            {% if scheda.nome == 'Brodo' %}
+            <td onclick="promptUpdateSchedaCount('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}', {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }})">
+                {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
+            </td>
+
+                {% else  %}
             <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
                 {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
             </td>
+            {% endif %}
             {% endfor %}
             <td>{{ reparti_totals[reparto.id] }}</td>
+
         </tr>
         {% endfor %}
         {% if page_permissions['/app_cucina/ordini']['can_write'] %}
@@ -226,6 +234,42 @@ Ordini - Gestione Cucina
             printWindow.print();
         };
     }
+
+
+    function promptUpdateSchedaCount(ordineId, servizioId, repartoId, schedaId, currentValue) {
+    const newValue = prompt('Inserisci il nuovo valore:', currentValue);
+
+    if (newValue !== null && !isNaN(newValue)) {
+        // Esegui una richiesta AJAX per inviare il nuovo valore al server
+        fetch('/app_cucina/ordini/brodi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'  // Aggiungi il token CSRF se necessario
+            },
+            body: JSON.stringify({
+                ordineId: ordineId,
+                servizioId: servizioId,
+                reparto_id: repartoId,
+                scheda_id: schedaId,
+
+                new_count: newValue
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ricarica la pagina per mostrare il nuovo valore
+                location.reload();
+            } else {
+                console.error('Errore durante l\'aggiornamento del conteggio');
+            }
+        })
+        .catch(error => console.error('Errore:', error));
+    }
+}
+
+    
 </script>
 
 {% endblock %}
