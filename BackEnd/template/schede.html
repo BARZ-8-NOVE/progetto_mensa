@@ -184,7 +184,6 @@ Creazione Schede - Gestione Cucina
             fetch(`schede/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
                 }
             })

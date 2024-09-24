@@ -35,8 +35,10 @@ class RepositoryOrdiniSchede:
                 'utenteCancellazione': result.utenteCancellazione
             } for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
-        
+        finally:
+            self.session.close()  # Ensure session is closed
 
 
     def get_by_day_and_nome_cognome(self, data, nome: str, cognome: str, servizio: int):
@@ -71,9 +73,11 @@ class RepositoryOrdiniSchede:
                 return None
 
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
 
-
+        finally:
+            self.session.close()  # Ensure session is closed
         
 
 
@@ -105,7 +109,14 @@ class RepositoryOrdiniSchede:
                 'utenteCancellazione': result.utenteCancellazione
             } for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
+        
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
 
     def get_all_by_ordine(self,fkOrdine):
         """Recupera tutti i record da TOrdiniSchede per un giorno specifico e che non sono stati cancellati."""
@@ -132,11 +143,12 @@ class RepositoryOrdiniSchede:
                 'utenteCancellazione': result.utenteCancellazione
             } for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500    
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
 
     def get_all_by_ordine_per_stampa(self, fkOrdine):
@@ -209,6 +221,7 @@ class RepositoryOrdiniSchede:
             return response
 
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
 
         finally:
@@ -250,6 +263,7 @@ class RepositoryOrdiniSchede:
 
             return schede_count
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
@@ -293,6 +307,7 @@ class RepositoryOrdiniSchede:
 
             return schede_count
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
                     # Assicurati che la sessione venga chiusa per evitare perdite di risorse
@@ -340,6 +355,7 @@ class RepositoryOrdiniSchede:
                 'totale_completo': totale_completo
             }
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
@@ -374,6 +390,7 @@ class RepositoryOrdiniSchede:
                 # Restituisci un errore se non viene trovato alcun record
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             # Gestisci eventuali errori restituendo un messaggio di errore e un codice di stato 400
             return {'Error': str(e)}, 400
         finally:
@@ -400,6 +417,7 @@ class RepositoryOrdiniSchede:
             return False  # Letto disponibile
 
         except Exception as e:
+            self.session.rollback()
             # Log l'errore per tracciabilità
             print(f"Error in check_letto: {str(e)}")  # Puoi sostituirlo con un logger
             return {'Error': str(e)}, 400
@@ -432,9 +450,9 @@ class RepositoryOrdiniSchede:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def update(self, id, fkOrdine, fkReparto, data, fkServizio, fkScheda, cognome, nome, letto, utenteInserimento):
         try:
@@ -457,9 +475,9 @@ class RepositoryOrdiniSchede:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -475,9 +493,9 @@ class RepositoryOrdiniSchede:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
 
 
 

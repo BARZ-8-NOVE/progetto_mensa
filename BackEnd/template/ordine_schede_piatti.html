@@ -78,7 +78,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
                         class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
                         id="prev-button">
-                         <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %}></button>
+                         <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
                      </a>
                      
                      <!-- Info Scheda -->
@@ -88,16 +88,16 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                      <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
                         class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
                         id="next-button">
-                         <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}></button>
+                         <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
                      </a>
         
         
         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
-            <button type="button" class="styled-button">Nuova Scheda</button>
+            <button type="button" class="styled-button" onclick="showLoadingSpinner()">Nuova Scheda</button>
         </a>
 
         <a href="{{ url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio) }}">
-            <button type="button" class="styled-button">Annulla Ordine</button>
+            <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
         </a>
 
         {{ form.submit(class="styled-button") }}
@@ -182,7 +182,6 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken 
                 }
             })

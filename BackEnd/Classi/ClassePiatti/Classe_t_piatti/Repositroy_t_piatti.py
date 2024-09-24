@@ -25,8 +25,12 @@ class RepositoryPiatti:
             results = self.session.query(TPiatti).filter(TPiatti.dataCancellazione == None).all()
             return [{'id': result.id, 'fkTipoPiatto': result.fkTipoPiatto, 'codice': result.codice, 'titolo': result.titolo, 'descrizione': result.descrizione, 'inMenu': result.inMenu, 'ordinatore': result.ordinatore, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting all piatti: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -36,18 +40,24 @@ class RepositoryPiatti:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting piatto by ID {id}: {e}")
             return {'Error': str(e)}, 400
-        
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()      
         
     def get_by_fkTipoPiatto(self, fkTipoPiatto):
         try:
             results = self.session.query(TPiatti).filter_by(fkTipoPiatto=fkTipoPiatto, dataCancellazione=None).all()
             return [{'id': result.id, 'titolo': result.titolo} for result in results]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting piatti by fkTipoPiatto: {e}")
             return []
-
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
 
 
     def create(self, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento, dataInserimento=None):
@@ -62,18 +72,16 @@ class RepositoryPiatti:
                 dataInserimento=dataInserimento, 
                 utenteInserimento=utenteInserimento
             )
-            logger.debug(f"Creazione del piatto: {piatto}")
             self.session.add(piatto)
-            logger.debug("Piatto aggiunto alla sessione.")
             self.session.commit()
-            logger.debug("Sessione committata.")
+
             return {'piatto': 'added!'}, 200
         except Exception as e:
-            logger.error(f"Errore durante il commit: {e}")
             self.session.rollback()
-            logger.debug("Sessione rollbackata.")
             return {'Error': str(e)}, 500
-        
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
         
     def update(self, id, fkTipoPiatto, codice, titolo, descrizione, inMenu, ordinatore, utenteInserimento):
         try:
@@ -112,3 +120,6 @@ class RepositoryPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+                # Assicurati di chiudere la sessione, se necessario
+                self.session.close()

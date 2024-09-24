@@ -14,6 +14,7 @@ class RepositoryTipologiaConservazioni:
             results = self.session.query(TTipologiaConservazioni).all()
             return [{'id': result.id, 'nome': result.nome} for result in results]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting all conservazioni: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -29,6 +30,7 @@ class RepositoryTipologiaConservazioni:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting conservazione by id {id}: {e}")
             return {'Error': str(e)}, 400
         finally:

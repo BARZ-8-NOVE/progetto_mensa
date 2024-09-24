@@ -159,7 +159,8 @@ Ordini - Gestione Cucina
     
         <div class="action-buttons">
             
-            <button type="button" class="modifica-scheda-utente" onclick="modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id)  }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')">Modifica</button>
+            <button type="button" class="modifica-scheda-utente" onclick="showLoadingSpinner(); modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')">Modifica</button>
+
 
             <button type="button" class="delete-button-scheda-utente" onclick="elimina('{{ controllo_ordine.id }}')">X</button>
 
@@ -203,7 +204,6 @@ Ordini - Gestione Cucina
             fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken 
                 }
             })

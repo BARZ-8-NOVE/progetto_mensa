@@ -14,6 +14,7 @@ class RepositoryAllergeni:
             results = self.session.query(TAllergeni).all()
             return [{'id': result.id, 'nome': result.nome} for result in results]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting all allergeni: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -29,6 +30,7 @@ class RepositoryAllergeni:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting allergene by ID {id}: {e}")
             return {'Error': str(e)}, 400
         finally:

@@ -13,7 +13,11 @@ class Repository_t_tipipreparazioni:
             results = self.session.query(TTipiPreparazioni).all()
             return [{'id': result.id, 'descrizione': result.descrizione} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_tipipreparazioni_by_id(self, id):
         try:
@@ -23,7 +27,11 @@ class Repository_t_tipipreparazioni:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def create_tipipreparazioni(self, descrizione):
         try:
@@ -34,6 +42,9 @@ class Repository_t_tipipreparazioni:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
         
     def update_tipipreparazioni(self, id, descrizione):
         try:
@@ -47,6 +58,9 @@ class Repository_t_tipipreparazioni:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def delete_tipipreparazioni(self, id):
         try:
@@ -60,3 +74,6 @@ class Repository_t_tipipreparazioni:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

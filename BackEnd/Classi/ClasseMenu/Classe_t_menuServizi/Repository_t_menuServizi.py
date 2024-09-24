@@ -27,6 +27,7 @@ class RepositoryMenuServizi:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting all menu servizi: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -40,6 +41,7 @@ class RepositoryMenuServizi:
             results = self.session.query(TMenuServizi).filter(TMenuServizi.fkMenu.in_(menu_id)).all()
             return results
         except Exception as e:
+            self.session.rollback()
             # Restituisce un messaggio di errore e un codice di stato 500 in caso di eccezione
             return {'Error': str(e)}, 500
         finally:
@@ -72,6 +74,7 @@ class RepositoryMenuServizi:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting menu services by menu ids: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -95,6 +98,7 @@ class RepositoryMenuServizi:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting menu servizi by ID {id}: {e}")
             return {'Error': str(e)}, 400
         finally:
@@ -185,6 +189,7 @@ class RepositoryMenuServizi:
                 return None
             
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting menu services by menu id and service type: {e}")
             # Ritorna None per gestire gli errori al livello superiore
             return None
@@ -218,6 +223,7 @@ class RepositoryMenuServizi:
             ]
             
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting menu services by menu id and service type: {e}")
             # Ritorna una lista vuota per gestire gli errori al livello superiore
             return []

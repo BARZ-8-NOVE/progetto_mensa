@@ -21,6 +21,7 @@ class RepositoryTipiDiete:
             
             return data
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             # Restituisce un messaggio di errore e un codice di stato 500
             return {'Error': str(e)}, 500
         finally:

@@ -1,3 +1,25 @@
+function showLoadingSpinner() {
+    // Mostra uno spinner di caricamento
+    const spinnerOverlay = document.createElement('div');
+    spinnerOverlay.id = 'globalLoadingOverlay';
+    spinnerOverlay.innerHTML = '<div class="spinner"></div>';  // Inserisci qui il tuo spinner
+    document.body.appendChild(spinnerOverlay);
+
+    // Rimuovi lo spinner dopo 3 secondi
+    setTimeout(() => {
+        const spinnerOverlay = document.getElementById('globalLoadingOverlay');
+        if (spinnerOverlay) {
+            document.body.removeChild(spinnerOverlay);
+        }
+    }, 1000); // Rimuovi dopo 1 secondo (o qualsiasi valore tu desideri)
+}
+
+// Aggiungi un gestore di eventi per tutti i link nel menu
+document.querySelectorAll('.load-link').forEach(link => {
+    link.addEventListener('click', function(event) {
+        showLoadingSpinner(); // Mostra lo spinner
+    });
+});
 
 
 document.getElementById('logout').addEventListener('click', function() {

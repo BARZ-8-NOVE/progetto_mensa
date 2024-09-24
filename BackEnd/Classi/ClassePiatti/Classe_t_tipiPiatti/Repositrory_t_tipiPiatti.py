@@ -28,9 +28,14 @@ class RepositoryTipiPiatti:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting all tipi piatti: {e}")
             return {'Error': str(e)}, 500
-    
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
+
+
     def get_all_in_menu(self):
         try:
             # Assuming inMenu is a column of TTipiPiatti
@@ -55,9 +60,12 @@ class RepositoryTipiPiatti:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting all tipi piatti: {e}")
             return {'Error': 'An error occurred while fetching the data.'}, 500
-
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
 
     def get_by_id(self, id):
         try:
@@ -79,8 +87,13 @@ class RepositoryTipiPiatti:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting tipo piatto by ID {id}: {e}")
             return {'Error': str(e)}, 400
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
+
 
     def create(self, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
         try:
@@ -99,6 +112,10 @@ class RepositoryTipiPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
+
 
     def update(self, id, descrizione, descrizionePlurale, inMenu, ordinatore, color, backgroundColor, utenteInserimento):
         try:
@@ -119,6 +136,10 @@ class RepositoryTipiPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()
+
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -133,3 +154,6 @@ class RepositoryTipiPiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Assicurati di chiudere la sessione, se necessario
+            self.session.close()

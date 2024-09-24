@@ -114,11 +114,10 @@
             // Ottieni il token CSRF dal meta tag
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             
-            fetch(`alimenti/${id}`, {
+            fetch(`/app_cucina/alimenti/${id}`, {  // Assicurati che l'URL sia corretto
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
+                    'X-CSRFToken': csrfToken // Includi solo il token CSRF
                 }
             })
             .then(response => {
@@ -136,6 +135,7 @@
             });
         }
     }
+    
     
 
     document.addEventListener('DOMContentLoaded', function() {

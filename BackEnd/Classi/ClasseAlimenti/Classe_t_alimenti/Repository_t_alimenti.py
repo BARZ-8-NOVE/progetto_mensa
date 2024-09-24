@@ -13,12 +13,16 @@ class RepositoryAlimenti:
     def get_all(self):
         try:
             results = self.session.query(TAlimenti).all()
-            return [{'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
+            return [{'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 
+                     'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 
+                     'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 
+                     'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 
+                     'fkTipologiaAlimento': result.fkTipologiaAlimento} for result in results]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting all alimenti: {e}")
             return {'Error': str(e)}, 500
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
 
@@ -26,32 +30,51 @@ class RepositoryAlimenti:
         try:
             result = self.session.query(TAlimenti).filter_by(id=id).first()
             if result:
-                return {'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 'fkTipologiaAlimento': result.fkTipologiaAlimento}
+                return {'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 
+                        'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 
+                        'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 
+                        'saturi_tot': result.saturi_tot, 'fkAllergene': result.fkAllergene, 
+                        'fkTipologiaAlimento': result.fkTipologiaAlimento}
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 400
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
         
     def get_alimento_by_name(self, name):
-        result = self.session.query(TAlimenti).filter(TAlimenti.alimento.ilike(f'%{name}%')).all()
-        if result:
-            return result
-        else:
-            raise NotFound(f'cannot find alimento for this name: {name}')
-
+        try:
+            result = self.session.query(TAlimenti).filter(TAlimenti.alimento.ilike(f'%{name}%')).all()
+            if result:
+                return [{'id': r.id, 'alimento': r.alimento} for r in result]  # Restituisci i risultati in un formato standard
+            else:
+                raise NotFound(f'Cannot find alimento for this name: {name}')
+        except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
+            logging.error(f"Error getting alimento by name {name}: {e}")
+            raise NotFound(f'Error: {str(e)}')
+        finally:
+            if self.session:
+                self.session.close()
 
     def get_alimenti_by_tipologia_alimento(self, tipologia_alimento):
-        result = self.session.query(TAlimenti).filter_by(fkTipologiaAlimento=tipologia_alimento).all()
-        if result:
-            return result
-        else:
-            raise NotFound(f'cannot find alimenti for this tipologia: {tipologia_alimento}')
-        
+        try:
+            result = self.session.query(TAlimenti).filter_by(fkTipologiaAlimento=tipologia_alimento).all()
+            if result:
+                return [{'id': r.id, 'alimento': r.alimento} for r in result]  # Restituisci i risultati in un formato standard
+            else:
+                raise NotFound(f'Cannot find alimenti for this tipologia: {tipologia_alimento}')
+        except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
+            logging.error(f"Error getting alimenti by tipologia {tipologia_alimento}: {e}")
+            raise NotFound(f'Error: {str(e)}')
+        finally:
+            if self.session:
+                self.session.close()
+
     def create(self, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento):
         try:
             new_alimento = TAlimenti(
@@ -69,11 +92,10 @@ class RepositoryAlimenti:
             self.session.commit()
             return {'alimento': 'added!'}, 200
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error creating alimento: {e}")
             return {'Error': str(e)}, 500
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
 
@@ -95,11 +117,10 @@ class RepositoryAlimenti:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error updating alimento with ID {id}: {e}")
             return {'Error': str(e)}, 500
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
 
@@ -113,10 +134,9 @@ class RepositoryAlimenti:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error deleting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 500
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()

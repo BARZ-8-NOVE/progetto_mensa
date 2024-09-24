@@ -230,7 +230,7 @@ Calendario Menu - Gestione Cucina
                 fetch(`/app_cucina/menu/${menuId}`, {  // Aggiungi il prefisso /app_cucina/
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
+                        
                         'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
                     }
                 })

@@ -67,7 +67,8 @@ class Repository_t_utenti:
                 'email': result.email
             } for result in results]
         except Exception as e:
-            logging.error(f"Error getting all alimenti: {e}")
+            self.session.rollback()
+            logging.error(f"Error getting all alimenti: {e}")  
             return {'Error': str(e)}, 500
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse

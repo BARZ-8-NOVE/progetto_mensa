@@ -231,6 +231,9 @@ class RepositoryTSchedePiatti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
 
     def delete_piatti_Scheda(self, fkScheda, utenteCancellazione):

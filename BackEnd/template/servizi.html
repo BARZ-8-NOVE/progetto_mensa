@@ -183,7 +183,6 @@ Servizi - Gestione Cucina e Mensa Ospedaliera
             fetch(`/app_cucina/servizi/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken 
                 }
             })

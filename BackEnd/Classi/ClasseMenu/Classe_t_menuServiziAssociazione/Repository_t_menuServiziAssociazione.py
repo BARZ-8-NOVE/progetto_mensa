@@ -14,6 +14,7 @@ class RepositoryMenuServiziAssociazion:
             results = self.session.query(TMenuServiziAssociazione).filter(TMenuServiziAssociazione.dataCancellazione == None).all()
             return [{'id': result.id, 'fkMenuServizio': result.fkMenuServizio, 'fkAssociazione': result.fkAssociazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         
     def get_all_by_associazione_ids(self, fkMenuServizi):
@@ -39,6 +40,7 @@ class RepositoryMenuServiziAssociazion:
                 for result in results
             ]
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting menu associations by menu service ids: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -55,6 +57,7 @@ class RepositoryMenuServiziAssociazion:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
         finally:
             # Chiudi sempre la sessione
@@ -65,6 +68,7 @@ class RepositoryMenuServiziAssociazion:
             results = self.session.query(TMenuServiziAssociazione).filter_by(fkMenuServizio=fkMenuServizio, dataCancellazione=None).all()
             return [{'id': result.fkAssociazione} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione
@@ -94,6 +98,7 @@ class RepositoryMenuServiziAssociazion:
             
             return data
         except Exception as e:
+            self.session.rollback()
             # Restituisci un messaggio di errore se si verifica un'eccezione
             print(f"Errore: {str(e)}")
             return {'Error': str(e)}, 500

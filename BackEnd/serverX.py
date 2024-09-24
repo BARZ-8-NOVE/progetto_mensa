@@ -12,11 +12,14 @@ import locale
 from functools import wraps
 import pprint
 import logging
+import traceback
+
 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
 from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtente import Service_t_FunzionalitaUtente
 from Classi.ClasseUtenti.Classe_t_utenti.Service_t_utenti import Service_t_utenti
 from Classi.ClasseUtenti.Classe_t_tipiUtenti.Service_t_tipiUtenti import Service_t_tipiUtenti
+from Classi.ClasseUtenti.Classe_t_log.Service_t_log import Service_t_Log
  
 
 from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import Service_t_Alimenti
@@ -50,7 +53,7 @@ from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import Ser
 from Classi.ClasseUtility import *
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, jsonify, Blueprint, request, session, render_template, redirect, url_for, flash
+from flask import Flask, jsonify, Blueprint, request, session, render_template, redirect, url_for, flash, abort
 from flask_mail import Mail, Message
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
@@ -105,6 +108,7 @@ CORS(app)
 
 # Initialize services
 service_t_utenti = Service_t_utenti()
+service_t_Log = Service_t_Log()
 service_t_Reparti = Service_t_Reparti()
 service_t_Servizi = Service_t_Servizi()
 service_t_Alimenti = Service_t_Alimenti()
@@ -152,14 +156,14 @@ def handle_expired_token(jwt_header, jwt_payload):
     unset_jwt_cookies(response)
     return response
 
-# Decorator per proteggere le rotte
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get('authenticated') is False:
-            return redirect(url_for('app_cucina.login'))
-        return f(*args, **kwargs)
-    return decorated_function
+# # Decorator per proteggere le rotte
+# def login_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if session.get('authenticated') is False:
+#             return redirect(url_for('app_cucina.login'))
+#         return f(*args, **kwargs)
+#     return decorated_function
 
 #trova il nome utente
 def get_username():
@@ -211,7 +215,7 @@ def get_page_name_from_path(path):
     return ''
 
 
-#funzione per clonare il menu
+
 def get_user_reparti(user_id):
     """
     Recupera la lista dei reparti accessibili da un determinato utente.
@@ -232,7 +236,7 @@ def get_user_reparti(user_id):
         # Se non ci sono reparti associati, ritorna tutti i reparti
         return service_t_Reparti.get_all()
 
-
+#funzione per clonare il menu
 def clona_menu(menu_id, clone_date, utente_inserimento):
     try:
         def get_menu_data(menu_id):
@@ -283,13 +287,13 @@ def clona_menu(menu_id, clone_date, utente_inserimento):
         print(f"Errore durante la clonazione del menu: {str(e)}")
         return False
 
-#filtra i reparti in base ai permessi degli utenti
-def get_reparti_utente():
-    user_id = session.get('user_id')
-    user = service_t_utenti.get_reparti_list(user_id)
+# #filtra i reparti in base ai permessi degli utenti
+# def get_reparti_utente():
+#     user_id = session.get('user_id')
+#     user = service_t_utenti.get_reparti_list(user_id)
     
-    # Se 'reparti' è None, restituisce una lista vuota
-    return user.get('reparti', []) if user else []
+#     # Se 'reparti' è None, restituisce una lista vuota
+#     return user.get('reparti', []) if user else []
 
 # funzione che per ogni piatto associa la preparazione considerandi il tipo e il giorno del menu 
 def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
@@ -412,17 +416,14 @@ def processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_persona
 
 @app_cucina.before_request
 def check_token_and_permissions():
-    exempt_routes = ['app_cucina.login', 'app_cucina.index', 'app_cucina.do_logout']
+    exempt_routes = ['app_cucina.login', 'app_cucina.index', 'app_cucina.do_logout', 'app_cucina.contatti']
 
-    # Se la rotta corrente è esente, salta il controllo del token e dei permessi
     if request.endpoint in exempt_routes:
         return
 
-    # Verifica se l'utente è autenticato
     if 'authenticated' not in session or not session.get('authenticated'):
         return redirect(url_for('app_cucina.login'))
 
-    # Verifica la validità del token JWT
     try:
         user_id = session.get('user_id')
         if not user_id:
@@ -433,45 +434,106 @@ def check_token_and_permissions():
 
         if not is_token_valid:
             service_t_utenti.expiredTokens()
-            session.clear()  # Cancella la sessione se il token non è valido
+            session.clear()
             return redirect(url_for('app_cucina.login'))
 
-        # Verifica e rinnova il token se necessario
         response = service_t_utenti.manage_token(user_id, token)
         if response and 'token' in response.json:
-            # Aggiorna la sessione con il nuovo token e scadenza
             session['token'] = response.json['token']
-            expires = datetime.now() + timedelta(minutes=30)  # Imposta la nuova scadenza
+            expires = datetime.now() + timedelta(minutes=30)
             session['expires'] = expires
             
     except Exception as e:
         logging.error(f"Error verifying token for user_id {user_id}: {str(e)}")
         session.clear()
-        return redirect(url_for('app_cucina.login'))
+        abort(500)  # In caso di errore nel processo di verifica del token
 
-    # Verifica i permessi di accesso alla rotta corrente
     try:
         user_type_id = session.get('fkTipoUtente')
         page_link = get_page_name_from_path(request.path)
 
-        # Chiamata al servizio per controllare i permessi
         access_granted, message = service_t_funzionalita.can_access(user_type_id=user_type_id, page_link=page_link)
-        
+
         if not access_granted:
             logging.warning(f"Access denied for user_id {user_id} to {page_link}: {message}")
-            return redirect(url_for('app_cucina.index'))  # Rotta per accesso negato
-        
+            abort(403)  # Lancia un errore 403 per accesso negato
+            
     except Exception as e:
+        # Qui stai catturando gli errori che non riguardano i permessi
         logging.error(f"Error checking permissions for user_id {user_id}: {str(e)}")
-        return redirect(url_for('app_cucina.index'))
+        abort(500)  # Lancia un errore 500 in caso di problemi imprevisti
+
 
 
 
 @app_cucina.before_request
 def check_csrf():
-    exempt_routes = ['app_cucina.login', 'app_cucina.index','app_cucina.do_logout' ]
+    exempt_routes = ['app_cucina.login', 'app_cucina.index','app_cucina.do_logout','app_cucina.contatti' ]
     if request.endpoint not in exempt_routes:
         csrf.protect()
+
+
+
+
+# @app_cucina.before_request
+# def log_request():
+#     user_id = session.get('user_id', 'Anonimo')  # Se non c'è utente, registriamo come 'Anonymous'
+    
+#     # Log request data (params and body)
+#     request_data = {
+#         "method": request.method,
+#         "args": request.args.to_dict(),
+#         "form_data": request.form.to_dict(),
+#         "json_data": request.json if request.is_json else None
+#     }
+
+#     service_t_Log.log_to_db(
+#         level='INFO',
+#         message=f"Request to {request.path}",
+#         user_id=user_id,
+#         route=request.path,
+#         data=request_data
+#     )
+
+# @app_cucina.after_request
+# def log_response(response):
+#     user_id = session.get('user_id', 'Anonymous')
+
+#     # Log response data (status and headers)
+#     response_data = {
+#         "status": response.status,
+#         "headers": dict(response.headers)
+#     }
+
+#     service_t_Log.log_to_db(
+#         level='INFO',
+#         message=f"Response from {request.path}",
+#         user_id=user_id,
+#         route=request.path,
+#         data=response_data
+#     )
+#     return response
+
+# @app_cucina.teardown_request
+# def log_exception(exception=None):
+#     if exception:
+#         user_id = session.get('user_id', 'Anonymous')
+
+#         # Log the exception details
+#         exception_data = {
+#             "error": str(exception),
+#             "traceback": traceback.format_exc()
+#         }
+
+#         service_t_Log.log_to_db(
+#             level='ERROR',
+#             message=f"Exception on {request.path}",
+#             user_id=user_id,
+#             route=request.path,
+#             data=exception_data
+#         )
+
+
 
 
 #login fattio con il form 
@@ -627,11 +689,11 @@ def elimina_alimento(id):
         try:
             service_t_Alimenti.delete(id=id)
             flash('Alimento eliminata con successo!', 'success')
-            return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
+            return jsonify({'message': 'alimento {id} eliminato con successo!'}), 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
         except Exception as e:
             print(f"Error deleting scheda: {e}")  # Log per l'errore
             flash('Errore durante l\'eliminazione dell\'Alimento', 'danger')
-            return '', 400  # Status code 400 Bad Request per errori
+            return jsonify({'message': f'Errore nell\'eliminazione dell\'alimento {id}!'}), 400 # Status code 400 Bad Request per errori
        
     else:
         return redirect(url_for('app_cucina.login'))
@@ -1438,16 +1500,14 @@ def nodifica_tipologia_menu(id):
         if request.method == 'DELETE':
             try:
                 service_t_TipiMenu.delete(id, utenteCancellazione=get_username())
-                flash('Tipolgia Menu eliminato con successo!', 'success')
-                return '', 204  # Status code 204 No Content
-            
+                flash('Tipologia Menu eliminato con successo!', 'success')
+                return jsonify({'message': f'Menu {id} eliminato con successo.'}), 200  # Cambiato a 200 se vuoi includere un messaggio
             except Exception as e:
-                print(f"Error deleting dish: {e}")
+                print(f"Error deleting menu: {e}")  # Potresti voler usare un logging più sofisticato
                 flash('Errore durante l\'eliminazione della tipologia del menu.', 'danger')
-                return '', 400  # Status code 400 Bad Request
-
-    else:
-        return redirect(url_for('app_cucina.login'))  
+                return jsonify({'message': f'Errore nell\'eliminazione del menu {id}: {str(e)}'}), 400
+        else:
+            return redirect(url_for('app_cucina.login'))  
     
 
 @app_cucina.route('/menu', methods=['GET', 'POST'])
@@ -3248,16 +3308,12 @@ def home():
         nome = user['nome']
         cognome = user['cognome']
  
-
         # Dizionario per accumulare i risultati
         ordini_totali_per_servizio = {}
 
         # Utilizza il metodo del service per calcolare i totali
         ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
             service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
-            
-        print(ordini_totali_per_servizio)
-        print(totale_completo)
 
         piatti = service_t_Piatti.get_all()
         # Ottieni i reparti accessibili dall'utente
@@ -3287,7 +3343,7 @@ def home():
                     
  
             
-        print('dizionario_servizi: ', dizionario_servizi)
+        
             
 
         return render_template('home.html',
@@ -3317,13 +3373,30 @@ def home():
 
 @app_cucina.route('/do_logout', methods=['POST'])
 def do_logout():
-    form = LogoutFormNoCSRF()
-    if form.validate_on_submit():
-        service_t_utenti.do_logout_nuovo(session['user_id'])
-        session.clear()
-        return jsonify({'message': 'Successfully logged out.'}), 200
-    return jsonify({'error': 'Invalid request.'}), 400
+    if 'authenticated' in session:
 
+        form = LogoutFormNoCSRF()
+        if form.validate_on_submit():
+            service_t_utenti.do_logout_nuovo(session['user_id'])
+            session.clear()
+
+            return redirect(url_for('app_cucina.login'))
+        
+    return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/report_error', methods=['POST'])
+def report_error():
+
+    return redirect(url_for('app_cucina.index'))  # Redirect dopo aver inviato il feedback
+
+
+
+
+@app_cucina.errorhandler(Exception)
+def handle_exception(error):
+    # Puoi anche loggare l'errore qui se necessario
+    return render_template('error.html', error=str(error))
 
 
 # Register the blueprint

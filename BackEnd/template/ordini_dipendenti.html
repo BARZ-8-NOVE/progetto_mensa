@@ -153,7 +153,7 @@ Ordini - Gestione Cucina
                 <td>{{ reparto.descrizione }}</td>
 
                 {% for scheda in schede_attive %}
-                <td onclick="showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
+                <td onclick="showLoadingSpinner();showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
                     {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
                 </td>
                 {% endfor %}

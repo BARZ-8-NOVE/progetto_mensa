@@ -12,7 +12,11 @@ class RepositoryTServizi:
             results = self.session.query(TServizi).order_by(TServizi.ordinatore).all()
             return [{'id': result.id, 'descrizione': result.descrizione, 'ordinatore': result.ordinatore, 'inMenu': result.inMenu} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_servizio_by_id(self, id):
         try:
@@ -22,7 +26,11 @@ class RepositoryTServizi:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def create_servizio(self, descrizione, ordinatore, inMenu):
         try:
@@ -33,6 +41,9 @@ class RepositoryTServizi:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def update_servizio(self, id, descrizione=None, ordinatore=None, inMenu=None):
         try:
@@ -51,6 +62,9 @@ class RepositoryTServizi:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def delete_servizio(self, id):
         try:
@@ -64,3 +78,6 @@ class RepositoryTServizi:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

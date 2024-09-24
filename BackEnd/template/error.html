@@ -1,0 +1,14 @@
+{% extends "index.html" %}
+
+{% block title %}
+Errore
+{% endblock %}
+
+{% block content %}
+<h1>Si è verificato un errore</h1>
+<h3>{{ error}} </h3>
+<p>Ci scusiamo per l'inconveniente. Puoi aiutarci a migliorare inviando un feedback.</p>
+
+<a href="{{ url_for('app_cucina.contatti') }}">invia un feedback</a>
+
+{% endblock %}

@@ -484,7 +484,6 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             fetch(`/app_cucina/preparazioni/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
                 }
             })

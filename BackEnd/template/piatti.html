@@ -247,7 +247,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
             fetch(`piatti/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
+
                     'X-CSRFToken': csrfToken // Includi il token CSRF negli headers
                 }
             })

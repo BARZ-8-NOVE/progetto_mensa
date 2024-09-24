@@ -37,7 +37,7 @@ Home - Gestione Cucina
         <input type="hidden" name="day" value="{{ prev_day }}">
         <input type="hidden" name="month" value="{{ prev_month }}">
         <input type="hidden" name="year" value="{{ prev_year }}">
-        <button type="submit" class="icon-freccia-sx" title="giono precedente"></button>
+        <button type="submit" class="icon-freccia-sx" title="giono precedente" onclick="showLoadingSpinner()"></button>
     </form>
     <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
     <form method="GET" action="{{ url_for('app_cucina.home') }}">
@@ -95,7 +95,7 @@ Home - Gestione Cucina
         <input type="hidden" name="day" value="{{ next_day }}">
         <input type="hidden" name="month" value="{{ next_month }}">
         <input type="hidden" name="year" value="{{ next_year }}">
-        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo" onclick="showLoadingSpinner()"></button>
     </form>
 </div>
 {% if page_permissions['/app_cucina/home']['can_write'] %}
@@ -138,7 +138,7 @@ Home - Gestione Cucina
             <div class="service-card">
                 {% if servizio_info['controllo_ordine'] == 'Null' %}
                     <div class="order-reminder">
-                        <a href="{{ url_for('app_cucina.ordina_pasto', servizio_id=servizio_id) }}" class="order-button">
+                        <a href="{{ url_for('app_cucina.ordina_pasto', servizio_id=servizio_id) }}" class="order-button"  onclick="showLoadingSpinner()">
                             <span class="order-icon">🍽️</span> Effettua l'ordine
                         </a>
                     </div>

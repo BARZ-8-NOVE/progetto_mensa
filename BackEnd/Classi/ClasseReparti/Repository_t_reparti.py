@@ -18,7 +18,12 @@ class RepositoryReparti:
                      'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
                     for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def get_by_id(self, id):
         try:
@@ -32,7 +37,12 @@ class RepositoryReparti:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def get_by_ids(self, ids):
         try:
@@ -70,9 +80,11 @@ class RepositoryReparti:
             return {'results': result_list}
             
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
-
-
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
 
     def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
@@ -95,6 +107,10 @@ class RepositoryReparti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def update(self, id, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):
         try:
@@ -117,6 +133,10 @@ class RepositoryReparti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def delete(self, id, utenteCancellazione):
         try:
@@ -131,3 +151,6 @@ class RepositoryReparti:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

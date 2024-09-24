@@ -41,6 +41,7 @@ class RepositoryTSchede:
                 else:
                     return {'Error': f'No match found for this id: {id}'}, 404
             except Exception as e:
+                self.session.rollback()
                 return {'Error': str(e)}, 400
             
             finally:
@@ -79,6 +80,7 @@ class RepositoryTSchede:
             return output
         
         except Exception as e:
+            self.session.rollback()
             # Log dell'errore (opzionale)
             # log.error(f"Error fetching data: {str(e)}")
             return {'Error': str(e)}, 500
@@ -123,6 +125,7 @@ class RepositoryTSchede:
             } for result in results]
         
         except Exception as e:
+            self.session.rollback()
             # Log dell'errore (opzionale)
             # log.error(f"Error fetching data: {str(e)}")
             return {'Error': str(e)}, 500
@@ -169,6 +172,7 @@ class RepositoryTSchede:
             } for result in results]
         
         except Exception as e:
+            self.session.rollback()
             # Log dell'errore (opzionale)
             # log.error(f"Error fetching data: {str(e)}")
             return {'Error': str(e)}, 500

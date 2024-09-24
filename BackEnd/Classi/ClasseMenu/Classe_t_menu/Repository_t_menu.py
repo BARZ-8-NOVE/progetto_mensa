@@ -42,6 +42,7 @@ class RepositoryMenu:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting all menu: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -83,6 +84,7 @@ class RepositoryMenu:
                 } for result in results
             ]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting menu by month: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -122,6 +124,7 @@ class RepositoryMenu:
             ]
             
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting menu by date range: {e}")
             return {'Error': str(e)}, 500
         finally:
@@ -145,6 +148,7 @@ class RepositoryMenu:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error getting menu by ID {id}: {e}")
             return {'Error': str(e)}, 400
         finally:
@@ -204,6 +208,7 @@ class RepositoryMenu:
             result = self.session.query(TMenu).filter_by(data=target_date, fkTipoMenu=fkTipoMenu).first()
             return result
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             # Gestisci eventuali errori e restituisci un messaggio di errore
             return {'Error': str(e)}, 500
         finally:
@@ -236,11 +241,13 @@ class RepositoryMenu:
                 return None
 
         except SQLAlchemyError as e:
+            self.session.rollback()  # Aggiunta del rollback
             # Gestione degli errori specifici di SQLAlchemy
             logging.error(f"SQLAlchemy error getting menu by date {data}: {e}")
             raise RuntimeError("Database error occurred") from e
 
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             # Gestione di altri errori generali
             logging.error(f"Unexpected error getting menu by date {data}: {e}")
             raise RuntimeError(f"Unexpected error: {str(e)}") from e
@@ -321,8 +328,12 @@ class RepositoryMenu:
             ]
 
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             logging.error(f"Error fetching menu details: {e}")
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close() 
 
     def _get_end_date_of_month(self, year: int, month: int):
         if month == 12:

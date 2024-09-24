@@ -36,6 +36,7 @@ class Repository_t_tipiUtente:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             logging.error(f"Error getting alimento by ID {id}: {e}")
             return {'Error': str(e)}, 400
         finally:

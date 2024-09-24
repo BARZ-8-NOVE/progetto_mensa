@@ -15,6 +15,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             results = self.session.query(TAssociazionePiattiPreparazioni).filter(TAssociazionePiattiPreparazioni.dataCancellazione == None).all()
             return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione
@@ -26,6 +27,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             results = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPiatto=fkPiatto, dataCancellazione=None).all()
             return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione
@@ -36,6 +38,7 @@ class RepositoryAssociazionePiattiPreparazioni:
                 result = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPreparazione=fkPreparazione, dataCancellazione=None).first()
                 return {'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} 
             except Exception as e:
+                self.session.rollback()
                 return {'Error': str(e)}, 500
             finally:
                 # Chiudi sempre la sessione
@@ -46,6 +49,7 @@ class RepositoryAssociazionePiattiPreparazioni:
                 results = self.session.query(TAssociazionePiattiPreparazioni).filter_by(fkPreparazione=fkPreparazione, dataCancellazione=None).all()
                 return [{'id': result.id, 'fkPiatto': result.fkPiatto, 'fkPreparazione': result.fkPreparazione, 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento, 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione} for result in results]
             except Exception as e:
+                self.session.rollback()
                 return {'Error': str(e)}, 500
             finally:
                 # Chiudi sempre la sessione
@@ -73,6 +77,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             else:
                 return {'Error': 'Associazione non trovata'}
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}
         finally:
             # Chiudi sempre la sessione
@@ -96,6 +101,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
         finally:
             # Chiudi sempre la sessione
@@ -110,6 +116,7 @@ class RepositoryAssociazionePiattiPreparazioni:
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
         finally:
             # Chiudi sempre la sessione

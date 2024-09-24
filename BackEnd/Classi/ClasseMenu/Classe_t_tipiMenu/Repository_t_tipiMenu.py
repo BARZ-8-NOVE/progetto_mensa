@@ -11,26 +11,34 @@ class RepositoryTipiMenu:
     def get_all(self):
         try:
             results = self.session.query(TTipiMenu).filter(TTipiMenu.dataCancellazione.is_(None)).all()
+            return [{'id': result.id, 'descrizione': result.descrizione, 'color': result.color,
+                     'backgroundColor': result.backgroundColor, 'ordinatore': result.ordinatore,
+                     'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
+                     'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
+                    for result in results]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 500
-        return [{'id': result.id, 'descrizione': result.descrizione, 'color': result.color,
-                 'backgroundColor': result.backgroundColor, 'ordinatore': result.ordinatore,
-                 'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
-                 'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
-                for result in results]
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def get_by_id(self, id):
         try:
             result = self.session.query(TTipiMenu).filter_by(id=id).first()
+            if result:
+                return {'id': result.id, 'descrizione': result.descrizione, 'color': result.color,
+                        'backgroundColor': result.backgroundColor, 'ordinatore': result.ordinatore,
+                        'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
+                        'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 400
-        if result:
-            return {'id': result.id, 'descrizione': result.descrizione, 'color': result.color,
-                    'backgroundColor': result.backgroundColor, 'ordinatore': result.ordinatore,
-                    'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
-                    'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
-        else:
-            return {'Error': f'No match found for this id: {id}'}, 404
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def create(self, descrizione, color, backgroundColor, ordinatore, utenteInserimento):
         try:
@@ -40,13 +48,12 @@ class RepositoryTipiMenu:
                 backgroundColor=backgroundColor,
                 ordinatore=ordinatore, 
                 utenteInserimento=utenteInserimento
-                                 
             )
             self.session.add(tipimenu)
             self.session.commit()
             return {'tipimenu': 'added!'}, 200
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione
@@ -66,7 +73,7 @@ class RepositoryTipiMenu:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione
@@ -83,7 +90,7 @@ class RepositoryTipiMenu:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
-            self.session.rollback()
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione

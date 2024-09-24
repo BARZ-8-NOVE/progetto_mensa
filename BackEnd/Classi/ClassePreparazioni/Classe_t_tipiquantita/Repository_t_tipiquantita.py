@@ -13,7 +13,12 @@ class Repository_t_tipoquantita:
             results = self.session.query(TTipoQuantita).all()
             return [{'id': result.id, 'tipo': result.tipo, 'peso_valore_in_grammi': result.peso_valore_in_grammi, 'peso_valore_in_Kg': result.peso_valore_in_Kg} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def get_tipoquantita_by_id(self, id):
         try:
@@ -23,7 +28,12 @@ class Repository_t_tipoquantita:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+            
 
     def create_tipoquantita(self, tipo, peso_valore_in_grammi=None, peso_valore_in_Kg=None):
         try:
@@ -34,6 +44,10 @@ class Repository_t_tipoquantita:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
         
     def update_tipoquantita(self, id, tipo, peso_valore_in_grammi=None, peso_valore_in_Kg=None):
         try:
@@ -50,6 +64,10 @@ class Repository_t_tipoquantita:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def delete_tipoquantita(self, id):
         try:
@@ -63,3 +81,6 @@ class Repository_t_tipoquantita:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()

@@ -27,6 +27,7 @@ class Repository_t_preparazionicontenuti:
             } for result in results]
             
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
 
         finally:
@@ -52,6 +53,7 @@ class Repository_t_preparazionicontenuti:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
         
         finally:
@@ -71,6 +73,7 @@ class Repository_t_preparazionicontenuti:
             # Estrai gli ID dalla lista di tuple
             return [prep_id for (prep_id,) in preparazioni_senza_ingredienti_ids]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             self.session.close()
@@ -98,6 +101,7 @@ class Repository_t_preparazionicontenuti:
             } for result in results]
         
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
             # Chiudi sempre la sessione

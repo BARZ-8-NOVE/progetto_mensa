@@ -14,24 +14,25 @@
             <span>Utente: <span id="username">{{ username }}</span></span>
             <a href="/app_cucina/impostazioni">Impostazioni</a>
             <form method="POST" action="{{ url_for('app_cucina.do_logout') }}" style="display: inline;">
-                {{ form.hidden_tag() }}  <!-- Include il token CSRF nel modulo -->
+                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}" />
                 <button type="submit" id="logout">Logout</button>
             </form>
         </div>
+
     </header>
     
     <nav>
         <ul>
             {% for padre in menu_structure %}
                 <li class="dropdown">
-                    <a href="{{ padre['link'] }}">{{ padre['titolo'] }}</a>
+                    <a href="{{ padre['link'] }}" {% if padre['link'] == '/app_cucina/home' %}class="load-link"{% endif %}>{{ padre['titolo'] }}</a>
                     <div class="dropdown-content">
                         {% for figlio in padre['figli'] %}
                             <div class="dropdown">
-                                <a href="{{ figlio['link'] }}">{{ figlio['titolo'] }}</a>
+                                <a href="{{ figlio['link'] }}" {% if figlio['link'] == '/app_cucina/qualifiche' %}class="load-link"{% endif %}>{{ figlio['titolo'] }}</a>
                                 <div class="dropdown-subcontent">
                                     {% for nipote in figlio['nipoti'] %}
-                                        <a href="{{ nipote['link'] }}">{{ nipote['titolo'] }}</a>
+                                        <a href="{{ nipote['link'] }}" class="load-link">{{ nipote['titolo'] }}</a>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -40,6 +41,9 @@
                 </li>
             {% endfor %}
         </ul>
+        
+        
+        
     </nav>
 
     <!-- Flash messages -->

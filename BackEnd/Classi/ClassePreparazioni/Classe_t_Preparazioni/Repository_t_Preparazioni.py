@@ -29,8 +29,12 @@ class Repository_t_preparazioni:
                 'immagine': result.immagine
             } for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
-        
+        finally:
+            if self.session:
+                self.session.close
+                        
 
     def get_all_preparazioni_base(self):
         try:
@@ -54,8 +58,11 @@ class Repository_t_preparazioni:
                 'immagine': result.immagine
             } for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
-
+        finally:
+            if self.session:
+                self.session.close
 
 
     def  get_descrizione_by_id(self, id):
@@ -67,8 +74,13 @@ class Repository_t_preparazioni:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            if self.session:
+                self.session.close
 
+                
     def update(self, id, fkTipoPreparazione, descrizione, isEstivo, isInvernale, inizio, fine, immagine):
         try:
             preparazione = self.session.query(TPreparazioni).filter_by(id=id).first()
@@ -115,7 +127,11 @@ class Repository_t_preparazioni:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 400
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
 
     def create_preparazione(self, fkTipoPreparazione, descrizione, isEstivo, isInvernale, allergeni=None, inizio=None, fine=None, dataInserimento=None, utenteInserimento=None, dataCancellazione=None, utenteCancellazione=None, immagine=None):
         try:
@@ -139,6 +155,10 @@ class Repository_t_preparazioni:
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
+        finally:
+            # Chiudi sempre la sessione
+            self.session.close()
+
 
     def get_last_id(self):
             try:
@@ -150,7 +170,12 @@ class Repository_t_preparazioni:
                 else:
                     return {'Error': 'No match found'}, 404
             except Exception as e:
+                self.session.rollback()
                 return {'Error': str(e)}, 400
+            finally:
+                # Chiudi sempre la sessione
+                self.session.close()
+
 
     def delete(self, id, utenteCancellazione):
         try:

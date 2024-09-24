@@ -13,6 +13,7 @@ class Repository_t_tipologiaalimenti:
             results = self.session.query(TTipologiaAlimenti).all()
             return [{'id': result.id, 'nome': result.nome, 'fktipologiaConservazione': result.fktipologiaConservazione} for result in results]
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 500
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
@@ -27,6 +28,7 @@ class Repository_t_tipologiaalimenti:
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()  # Aggiunta del rollback
             return {'Error': str(e)}, 400
         finally:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse

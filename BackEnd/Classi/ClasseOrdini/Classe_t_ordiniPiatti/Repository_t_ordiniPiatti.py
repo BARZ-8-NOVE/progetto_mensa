@@ -4,6 +4,7 @@ from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Domain_t_ordiniPiatti import TOrd
 from Classi.ClasseOrdini.Classe_t_ordiniSchede.Domain_t_ordiniSchede import TOrdiniSchede
 from datetime import datetime
 from sqlalchemy.sql import func
+
 class RepositoryOrdiniPiatti:
     def __init__(self):
         Session = sessionmaker(bind=engine)
@@ -12,49 +13,48 @@ class RepositoryOrdiniPiatti:
     def get_all(self):
         try:
             results = self.session.query(TOrdiniPiatti).all()
-            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note} for result in results]
+            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 
+                     'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 
+                     'note': result.note} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
-        
+            self.session.close()
 
     def get_all_by_ordine_scheda(self, fkOrdineScheda):
         try:
             results = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
-            return [{'id': result.id, 
-                     'fkOrdineScheda': result.fkOrdineScheda, 
-                     'fkPiatto': result.fkPiatto, 
-                     'quantita': result.quantita, 
+            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 
+                     'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 
                      'note': result.note} for result in results]
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
-
-
+            self.session.close()
 
     def get_by_id(self, id):
         try:
             result = self.session.query(TOrdiniPiatti).filter_by(id=id).first()
             if result:
-                return {'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 'note': result.note}
+                return {'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 
+                        'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 
+                        'note': result.note}
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            self.session.close()
 
     def create(self, fkOrdineScheda, fkPiatto, quantita, note):
         try:
-            ordine_piatto = TOrdiniPiatti(fkOrdineScheda=fkOrdineScheda, fkPiatto=fkPiatto, quantita=quantita, note=note)
+            ordine_piatto = TOrdiniPiatti(fkOrdineScheda=fkOrdineScheda, 
+                                           fkPiatto=fkPiatto, 
+                                           quantita=quantita, 
+                                           note=note)
             self.session.add(ordine_piatto)
             self.session.commit()
             return {'ordine_piatto': 'added!'}, 200
@@ -62,9 +62,7 @@ class RepositoryOrdiniPiatti:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            self.session.close()
 
     def update(self, id, fkOrdineScheda, fkPiatto, quantita, note):
         try:
@@ -82,9 +80,7 @@ class RepositoryOrdiniPiatti:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
+            self.session.close()
 
     def delete(self, id):
         try:
@@ -99,21 +95,14 @@ class RepositoryOrdiniPiatti:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
-        
+            self.session.close()
 
     def delete_by_fkOrdine(self, fkOrdineScheda):
         try:
-            # Trova tutti i record associati a fkOrdineScheda
             ordine_piatto = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
-            
             if ordine_piatto:
-                # Elimina ogni record trovato
                 for record in ordine_piatto:
                     self.session.delete(record)
-                
                 self.session.commit()
                 return {'ordine_piatto': 'deleted!'}, 200
             else:
@@ -122,16 +111,11 @@ class RepositoryOrdiniPiatti:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-                    # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-                    if self.session:
-                        self.session.close()
-
+            self.session.close()
 
     def get_count_piatti(self, data, servizio: int, fkReparto=None, fkScheda=None):
         """Conta tutti i piatti da TOrdiniPiatti per un giorno specifico e che non sono stati cancellati."""
         try:
-           
-            
             query = self.session.query(
                 TOrdiniSchede.fkReparto,
                 TOrdiniPiatti.fkPiatto,
@@ -162,8 +146,7 @@ class RepositoryOrdiniPiatti:
 
             return piatti_count
         except Exception as e:
+            self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
-            if self.session:
-                self.session.close()
+            self.session.close()
