@@ -165,12 +165,17 @@ def handle_expired_token(jwt_header, jwt_payload):
 #         return f(*args, **kwargs)
 #     return decorated_function
 
+
+
 #trova il nome utente
+# Funzione per ottenere lo username basato su user_id
 def get_username():
     user_id = session.get('user_id')
-    user = service_t_utenti.get_utente_by_id(user_id)
-    
-    return user['username']
+    if user_id:
+        user = service_t_utenti.get_utente_by_id(user_id)
+        if user:
+            return user['username']
+    return None
 
 
 # Controlla se l'ora corrente è prima delle 14 ore rispetto alla data dell'ordine
@@ -475,63 +480,72 @@ def check_csrf():
 
 
 
-# @app_cucina.before_request
-# def log_request():
-#     user_id = session.get('user_id', 'Anonimo')  # Se non c'è utente, registriamo come 'Anonymous'
-    
-#     # Log request data (params and body)
-#     request_data = {
-#         "method": request.method,
-#         "args": request.args.to_dict(),
-#         "form_data": request.form.to_dict(),
-#         "json_data": request.json if request.is_json else None
-#     }
 
-#     service_t_Log.log_to_db(
-#         level='INFO',
-#         message=f"Request to {request.path}",
-#         user_id=user_id,
-#         route=request.path,
-#         data=request_data
-#     )
 
-# @app_cucina.after_request
-# def log_response(response):
-#     user_id = session.get('user_id', 'Anonymous')
+@app.before_request
+def log_request_info():
+    if request.method in ['POST', 'PUT', 'DELETE']:
+        # Verifica se il percorso è esente dal logging
+        if request.path in ['/app_cucina/login']:
+            return  # Salta il logging per queste chiamate
 
-#     # Log response data (status and headers)
-#     response_data = {
-#         "status": response.status,
-#         "headers": dict(response.headers)
-#     }
+        # Recupera l'ID utente e lo username direttamente dalla sessione
+        user_id = session.get('user_id', None)
+        username = get_username()  # Ottiene lo username dall'utente
 
-#     service_t_Log.log_to_db(
-#         level='INFO',
-#         message=f"Response from {request.path}",
-#         user_id=user_id,
-#         route=request.path,
-#         data=response_data
-#     )
-#     return response
+        # Ottieni i dati della richiesta
+        data = request.json if request.is_json else request.form.to_dict()
 
-# @app_cucina.teardown_request
-# def log_exception(exception=None):
-#     if exception:
-#         user_id = session.get('user_id', 'Anonymous')
+        # Log iniziale
+        service_t_Log.log_to_db(
+            level='INFO',
+            message=f'{request.method} request to {request.path} initiated by {username}.',
+            user_id=user_id,
+            route=request.path,
+            data=data
+        )
 
-#         # Log the exception details
-#         exception_data = {
-#             "error": str(exception),
-#             "traceback": traceback.format_exc()
-#         }
+@app.after_request
+def log_request_success(response):
+    if request.method in ['POST', 'PUT', 'DELETE'] and response.status_code == 200:
+        # Verifica se il percorso è esente dal logging
+        if request.path in ['/app_cucina/login']:
+            return response  # Salta il logging per queste chiamate
 
-#         service_t_Log.log_to_db(
-#             level='ERROR',
-#             message=f"Exception on {request.path}",
-#             user_id=user_id,
-#             route=request.path,
-#             data=exception_data
-#         )
+        # Recupera l'ID utente e lo username dalla sessione
+        user_id = session.get('user_id', None)
+        username = get_username()
+
+        # Log del successo dell'operazione
+        service_t_Log.log_to_db(
+            level='INFO',
+            message=f'{request.method} request to {request.path} completed successfully by {username}.',
+            user_id=user_id,
+            route=request.path,
+            data=None
+        )
+    return response
+
+@app.teardown_request
+def log_request_error(error):
+    if error:
+        # Recupera l'ID utente e lo username dalla sessione
+        user_id = session.get('user_id', None)
+        username = get_username()
+
+        # Verifica se il percorso è esente dal logging
+        if request.path in ['/app_cucina/login']:
+            return  # Salta il logging per queste chiamate
+
+        # Se c'è un errore, logga l'errore
+        service_t_Log.log_to_db(
+            level='ERROR',
+            message=f'Error during {request.method} request to {request.path} by {username}: {str(error)}',
+            user_id=user_id,
+            route=request.path,
+            data=request.json if request.is_json else request.form.to_dict()
+        )
+    return error
 
 
 
@@ -719,10 +733,6 @@ def preparazioni():
 
 
         preparazioni_senza_ingredienti = service_t_preparazionicontenuti.get_preparazioni_senza_ingredienti()
-        print(preparazioni_senza_ingredienti)        
-      
-                
-
 
             
         #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
@@ -799,7 +809,6 @@ def preparazioni():
                         note=ingredient['note'],
                         utenteInserimento=utente_inserimento
                     )
-                    print(f"Ingredient saved: {ingredient}")
                 except (ValueError, KeyError) as e:
                     print(f"Error processing ingredient: {ingredient}, error: {e}")
 
@@ -911,16 +920,6 @@ def preparazione_dettagli(id_preparazione):
             inizio = request.form.get('inizio') or None
             fine = request.form.get('fine') or None
             immagine = request.form.get('immagine')  # Gestisci l'immagine come necessario
-
-
-            print(fkTipoPreparazione)
-            print(descrizione)
-            print(estivo)
-            print(invernale)
-            print(inizio)
-            print(fine)
-            print(immagine)
-            # Aggiorna la preparazione
 
             
             try:
@@ -1084,7 +1083,6 @@ def modifica_piatti(id):
                         utenteInserimento=get_username()
                     )
 
-                    print(result)
 
                     # Restituisci una risposta JSON senza redirect
                     return jsonify({'message': 'Piatto aggiornato con successo!'}), 200
@@ -1628,7 +1626,6 @@ def menu():
         form = CloneMenuForm()
 
         if request.method == 'POST':
-            print('Dati del form POST:', request.form)  # Log dei dati del form
             if clona_mese.validate_on_submit():
                 try:
                     # Recupera la data di clonazione e il numero di giorni
@@ -1639,11 +1636,9 @@ def menu():
 
                     # Recupera gli ID dei menu dal form
                     menu_ids = request.form.get('menu_ids').split(',')
-                    print(f"Menu IDs: {menu_ids}")
 
                     # Recupera i servizi associati ai menu
                     menu_servizi = service_t_MenuServizi.get_all_by_menu_ids(menu_ids)
-                    print(f"Menu Services: {menu_servizi}")
 
                     for index, menu_id_str in enumerate(menu_ids):
                         menu_id = int(menu_id_str)  # Converti menu_id in intero
@@ -1724,10 +1719,8 @@ def cose_menu(id_menu):
 
         if request.method == 'DELETE':
             # Gestione dell'Eliminazione del Menu
-            print(f"Request to delete menu with ID: {id_menu}")
             try:
                 menu = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
-                print(menu)
                 service_t_MenuServiziAssociazione.delete_per_menu(id_menu, utenteCancellazione=get_username())
                 flash('Menu eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
@@ -1809,7 +1802,6 @@ def menu_dettagli(id_menu):
                         'fkPiatto': piatto_id,
                         'fkPreparazione': preparazione_id
                     })
-            print(piatto_e_prep)
 
             associazioni_id = []
             for assoc in piatto_e_prep:
@@ -1818,7 +1810,6 @@ def menu_dettagli(id_menu):
                     app.logger.error(f"Errore durante il recupero dell'associazione: {result['Error']}")
                     return {'Error': result['Error']}, 500
                 associazioni_id.append(result['id'])
-            print(associazioni_id)
             # Elenco delle nuove associazioni da inserire
             try:
                 # Elimina le associazioni esistenti
@@ -1833,7 +1824,6 @@ def menu_dettagli(id_menu):
                         utenteInserimento=utente
                     )
 
-                    print(response)
                     if 'Error' in response:
                         app.logger.error(f"Errore durante l'inserimento dell'associazione: {response['Error']}")
                         return {'Error': response['Error']}, 500
@@ -1995,7 +1985,6 @@ def schede_piatti(id):
     if 'authenticated' in session:
         
         servizio_corrente = request.args.get('servizio', '1')
-        print(servizio_corrente)
         
         
         # Retrieve data
@@ -2274,12 +2263,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
         dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
 
-        print('dettagli_ordine:', dettagli_ordine)
-
         # Lista di tutti gli ID disponibili, escludendo la scheda vuota (0)
         lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine if ordine['id'] != 0]
-
-        print('lista_id_disponibili:', lista_id_disponibili)
 
         # Aggiungi sempre l'ordine con ID 0 come ultimo elemento se c'è un nuovo ordine
         lista_id_disponibili.append(0)
@@ -2405,8 +2390,6 @@ def print_ordini(id):
     if 'authenticated' in session:
         # Recupera tutti gli ordini associati all'ID fornito
         tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine_per_stampa(id)
-
-        print(tutti_gli_ordini)
 
         tipi_menu = service_t_TipiMenu.get_all()
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
@@ -2705,19 +2688,22 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
         form = ordinedipendenteForm()
 
         if request.method == 'POST':
-
-
             if form.validate_on_submit():
-                
-                ordine_id = request.form.get('ordine_id', default=None, type=int)
-                
-                # Il resto del codice per la gestione dell'ordine
+                piatti_list = json.loads(request.form['piattiList']) 
 
+                # Check if piatti_list is empty or None
+                if not piatti_list or len(piatti_list) == 0:
+                    flash('Ordine è stato inserito vuoto o non è stato modificato!', 'danger')
+                    return redirect(url_for('app_cucina.ordina_pasto', servizio=servizio, reparto=reparto))
+
+                ordine_id = request.form.get('ordine_id', default=None, type=int)
+
+                # Handle existing order if ordine_id is provided
                 if ordine_id and ordine_id != 0:
                     service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
                     service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
 
-                # Creazione di un nuovo ordine
+                # Create a new order
                 new_scheda_ordine = service_t_OrdiniSchede.create(
                     fkOrdine=id,
                     fkReparto=reparto,
@@ -2730,7 +2716,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
                     utenteInserimento=get_username()
                 )
 
-                piatti_list = json.loads(request.form['piattiList'])
+                # Save selected dishes
                 for piatto in piatti_list:
                     try:
                         service_t_OrdiniPiatti.create(
@@ -2739,18 +2725,15 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
                             quantita=int(piatto['quantita']),
                             note=str(piatto['note']),
                         )
-                        print(f"ordine piatti saved: {piatto}")
+                        print(f"Ordine piatti salvato: {piatto}")
                     except (ValueError, KeyError) as e:
-                        print(f"Error processing ordine piatti: {piatto}, error: {e}")
+                        print(f"Errore durante l'elaborazione dell'ordine piatti: {piatto}, errore: {e}")
 
-                flash('ordine aggiunto con successo!', 'success')
+                flash('Ordine aggiunto con successo!', 'success')
                 return redirect(url_for('app_cucina.ordina_pasto', servizio=servizio, reparto=reparto))
-
+            
             else:
-                print("Form errors:", form.errors)
-
-        
-       
+                print("Errori del modulo:", form.errors)
 
         return render_template('ordine_schede_dipendente.html',
             id=id,
@@ -2774,7 +2757,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
         )
     else:
         return redirect(url_for('app_cucina.login'))
-    
+
 
 
 
@@ -2811,7 +2794,7 @@ def ordini():
         )
 
         ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
-        print (ordine_esistente)
+
         # Se non esiste, crea un nuovo ordine
         if not ordine_esistente:
             service_t_Ordini.create(data, servizio_corrente)
@@ -2891,7 +2874,7 @@ def ordini_dipendenti():
         )
 
         ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
-        print (ordine_esistente)
+
         # Se non esiste, crea un nuovo ordine
         if not ordine_esistente:
             service_t_Ordini.create(data, servizio_corrente)
@@ -3031,7 +3014,7 @@ def modifica_utente(id):
         if request.method == 'PUT':
             try:
                 json_data = request.get_json()
-                print("Received JSON:", json_data)
+
 
                 if json_data:
                     try:
@@ -3093,12 +3076,9 @@ def creazione_tipologia_utenti():
 
             # Associa le funzionalità e i permessi al nuovo tipo utente
             for funz_id, permesso in permessi.items():
-                print(nuovo_tipo_utente_id, funz_id, permesso)
+
                 service_t_FunzionalitaUtente.create(nuovo_tipo_utente_id, funz_id, permesso)
 
-            print('Tipo Utente:', tipo_utente)
-            print('Funzionalità Selezionate:', funzionalita_selezionate)
-            print('Permessi:', permessi)
             return redirect(url_for('app_cucina.creazione_tipologia_utenti'))
 
         return render_template('creazione_tipi_utenti.html',
@@ -3123,11 +3103,6 @@ def modifica_tipo_utente(id):
             funzionalita_map = {int(funz['id']): funz['titolo'] for funz in funzionalita}
 
             form = TipoUtenteForm(obj=tipo_utente)
-
-            # Stampa il JSON per debug
-            print('Tipo Utente:', tipo_utente)
-            print('Funzionalità:', funzionalita_map)
-            print('Funzionalità Associate:', funzionalita_associate)
 
             return jsonify({
                 'tipo_utente': tipo_utente,
@@ -3164,7 +3139,6 @@ def modifica_tipo_utente(id):
 
                 # Associa le funzionalità e i permessi al tipo utente
                 for funz_id, permesso in permessi.items():
-                    print(id, funz_id, permesso)
                     service_t_FunzionalitaUtente.create(id, funz_id, permesso)
 
                 return jsonify({'message': 'Tipo utente aggiornato con successo!'}), 200

@@ -44,7 +44,7 @@ Ordini - Gestione Cucina
     <ul class="menu-list">
         {% for scheda in menu_personale %}
         <li class="menu-item" style="background-color: {{ scheda.backgroundColor }};"
-        onclick="showForm2('{{ scheda.id }}', '{{ ordine_esistente.id }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ request.args.get('servizio', '1') }}')">
+        onclick="showLoadingSpinner();showForm2('{{ scheda.id }}', '{{ ordine_esistente.id }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ request.args.get('servizio', '1') }}')">
    
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
             <!-- Display the list of dishes (piatti) under each menu -->

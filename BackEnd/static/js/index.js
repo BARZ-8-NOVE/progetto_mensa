@@ -27,7 +27,6 @@ document.getElementById('logout').addEventListener('click', function() {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`,  // Use the token defined in the template
-            'Content-Type': 'application/json'
         }
     })
     .then(response => {

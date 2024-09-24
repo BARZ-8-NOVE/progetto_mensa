@@ -36,7 +36,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
         <tbody id="utentiTableBody">
             {% for utente in utenti %}
             <tr>
-                <td><div class="icon-pencil" onclick="showModificaForm({{ utente.id }})"title="visualizza utente"></div></td>
+                <td><div class="icon-pencil" onclick="showModificaForm({{ utente.id }})" title="visualizza utente"></div></td>
                 <td>{{ utente.username }}</td>
                 <td>{{ utente.cognome }}</td>
                 <td>{{ utente.nome }}</td>
@@ -53,7 +53,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
                         {% endfor %}
                     {% endif %}
                 </td>         
-                <td><button onclick="impersonifica({{ utente.id }})">Imp</button></td>
+                <td><div class="icon-utente" onclick="impersonifica({{ utente.id }})"  title="impersonifica utente"></div></td>
             </tr>
             {% endfor %}
         </tbody>

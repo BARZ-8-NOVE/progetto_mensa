@@ -11,14 +11,14 @@ Calendario Menu - Gestione Cucina
             <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
             <input type="hidden" name="year" value="{{ year if month > 1 else year - 1 }}">
             <input type="hidden" name="month" value="{{ month - 1 if month > 1 else 12 }}">
-            <button type="submit" class="icon-freccia-sx" title="mese precedente"></button>
+            <button type="submit" class="icon-freccia-sx" title="mese precedente" onclick="showLoadingSpinner()"></button>
         </form>
         <h3>{{ month_name }} {{ year }}</h3>
         <form method="GET" action="{{ url_for('app_cucina.menu') }}">
             <input type="hidden" name="tipo_menu" value="{{ request.args.get('tipo_menu', '1') }}">
             <input type="hidden" name="year" value="{{ year if month < 12 else year + 1 }}">
             <input type="hidden" name="month" value="{{ month + 1 if month < 12 else 1 }}">
-            <button type="submit" class="icon-freccia-dx" title="mese successivo"></button>
+            <button type="submit" class="icon-freccia-dx" title="mese successivo" onclick="showLoadingSpinner()"></button>
         </form>
 
         <label for="tipo_menu">Filtra per tipo di menu:</label>
@@ -91,7 +91,7 @@ Calendario Menu - Gestione Cucina
                                                     {% endif %}
                                                 </div>
                                                 {% if page_permissions['/app_cucina/menu']['can_write'] %}
-                                                    <div class="menu-columns" onclick="showMenuForm('{{ servizio_id }}')">
+                                                    <div class="menu-columns" onclick="showLoadingSpinner();showMenuForm('{{ servizio_id }}')">
                                                 {% endif %}
                                                     <div class="column">
                                                         <h4>Primi</h4>
@@ -162,7 +162,7 @@ Calendario Menu - Gestione Cucina
                     {{ form.clone_date(class="form-control") }}
                 </div>
                 <div class="form-group">
-                    {{ form.submit(class="btn btn-primary") }}
+                    {{ form.submit(class="styled-button") }}
                     <button type="button" class="btn btn-secondary" onclick="closeClonaForm()">Annulla</button>
                 </div>
             </form>
@@ -182,7 +182,7 @@ Calendario Menu - Gestione Cucina
                     {{ clona_mese.clone_date(class="form-control") }}
                 </div>
                 <div class="form-group">
-                    {{ clona_mese.submit(class="btn btn-primary") }}
+                    {{ clona_mese.submit(class="styled-button") }}
                     <button type="button" class="btn btn-secondary" onclick="showClonaMeseForm()">Annulla</button>
                 </div>
             </form>

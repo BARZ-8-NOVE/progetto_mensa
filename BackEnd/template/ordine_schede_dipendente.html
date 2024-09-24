@@ -14,7 +14,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
         </h2>
     </div>
-    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" onsubmit="showLoadingSpinner()>
+    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" >
         {{ form.hidden_tag() }}
 
         <div class="form-row-ordiniPiatti">
@@ -62,9 +62,11 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             </div>
         </div>
         
-        <div class="navigation-buttons">
-            {{ form.submit(class="styled-button" ) }}
-        </div>
+
+
+            <button type="button" class="styled-button" onclick="showLoadingSpinner(),window.location.href='{{ url_for('app_cucina.ordina_pasto') }}'" >Annulla</button>
+            {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
+
 
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
@@ -104,11 +106,18 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         }
         
         updateHiddenField();
+        toggleSubmitButton();
     }
     
     // Funzione per aggiornare il campo nascosto
     function updateHiddenField() {
         document.getElementById('piattiList').value = JSON.stringify(selectedItems);
+    }
+
+    // Funzione per attivare/disattivare il bottone di invio
+    function toggleSubmitButton() {
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
     }
     
     // Inizializza la selezione all'apertura del popup
@@ -118,7 +127,5 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             item.classList.add('selezionato');
         }
     });
-    
-    
 </script>
 {% endblock %}

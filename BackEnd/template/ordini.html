@@ -35,7 +35,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ prev_day }}">
         <input type="hidden" name="month" value="{{ prev_month }}">
         <input type="hidden" name="year" value="{{ prev_year }}">
-        <button type="submit" class="icon-freccia-sx" title="giono precedente" onclick="showLoadingSpinner()"></button>
+        <button type="submit" class="icon-freccia-sx" title="giono precedente"></button>
     </form>
     <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
 
@@ -94,7 +94,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ next_day }}">
         <input type="hidden" name="month" value="{{ next_month }}">
         <input type="hidden" name="year" value="{{ next_year }}">
-        <button type="submit" class="icon-freccia-dx" title="giorno successivo" onclick="showLoadingSpinner()"></button>
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>
     </form>
 
     <!-- Filtra per servizio -->
@@ -138,7 +138,7 @@ Ordini - Gestione Cucina
                 <th class="rotated-header"> Reparto</th>
                 {% for scheda in schede_attive %}
 
-                <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
+                <th  class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
                     <div class="rotated-nome-text" class="rotated-header">{{ scheda.nome }}</div>
                     <span>{{ scheda.titolo }}</span>
                 </th>
@@ -160,7 +160,7 @@ Ordini - Gestione Cucina
             </td>
 
                 {% else  %}
-            <td onclick="showLoadingSpinner(); showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
+            <td onclick="showLoadingSpinner();showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
                 {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
             </td>
             {% endif %}
@@ -234,7 +234,42 @@ Ordini - Gestione Cucina
             printWindow.print();
         };
     }
-</script>
+
+
+    function promptUpdateSchedaCount(ordineId, servizioId, repartoId, schedaId, currentValue) {
+    const newValue = prompt('Inserisci il nuovo valore:', currentValue);
+
+    if (newValue !== null && !isNaN(newValue)) {
+        // Esegui una richiesta AJAX per inviare il nuovo valore al server
+        fetch('/app_cucina/ordini/brodi', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'  // Aggiungi il token CSRF se necessario
+            },
+            body: JSON.stringify({
+                ordineId: ordineId,
+                servizioId: servizioId,
+                reparto_id: repartoId,
+                scheda_id: schedaId,
+
+                new_count: newValue
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Ricarica la pagina per mostrare il nuovo valore
+                location.reload();
+            } else {
+                console.error('Errore durante l\'aggiornamento del conteggio');
+            }
+        })
+        .catch(error => console.error('Errore:', error));
+    }
+}
+
     
+</script>
 
 {% endblock %}

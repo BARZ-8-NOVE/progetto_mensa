@@ -35,7 +35,7 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ prev_day }}">
         <input type="hidden" name="month" value="{{ prev_month }}">
         <input type="hidden" name="year" value="{{ prev_year }}">
-        <button type="submit" class="icon-freccia-sx" title="giono precedente"></button>
+        <button type="submit" class="icon-freccia-sx" title="giono precedente" onclick="showLoadingSpinner()"></button>
     </form>
     <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
 
@@ -94,14 +94,14 @@ Ordini - Gestione Cucina
         <input type="hidden" name="day" value="{{ next_day }}">
         <input type="hidden" name="month" value="{{ next_month }}">
         <input type="hidden" name="year" value="{{ next_year }}">
-        <button type="submit" class="icon-freccia-dx" title="giorno successivo"></button>   
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo" onclick="showLoadingSpinner()"></button>   
     </form>
 
     <!-- Filtra per servizio -->
     <form method="GET" action="{{ url_for('app_cucina.ordini_dipendenti') }}">
         <input type="hidden" name="day" value="{{ day }}">
         <input type="hidden" name="year" value="{{ year }}">
-        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="month" value="{{ month }}"> 
         <label for="servizio">Filtra per servizio:</label>
         <select class="search-container-select-menu" id="servizio" name="servizio" onchange="this.form.submit()">
             {% for servizio in servizio %}

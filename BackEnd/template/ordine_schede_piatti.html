@@ -100,7 +100,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
         </a>
 
-        {{ form.submit(class="styled-button") }}
+        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
         
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
@@ -108,52 +108,53 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
-    // Popola selectedItems con i dati di info_piatti
     const selectedItems = [];
 
     {% for piatto in info_piatti %}
         selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
     {% endfor %}
-
+    
     function toggleSelection(element, piattoId) {
-        console.log('Piatto ID:', piattoId); // Debugging statement
-
+        const piattoType = element.getAttribute('data-type'); // Assicurati che il tuo elemento abbia questo attributo
+        
+        // Rimuovi la selezione degli altri piatti dello stesso tipo
+        const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
+        itemsToDeselect.forEach(item => {
+            if (item.classList.contains('selezionato')) {
+                item.classList.remove('selezionato');
+                const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === parseInt(item.getAttribute('data-id')));
+                if (index > -1) {
+                    selectedItems.splice(index, 1);
+                }
+            }
+        });
+        
+        // Aggiungi o rimuovi la selezione per il piatto corrente
         element.classList.toggle('selezionato');
         const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
-
+        
         if (index > -1) {
-            // L'elemento è già selezionato, lo rimuove
             selectedItems.splice(index, 1);
         } else {
-            // L'elemento non è selezionato, lo aggiunge
             selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" });
         }
-
-        console.log('Selected Items:', selectedItems); // Debugging statement
-        updateHiddenField();
-    }
-
-    function updateHiddenField() {
-        const piattiList = JSON.stringify(selectedItems);
-        console.log('Updated piattiList:', piattiList); // Debugging statement
-        document.getElementById('piattiList').value = piattiList;
-    }
-
-    function saveChanges() {
-        // Imposta il valore dell'ID dell'ordine
-        var ordineId = getOrdineId(); // Funzione che ottiene l'ID dell'ordine se esiste
-        document.getElementById('ordineId').value = ordineId;
         
-        // Avvia la sottomissione del form
-        document.querySelector('form').submit();
+        updateHiddenField();
+        toggleSubmitButton();
     }
     
-    function getOrdineId() {
-        // Ottieni l'ID dell'ordine se è impostato
-        return document.getElementById('ordineId').value || ''; // Usa il valore del campo nascosto se presente
+    // Funzione per aggiornare il campo nascosto
+    function updateHiddenField() {
+        document.getElementById('piattiList').value = JSON.stringify(selectedItems);
     }
 
-    // Seleziona gli elementi che erano già presenti in info_piatti
+    // Funzione per attivare/disattivare il bottone di invio
+    function toggleSubmitButton() {
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
+    }
+    
+    // Inizializza la selezione all'apertura del popup
     document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
         const piattoId = parseInt(item.getAttribute('data-id'));
         if (selectedItems.find(item => item.fkPiatto === piattoId)) {
