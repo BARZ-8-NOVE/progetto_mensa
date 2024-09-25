@@ -8,6 +8,6 @@ class TLog(Base):
     level = Column(String(50), nullable=False)  # Livello del log (INFO, WARNING, ERROR, etc.)
     message = Column(String(255), nullable=False)  # Messaggio del log
     timestamp = Column(DateTime, nullable=False, default=func.now())  # Quando è avvenuto il log
-    user_id = Column(Integer, nullable=True)  # ID dell'utente (se applicabile)
+    fkUser = Column(String(50), nullable=False)   # ID dell'utente (se applicabile)
     route = Column(String(255), nullable=True)  # Il percorso della richiesta (opzionale)
     data = Column(JSON, nullable=True)  # Campo per ulteriori dati dell'operazione

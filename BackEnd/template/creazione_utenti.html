@@ -36,7 +36,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
         <tbody id="utentiTableBody">
             {% for utente in utenti %}
             <tr>
-                <td><div class="icon-pencil" onclick="showModificaForm({{ utente.id }})" title="visualizza utente"></div></td>
+                <td><div class="icon-pencil" onclick="showModificaForm('{{ utente.public_id }}')" title="visualizza utente"></div></td>
                 <td>{{ utente.username }}</td>
                 <td>{{ utente.cognome }}</td>
                 <td>{{ utente.nome }}</td>
@@ -53,7 +53,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
                         {% endfor %}
                     {% endif %}
                 </td>         
-                <td><div class="icon-utente" onclick="impersonifica({{ utente.id }})"  title="impersonifica utente"></div></td>
+                <td><div class="icon-utente" onclick="impersonifica('{{ utente.public_id }}')" title="Impersonifica utente"></div></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -217,6 +217,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     // Funzione per aprire il modulo di aggiunta utente
     function showAddUtenteForm() {
         document.getElementById('addUtenteModal').style.display = 'block';
@@ -226,43 +227,59 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
         document.getElementById('addUtenteModal').style.display = 'none';
     }
 
-    // Funzione per aprire il modulo di modifica
-    function showModificaForm(id) {
-        fetch(`/app_cucina/creazione_utenti/${id}`)
-        .then(response => response.json())
-        .then(data => {
-            // Popola i campi del form con i dati ricevuti
-            document.getElementById('editUsername').value = data.username;
-            document.getElementById('editNome').value = data.nome;
-            document.getElementById('editCognome').value = data.cognome;
-            document.getElementById('editEmail').value = data.email;
-            document.getElementById('editUtenteId').value = id;
-
-            // Aggiorna il valore dei campi del form
-            const form = document.querySelector('#editUtenteForm');
-            form.elements['fkTipoUtente'].value = data.fkTipoUtente;
-            form.elements['inizio'].value = data.inizio;
-            form.elements['fine'].value = data.fine;
-
-            // Popola le checkbox dei reparti
-            const repartiCheckboxes = document.querySelectorAll('input[name="reparti"]');
-            const repartiSelected = data.reparti;
+// Funzione per aprire il modulo di modifica
+function showModificaForm(public_id) {
+    console.log(`Fetching data for user with public_id: ${public_id}`);
     
-            repartiCheckboxes.forEach(checkbox => {
-                if (repartiSelected.includes(checkbox.value)) {
-                    checkbox.checked = true;  // Se il reparto è presente, seleziona la checkbox
-                } else {
-                    checkbox.checked = false; // Altrimenti, deseleziona
-                }
-            });
+    fetch(`/app_cucina/creazione_utenti/${public_id}`)
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Received user data:', data);
 
-            // Mostra il modal
-            document.getElementById('editUtenteModal').style.display = 'block';
-        })
-        .catch(error => {
-            console.error('Error fetching Utente data:', error);
+        // Popola i campi del form con i dati ricevuti
+        document.getElementById('editUsername').value = data.username;
+        document.getElementById('editNome').value = data.nome;
+        document.getElementById('editCognome').value = data.cognome;
+        document.getElementById('editEmail').value = data.email;
+        document.getElementById('editUtenteId').value = public_id;
+
+        // Aggiorna il valore dei campi del form
+        const form = document.querySelector('#editUtenteForm');
+        form.elements['fkTipoUtente'].value = data.fkTipoUtente;
+        form.elements['inizio'].value = data.inizio;
+        form.elements['fine'].value = data.fine;
+
+        // Popola le checkbox dei reparti
+        const repartiCheckboxes = document.querySelectorAll('input[name="reparti"]');
+        const repartiSelected = data.reparti; // Assicurati che 'reparti' sia un array
+        console.log('Selected departments:', repartiSelected);
+
+        repartiCheckboxes.forEach(checkbox => {
+            console.log(`Checkbox for department ${checkbox.value} is being checked/unchecked`);
+            if (repartiSelected.includes(checkbox.value)) {
+                checkbox.checked = true;  // Se il reparto è presente, seleziona la checkbox
+                console.log(`Checked: ${checkbox.value}`);
+            } else {
+                checkbox.checked = false; // Altrimenti, deseleziona
+                console.log(`Unchecked: ${checkbox.value}`);
+            }
         });
-    }
+
+        // Mostra il modal
+        document.getElementById('editUtenteModal').style.display = 'block';
+        console.log('Edit user modal is now displayed.');
+    })
+    .catch(error => {
+        console.error('Error fetching Utente data:', error);
+    });
+}
+
 
  // Memorizza i valori iniziali dei checkbox al caricamento della pagina o all'apertura del modal
  let initialCheckboxValues = new Set();
@@ -279,7 +296,7 @@ document.querySelector('#editUtenteForm').addEventListener('submit', function(ev
     event.preventDefault(); // Previeni l'invio del form di default
 
     // Ottieni l'ID dell'utente
-    const id = document.getElementById('editUtenteId').value;
+    const public_id = document.getElementById('editUtenteId').value;
     const formData = new FormData(this);
     
     const repartiValues = [];
@@ -298,20 +315,18 @@ console.log('Tutti i valori di reparti:', repartiValues);
     
 
     const payload = {
-        id: id,
+        public_id: public_id,
         fkTipoUtente: formData.get('fkTipoUtente'),
         reparti: repartiValues,  // Usa l'array di nuovi reparti
         inizio: formData.get('inizio'),
         fine: formData.get('fine')
     };
 
-    console.log('Payload:', JSON.stringify(payload));  // Stampa il payload
-
     // Aggiungi il token CSRF all'intestazione della richiesta
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
 
     // Invia la richiesta di aggiornamento
-    fetch(`/app_cucina/creazione_utenti/${id}`, {
+    fetch(`/app_cucina/creazione_utenti/${public_id}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
         headers: {
@@ -397,6 +412,42 @@ console.log('Tutti i valori di reparti:', repartiValues);
         searchNameInput.addEventListener('keyup', filterTable);
         searchTypeSelect.addEventListener('change', filterTable);
     });
+
+
+
+    function impersonifica(public_id) {
+        console.log("Impersonificazione utente con public_id:", public_id);
+    
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+        if (confirm("Vuoi impersonare questo utente?")) {
+            fetch(`/app_cucina/creazione_utenti/impersonate/${public_id}`, {
+                method: 'POST',
+                headers: {
+
+                    'X-CSRFToken': csrfToken  
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (response.ok) {
+ 
+                    window.location.href = '/app_cucina/home';
+
+                } else {
+                    alert('Errore durante l\'impersonificazione.');
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                alert('Errore durante la richiesta.');
+            });
+        }
+    }
+    
+
+
+
 </script>
 
 

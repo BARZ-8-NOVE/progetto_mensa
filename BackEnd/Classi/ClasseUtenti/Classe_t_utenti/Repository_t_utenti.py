@@ -95,10 +95,10 @@ class Repository_t_utenti:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
 
 
-    def get_reparti_list(self, user_id: int):
+    def get_reparti_list(self, user_id: str):
         try:
             # Recupera l'utente dalla sessione
-            user = self.session.query(TUtenti).filter_by(id=user_id).first()
+            user = self.session.query(TUtenti).filter_by(public_id=user_id).first()
             
             if user:
                 # Verifica se l'attributo reparti è None o una stringa vuota
@@ -335,7 +335,7 @@ class Repository_t_utenti:
 
         # Prepara l'oggetto utente
         utente = {
-            'id': result.id,
+            'public_id': result.public_id,
             'token': access_token,
             'username': username,
             'reparti': result.reparti,
@@ -347,6 +347,55 @@ class Repository_t_utenti:
         }
         return utente
     
+
+
+    def login_da_admin(self, public_id: str, token_expires=timedelta(minutes=30)):
+        try:
+            result = self.session.query(TUtenti).filter_by(public_id=public_id).first()
+            if not result:
+                raise NotFound
+
+            # Controlla se l'utente è scaduto
+            if result.fine is not None and isinstance(result.fine, datetime) and result.fine.date() < date.today():
+                raise Forbidden(UtilityMessages.utenteScadutoError(result.username))
+
+            # Se l'utente non è attivo, aggiorna lo stato e genera un nuovo token
+            if result.attivo == 0:
+                self.update_utente_attivo(result.id, 1)
+                access_token = create_access_token(identity=result.public_id, expires_delta=token_expires)
+                result.token = access_token
+                result.expires = datetime.now() + token_expires
+                self.session.commit()
+            else:
+                # Controlla se il token esistente è ancora valido
+                if result.expires is None or result.expires < datetime.now():
+                    # Genera un nuovo token se è scaduto
+                    access_token = create_access_token(identity=result.public_id, expires_delta=token_expires)
+                    result.token = access_token
+                    result.expires = datetime.now() + token_expires
+                    self.session.commit()
+                else:
+                    access_token = result.token  # Usa il token esistente se è ancora valido
+
+            # Prepara l'oggetto utente da restituire
+            utente = {
+                'public_id': public_id,
+                'token': access_token,
+                'username': result.username,
+                'reparti': result.reparti,
+                'nome': result.nome,
+                'cognome': result.cognome,
+                'email': result.email,
+                'fkTipoUtente': result.fkTipoUtente,
+                'fine': result.fine
+            }
+            return utente
+
+        finally:
+            self.session.close()
+
+        
+
 
 
 
@@ -379,7 +428,7 @@ class Repository_t_utenti:
 
     def do_logout_nuovo(self, id: int):
         # Trova l'utente nel database utilizzando l'user_id
-        utente = self.session.query(TUtenti).filter(TUtenti.id == id).first()
+        utente = self.session.query(TUtenti).filter(TUtenti.public_id == id).first()
         
         if utente:
             # Imposta il token come scaduto
@@ -440,19 +489,27 @@ class Repository_t_utenti:
             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
 
 
-    def get_utente_by_public_id (self, public_id: str):
-        result = self.session.query(TUtenti).filter_by(public_id = public_id).first()
-        if result:
-            self.session.close()
+    def get_utente_by_public_id(self, public_id: str):
+        try:
+            result = self.session.query(TUtenti).filter_by(public_id=public_id).first()
+            
+            if not result:
+                raise NotFound(f"Utente con public_id {public_id} non trovato.")
+            
             return UtilityGeneral.getClassDictionaryOrList(result)
-        else:
-            self.session.close()
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        
+        except NotFound as e:
+            # Puoi aggiungere un logging qui se necessario
+            raise e
+        
+        finally:
+            self.session.close()  # Assicura che la sessione venga sempre chiusa
+
         
 
     def is_token_valid(self, id, token):
         # Recupera l'utente dal database usando il suo public_id
-        user = self.session.query(TUtenti).filter_by(id = id).first()
+        user = self.session.query(TUtenti).filter_by(public_id = id).first()
         if not user:
             return False
 
@@ -460,10 +517,10 @@ class Repository_t_utenti:
         return user.token == token
 
 
-    def update_da_pagina_admin(self, id, fkTipoUtente: int, reparti: list, inizio, fine):
+    def update_da_pagina_admin(self, public_id, fkTipoUtente: int, reparti: list, inizio, fine):
         try:
             print(f"Updating user with id: {id}")
-            Utente = self.session.query(TUtenti).filter_by(id=id).first()
+            Utente = self.session.query(TUtenti).filter_by(public_id=public_id).first()
             if Utente:
                 print(f"Found user: {Utente}")
                 Utente.fkTipoUtente = fkTipoUtente
@@ -493,7 +550,7 @@ class Repository_t_utenti:
 
     def manage_token(self, id, token, token_expires=timedelta(minutes=30)):
         # Recupera l'utente dal database usando l'ID
-        user = self.session.query(TUtenti).filter_by(id=id).first()
+        user = self.session.query(TUtenti).filter_by(public_id=id).first()
         if not user:
             raise ValueError("Utente non trovato")
 

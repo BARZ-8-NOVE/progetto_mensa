@@ -8,13 +8,13 @@ class Repository_t_log:  # Corretto il nome della classe
     def __init__(self):
         self.Session = sessionmaker(bind=engine)
 
-    def log_to_db(self, level, message, user_id, route, data):
+    def log_to_db(self, level, message, fkUser, route, data):
         session = self.Session()  # Creare una nuova sessione per ogni log
         try:
             new_log = TLog(
                 level=level,
                 message=message,
-                user_id=user_id,
+                fkUser=fkUser,
                 route=route or request.path,
                 data=data
             )

@@ -1,9 +1,3 @@
-
-
-#from Classi.initialize_db.initialize_db import initialize_database
-# Inizializzare il database
-#initialize_database()
-
 # Importare i controller
 from datetime import datetime, date, timedelta, time, timezone
 
@@ -75,12 +69,13 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
                                     schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , 
                                     TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, 
                                     CambioPasswordForm, ordinedipendenteForm, ContattiForm, BrodoForm)
+
 # Initialize the app and configuration
 import Reletionships
 
 app = Flask(__name__)
 
-
+# Carica configurazioni del DB
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
@@ -97,13 +92,14 @@ app.config['MAIL_USE_TLS'] = EmailConfig.MAIL_USE_TLS
 app.config['MAIL_USE_SSL'] = EmailConfig.MAIL_USE_SSL
 app.config['MAIL_DEFAULT_SENDER'] = EmailConfig.MAIL_DEFAULT_SENDER
 
-
+# Initialize csrf
 csrf = CSRFProtect(app)
 # Initialize e-mail
 mail = Mail(app)
 # Initialize JWT and CORS
 jwt = JWTManager(app)
 
+# Abilita CORS per tutte le rotte
 CORS(app)
 
 # Initialize services
@@ -134,15 +130,18 @@ service_t_funzionalita = Service_t_funzionalita ()
 service_t_SchedePiatti = Service_t_SchedePiatti()
 service_t_tipiUtenti = Service_t_tipiUtenti()
 service_t_FunzionalitaUtente = Service_t_FunzionalitaUtente()
+
+
 # Define the blueprint
 app_cucina = Blueprint('app_cucina', __name__, template_folder='template')
 
-# Background job for removing expired tokens
+# Background job rimuve i token scaduti
 def remove_expired_tokens():
     service_t_utenti.expiredTokens()
 
 # Configura lo scheduler per rimuovere i token scaduti ogni minuto
 scheduler = BackgroundScheduler()
+#ogni 60 secondi fa il controllo
 scheduler.add_job(func=remove_expired_tokens, trigger="interval", seconds=60)
 scheduler.start()
 
@@ -156,23 +155,12 @@ def handle_expired_token(jwt_header, jwt_payload):
     unset_jwt_cookies(response)
     return response
 
-# # Decorator per proteggere le rotte
-# def login_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if session.get('authenticated') is False:
-#             return redirect(url_for('app_cucina.login'))
-#         return f(*args, **kwargs)
-#     return decorated_function
 
-
-
-#trova il nome utente
-# Funzione per ottenere lo username basato su user_id
+# Funzione per ottenere lo username basato su user_id potrmmo toglierla e usare direttamenete la session.get(username)
 def get_username():
     user_id = session.get('user_id')
     if user_id:
-        user = service_t_utenti.get_utente_by_id(user_id)
+        user = service_t_utenti.get_utente_by_public_id(user_id)
         if user:
             return user['username']
     return None
@@ -222,6 +210,7 @@ def get_page_name_from_path(path):
 
 
 def get_user_reparti(user_id):
+    print(user_id)
     """
     Recupera la lista dei reparti accessibili da un determinato utente.
 
@@ -292,13 +281,6 @@ def clona_menu(menu_id, clone_date, utente_inserimento):
         print(f"Errore durante la clonazione del menu: {str(e)}")
         return False
 
-# #filtra i reparti in base ai permessi degli utenti
-# def get_reparti_utente():
-#     user_id = session.get('user_id')
-#     user = service_t_utenti.get_reparti_list(user_id)
-    
-#     # Se 'reparti' è None, restituisce una lista vuota
-#     return user.get('reparti', []) if user else []
 
 # funzione che per ogni piatto associa la preparazione considerandi il tipo e il giorno del menu 
 def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
@@ -490,8 +472,7 @@ def log_request_info():
             return  # Salta il logging per queste chiamate
 
         # Recupera l'ID utente e lo username direttamente dalla sessione
-        user_id = session.get('user_id', None)
-        username = get_username()  # Ottiene lo username dall'utente
+        fkUser = session.get('username', None)
 
         # Ottieni i dati della richiesta
         data = request.json if request.is_json else request.form.to_dict()
@@ -499,8 +480,8 @@ def log_request_info():
         # Log iniziale
         service_t_Log.log_to_db(
             level='INFO',
-            message=f'{request.method} request to {request.path} initiated by {username}.',
-            user_id=user_id,
+            message=f'{request.method} request to {request.path}.',
+            fkUser=fkUser,
             route=request.path,
             data=data
         )
@@ -513,14 +494,13 @@ def log_request_success(response):
             return response  # Salta il logging per queste chiamate
 
         # Recupera l'ID utente e lo username dalla sessione
-        user_id = session.get('user_id', None)
-        username = get_username()
+        fkUser = session.get('username', None)
 
         # Log del successo dell'operazione
         service_t_Log.log_to_db(
             level='INFO',
-            message=f'{request.method} request to {request.path} completed successfully by {username}.',
-            user_id=user_id,
+            message=f'{request.method} request to {request.path}.',
+            fkUser=fkUser,
             route=request.path,
             data=None
         )
@@ -530,9 +510,8 @@ def log_request_success(response):
 def log_request_error(error):
     if error:
         # Recupera l'ID utente e lo username dalla sessione
-        user_id = session.get('user_id', None)
-        username = get_username()
-
+        fkUser = session.get('username', None)
+       
         # Verifica se il percorso è esente dal logging
         if request.path in ['/app_cucina/login']:
             return  # Salta il logging per queste chiamate
@@ -540,8 +519,8 @@ def log_request_error(error):
         # Se c'è un errore, logga l'errore
         service_t_Log.log_to_db(
             level='ERROR',
-            message=f'Error during {request.method} request to {request.path} by {username}: {str(error)}',
-            user_id=user_id,
+            message=f'Error during {request.method} request to {request.path}: {str(error)}',
+            fkUser=fkUser,
             route=request.path,
             data=request.json if request.is_json else request.form.to_dict()
         )
@@ -550,7 +529,6 @@ def log_request_error(error):
 
 
 
-#login fattio con il form 
 @app_cucina.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginFormNoCSRF()
@@ -559,16 +537,17 @@ def login():
         password = form.password.data
 
         try:
-            user = service_t_utenti.do_login(username, password)
+            user = service_t_utenti.do_login(username, password)  # Call do_login first
+            
+
             if user:
                 session['authenticated'] = True
-                session['user_id'] = user['id']
+                session['user_id'] = user['public_id']
                 session['token'] = user['token']
                 session['fkTipoUtente'] = user['fkTipoUtente']
-                
-                
-                
-                menu_structure = service_t_FunzionalitaUtente.build_menu_structure(user['id'])
+                session['username'] = user['username']
+
+                menu_structure = service_t_FunzionalitaUtente.build_menu_structure(user['public_id'])
                 session['menu_structure'] = menu_structure
                 
                 return redirect(url_for('app_cucina.home'))
@@ -585,16 +564,14 @@ def login():
 
 
 
+
 @app_cucina.context_processor
 def inject_user_data():
     menu_structure = session.get('menu_structure', [])
-    user_id = session.get('user_id')
     user_type = session.get('fkTipoUtente')
     token = session.get('token')
 
-    # Recupera le informazioni dell'utente se disponibile
-    user = service_t_utenti.get_utente_by_id(user_id) if user_id else None
-    username = user['username'] if user else "Utente"
+    username = session.get('username')
 
     # Prepara i permessi per le pagine presenti nella struttura del menu
     page_permissions = {}
@@ -768,7 +745,7 @@ def preparazioni():
             else:
                 image_filename = None
 
-            utente_inserimento = get_username()
+            
             fk_piatto = request.form.get('titolo')
 
 
@@ -781,7 +758,7 @@ def preparazioni():
                 isInvernale=form.isInvernale.data,  
                 inizio=form.inizio.data if form.inizio.data else None, 
                 fine=form.fine.data if form.fine.data else None,  
-                utenteInserimento=utente_inserimento, 
+                utenteInserimento=session.get('username'), 
                 immagine=image_filename
             )
 
@@ -790,7 +767,7 @@ def preparazioni():
             service_t_AssociazionePiattiPreparazionie.create(
                 fkPiatto=fk_piatto, 
                 fkPreparazione = new_preparazione_id,
-                utenteInserimento = utente_inserimento
+                utenteInserimento = session.get('username')
             )
 
 
@@ -807,7 +784,7 @@ def preparazioni():
                         quantita=float(ingredient['quantita']),  # Ensure this is a float
                         fkTipoQuantita=int(ingredient['fkTipoQuantita']),
                         note=ingredient['note'],
-                        utenteInserimento=utente_inserimento
+                        utenteInserimento=session.get('username')
                     )
                 except (ValueError, KeyError) as e:
                     print(f"Error processing ingredient: {ingredient}, error: {e}")
@@ -2573,7 +2550,7 @@ def ordina_pasto():
         piatti = service_t_Piatti.get_all()
         # Ottieni i reparti accessibili dall'utente
        
-        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         nome = user['nome']
         cognome = user['cognome']
         data = f'{year}-{month}-{day}'
@@ -2600,7 +2577,7 @@ def ordina_pasto():
             day=day,
             menu_personale=menu_personale,
             servizio_corrente=servizio_corrente,
-            reparti=get_user_reparti(user['id']),
+            reparti=get_user_reparti(session['user_id']),
             servizio=servizio,
             ordine_esistente=ordine_esistente,
             tipi_menu_map=tipi_menu_map,
@@ -2681,7 +2658,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
              
         info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
 
-        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         nome = user['nome']
         cognome = user['cognome']
 
@@ -2956,7 +2933,8 @@ def creazione_utenti():
                 # Chiamata al servizio per creare l'utente
                 service_t_utenti.create_utente(
                     username=username,
-                    nome=nome,                        cognome=cognome,
+                    nome=nome,                        
+                    cognome=cognome,
                     fkTipoUtente=fkTipoUtente,
                     fkFunzCustom=fkFunzCustom,
                     reparti=reparti,
@@ -2986,17 +2964,48 @@ def creazione_utenti():
         return redirect(url_for('app_cucina.login'))
 
 
+@app_cucina.route('/creazione_utenti/impersonate/<string:public_id>', methods=['POST'])
+def impersonate_user(public_id):
+    app.logger.info(f'Tentativo di impersonare l\'utente con public_id: {public_id}')
+    if 'authenticated' in session and session.get('fkTipoUtente') == 1:
+        user = service_t_utenti.get_utente_by_public_id(public_id)
+        print('user: ' , user)
+
+        if user:
+            session.clear()
+
+            user = service_t_utenti.login_da_admin(public_id)  # Call do_login first
+            print(user)
+            session['authenticated'] = True
+            session['user_id'] = public_id
+            session['token'] = user['token']
+            session['fkTipoUtente'] = user['fkTipoUtente']
+            session['username'] = user['username']
+
+            menu_structure = service_t_FunzionalitaUtente.build_menu_structure(user['public_id'])
+            session['menu_structure'] = menu_structure
+            
+            return redirect(url_for('app_cucina.home'))
+        else:
+            app.logger.error(f'Utente con public_id {public_id} non trovato.')
+            flash('Utente non trovato per l\'impersonificazione.', 'error')
+            return redirect(url_for('app_cucina.home'))
+    
+    flash('Azione non autorizzata.', 'error')
+    return redirect(url_for('app_cucina.home'))
 
 
-@app_cucina.route('/creazione_utenti/<int:id>', methods=['GET', 'PUT'])
-def modifica_utente(id):
+
+@app_cucina.route('/creazione_utenti/<string:public_id>', methods=['GET', 'PUT'])
+def modifica_utente(public_id):
     if 'authenticated' in session:
         if request.method == 'GET':
-            utenti = service_t_utenti.get_utente_by_id(id)
-            
+            utenti = service_t_utenti.get_utente_by_public_id(public_id)
+            print (utenti)
             if utenti:
+                logging.info(f"User data found: {utenti}")
                 reparti_ids = utenti.get('reparti').split(',') if utenti.get('reparti') else []
-                return jsonify({
+                response = {
                     'username': utenti.get('username'),
                     'nome': utenti.get('nome'),   
                     'cognome': utenti.get('cognome'),
@@ -3006,9 +3015,12 @@ def modifica_utente(id):
                     'fine': utenti.get('fine'),
                     'reparti': reparti_ids,      
                     'email': utenti.get('email')
-                })
+                }
+                logging.info(f"Response JSON: {response}")
+                return jsonify(response)
             else:
                 flash('Utente non trovato.', 'danger')
+                logging.warning(f"User with public_id {public_id} not found.")
                 return '', 404  # Status code 404 Not Found
 
         if request.method == 'PUT':
@@ -3019,7 +3031,7 @@ def modifica_utente(id):
                 if json_data:
                     try:
                         service_t_utenti.update_da_pagina_admin(
-                            id=id,
+                            public_id=public_id,
                             fkTipoUtente=json_data.get('fkTipoUtente'),
                             reparti=json_data.get('reparti'),
                             inizio=json_data.get('inizio'),
@@ -3195,7 +3207,7 @@ def qualifiche():
 @app_cucina.route('/impostazioni', methods=['GET', 'POST'])
 def impostazioni():
     if 'authenticated' in session:
-        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         tipi_utenti = service_t_tipiUtenti.get_tipiUtenti_all()
 
         tipi_utenti_map = {int(tipo_utente['id']): tipo_utente['nomeTipoUtente'] for tipo_utente in tipi_utenti}
@@ -3236,7 +3248,7 @@ def impostazioni():
 @app_cucina.route('/contatti', methods=['GET', 'POST'])
 def contatti():
     if 'authenticated' in session:
-        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         nome = user['nome']  # Accesso ai valori del dizionario
         cognome = user['cognome']  # Accesso ai valori del dizionario
         email = user['email']
@@ -3276,7 +3288,7 @@ def home():
         day = request.args.get('day', today.day, type=int)
         servizi = service_t_Servizi.get_all_servizi()
        
-        user = service_t_utenti.get_utente_by_id(session['user_id'])
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         
         data = f'{year}-{month}-{day}'
         nome = user['nome']
@@ -3372,6 +3384,10 @@ def handle_exception(error):
     # Puoi anche loggare l'errore qui se necessario
     return render_template('error.html', error=str(error))
 
+
+@app_cucina.route('/')
+def pagina_iniziale():
+    return redirect(url_for('login'))
 
 # Register the blueprint
 app.register_blueprint(app_cucina, url_prefix='/app_cucina')

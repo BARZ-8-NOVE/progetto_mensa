@@ -26,6 +26,7 @@ document.getElementById('logout').addEventListener('click', function() {
     fetch("/app_cucina/do_logout", {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,  // Use the token defined in the template
         }
     })

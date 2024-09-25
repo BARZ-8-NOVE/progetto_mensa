@@ -21,11 +21,13 @@ class Service_t_utenti:
         return self.repository.get_utente_by_id(id)
     
     def get_utente_by_public_id(self, public_id : str):
-        UtilityGeneral.checkId(id)
         return self.repository.get_utente_by_public_id(public_id)
     
+    def login_da_admin(self, public_id : str):
+        return self.repository.login_da_admin(public_id)
+    
 
-    def get_reparti_list(self, user_id: int):
+    def get_reparti_list(self, user_id: str):
         return self.repository.get_reparti_list(user_id)
     
   
@@ -107,14 +109,12 @@ class Service_t_utenti:
         return self.repository.delete_utente(id)
     
     def do_login(self, username:str, password:str):
-        UtilityUtenti.checkUsername(username)
-        UtilityUtenti.checkPassword(password)
         return self.repository.do_login(username, password)
     
     def do_logout(self, current_utente_public_id:str):
         return self.repository.do_logout(current_utente_public_id)
     
-    def do_logout_nuovo(self, id: int):
+    def do_logout_nuovo(self, id: str):
         return self.repository.do_logout_nuovo(id)
         
     
@@ -127,8 +127,8 @@ class Service_t_utenti:
     def is_token_valid(self, id, token):
         return self.repository.is_token_valid(id, token)
     
-    def update_da_pagina_admin(self, id, fkTipoUtente, reparti, inizio, fine):
-        return self.repository.update_da_pagina_admin(id, fkTipoUtente, reparti, inizio, fine)
+    def update_da_pagina_admin(self, public_id, fkTipoUtente, reparti, inizio, fine):
+        return self.repository.update_da_pagina_admin(public_id, fkTipoUtente, reparti, inizio, fine)
     
     def update_utente_password_by_username(self, username: str, password: str):
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
