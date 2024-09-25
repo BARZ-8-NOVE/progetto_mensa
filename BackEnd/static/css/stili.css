@@ -1685,12 +1685,12 @@ select {
 
 /* Stili per lo spinner */
 .spinner {
-    border: 10px solid transparent; /* Colore di sfondo */
-    border-top: 10px solid  #07437e; /* Colore dell'animazione */
+    border: 8px solid ; /* Colore di sfondo */
+    border-color:#07437e transparent  #07437e transparent; /* Colore dell'animazione */
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
+    width: 100px;
+    height: 100px;
+    animation: spin 1.3s ease infinite;
 }
 
 @keyframes spin {
