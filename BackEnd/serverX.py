@@ -156,14 +156,7 @@ def handle_expired_token(jwt_header, jwt_payload):
     return response
 
 
-# Funzione per ottenere lo username basato su user_id potrmmo toglierla e usare direttamenete la session.get(username)
-def get_username():
-    user_id = session.get('user_id')
-    if user_id:
-        user = service_t_utenti.get_utente_by_public_id(user_id)
-        if user:
-            return user['username']
-    return None
+#-------------------------------------Funzioni--------------------------------------------
 
 
 # Controlla se l'ora corrente è prima delle 14 ore rispetto alla data dell'ordine
@@ -230,95 +223,124 @@ def get_user_reparti(user_id):
         # Se non ci sono reparti associati, ritorna tutti i reparti
         return service_t_Reparti.get_all()
 
-#funzione per clonare il menu
+
+# Funzione per clonare un menu esistente
 def clona_menu(menu_id, clone_date, utente_inserimento):
     try:
+        # Funzione interna per ottenere i dati del menu
         def get_menu_data(menu_id):
+            # Recupera le associazioni di piatti per il menu specificato
             assoc_piatti = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_id)
+            # Recupera il menu stesso utilizzando il suo ID
             menu = service_t_MenuServizi.get_by_id(menu_id)
+            # Recupera il tipo di menu associato
             tipo_menu = service_t_Menu.get_by_id(menu['fkMenu'])
             return assoc_piatti, menu, tipo_menu
 
+        # Ottiene i dati del menu da clonare
         assoc_piatti, menu_da_clonare, tipo_menu_da_clonare = get_menu_data(menu_id)
 
+        # Controlla se esiste già un menu con la data di clonazione e il tipo di menu specificato
         menu_by_data = service_t_Menu.get_by_data(clone_date, tipo_menu_da_clonare['fkTipoMenu'])
 
+        # Se non esiste un menu con quella data, crea un nuovo menu
         if menu_by_data is None:
             new_menu_id = service_t_Menu.create(clone_date, tipo_menu_da_clonare['fkTipoMenu'], utenteInserimento=utente_inserimento)
             menu_by_data = service_t_Menu.get_by_id(new_menu_id)
 
+        # Controlla che menu_by_data sia un dizionario
         if not isinstance(menu_by_data, dict):
             raise ValueError("Errore: menu_by_data dovrebbe essere un dizionario")
 
+        # Recupera i servizi associati al menu clonabile
         menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(menu_by_data['id'], menu_da_clonare['fkServizio'])
 
+        # Se non ci sono servizi associati, crea un nuovo servizio
         if menu_servizio is None:
             menu_servizio_id = service_t_MenuServizi.create(menu_by_data['id'], menu_da_clonare['fkServizio'], utenteInserimento=utente_inserimento)
             menu_servizio = service_t_MenuServizi.get_by_id(menu_servizio_id)
+            # Verifica che menu_servizio sia un dizionario
             if not isinstance(menu_servizio, dict):
                 raise ValueError("Errore: menu_servizio dovrebbe essere un dizionario")
-
         else:
+            # Verifica che menu_servizio sia un dizionario
             if not isinstance(menu_servizio, dict):
                 raise ValueError("Errore: menu_servizio dovrebbe essere un dizionario")
 
-        # Log dei dati per debugging
+        # Log dei dati per debugging (da implementare se necessario)
        
-        # Cancella le associazioni esistenti
+        # Cancella le associazioni esistenti per il menu servizio
         service_t_MenuServiziAssociazione.delete_per_menu(menu_servizio['id'], utenteCancellazione=utente_inserimento)
 
+        # Crea nuove associazioni per i piatti nel menu clonabile
         for associazione in assoc_piatti:
             service_t_MenuServiziAssociazione.create(menu_servizio['id'], associazione['id'], utenteInserimento=utente_inserimento)
 
-        
-        return True
+        return True  # Clonazione avvenuta con successo
+
     except ValueError as ve:   
+        # Gestione degli errori di validazione
         print(f"Errore di validazione: {str(ve)}")
         return False
     
     except Exception as e:
-        
+        # Gestione di altri errori durante la clonazione
         print(f"Errore durante la clonazione del menu: {str(e)}")
         return False
 
 
-# funzione che per ogni piatto associa la preparazione considerandi il tipo e il giorno del menu 
+
+# Funzione che associa le preparazioni per ogni piatto considerando il tipo e il giorno del menu
 def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
+    # Recupera l'ID del menu corrispondente alla data dell'ordine e al tipo di menu
     id_menu = service_t_Menu.get_by_data(ordine_data, scheda_tipo_menu)
+    
+    # Controlla se si è verificato un errore nel recupero del menu
     if 'Error' in id_menu:
         print("Error retrieving menu:", id_menu)
-        return {}
+        return {}  # Ritorna un dizionario vuoto in caso di errore
 
+    # Recupera tutti i servizi associati al menu
     menu_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio(id_menu['id'], servizio)
+    
+    # Verifica che il risultato di menu_servizio sia un dizionario e contenga un ID
     if isinstance(menu_servizio, dict) and 'id' in menu_servizio:
+        # Recupera le associazioni di piatti per il servizio del menu
         menu_associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(menu_servizio['id'])
         
-        preparazioni_map = {}  # Inizializza la mappa
+        preparazioni_map = {}  # Inizializza un dizionario vuoto per le preparazioni
 
+        # Itera attraverso le associazioni di piatti
         for assoc in menu_associazioni:
+            # Controlla se l'associazione è un dizionario e contiene un ID
             if isinstance(assoc, dict) and 'id' in assoc:
-                assoc_id = assoc['id']
+                assoc_id = assoc['id']  # Ottiene l'ID dell'associazione
             else:
-                assoc_id = assoc  # Supponiamo che assoc sia già l'ID
-            
+                assoc_id = assoc  # Presume che assoc sia già l'ID
+
+            # Recupera le informazioni di associazione piatto-preparazione utilizzando l'ID
             fk_associazione_result = service_t_AssociazionePiattiPreparazionie.get_by_id(assoc_id)
 
+            # Se il risultato è una tupla, ottiene il primo elemento
             if isinstance(fk_associazione_result, tuple):
                 fk_associazione = fk_associazione_result[0]
             else:
-                fk_associazione = fk_associazione_result
+                fk_associazione = fk_associazione_result  # Altrimenti, usa direttamente il risultato
 
+            # Controlla se l'associazione di piatto-preparazione è valida e non contiene errori
             if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
-                fk_piatto = fk_associazione['fkPiatto']
-                fk_preparazione = fk_associazione.get('fkPreparazione')
-                descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))  # Usa la descrizione dalla mappa preparazioni
-                preparazioni_map[fk_piatto] = descrizione_preparazione
+                fk_piatto = fk_associazione['fkPiatto']  # Ottiene l'ID del piatto
+                fk_preparazione = fk_associazione.get('fkPreparazione')  # Ottiene l'ID della preparazione
+                # Usa la descrizione dalla mappa preparazioni se esiste, altrimenti recupera la descrizione dal servizio
+                descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))
+                preparazioni_map[fk_piatto] = descrizione_preparazione  # Aggiorna la mappa con la descrizione del piatto
             else:
-                print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa l'errore per il debug
+                print(f"Errore nella fk_associazione: {fk_associazione}")  # Stampa un messaggio di errore per il debug
 
-        return preparazioni_map
+        return preparazioni_map  # Ritorna la mappa delle preparazioni associate ai piatti
     else:
-        return {}
+        return {}  # Ritorna un dizionario vuoto se non ci sono servizi associati
+
     
 # funzione usata nel ordine personale per creare dinamicamente i menu e visualiuzare gli ordini fatti con i relativi piatti
 def processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_personale):
@@ -399,71 +421,116 @@ def processa_ordine(data, nome, cognome, servizio_corrente, piatti, menu_persona
         return None, None, preparazioni_map, menu_personale
 
 
+#-------------------------------------------------INIZIO PRE-CHIAMATE API------------------------------------------
 
 
 @app_cucina.before_request
 def check_token_and_permissions():
+    """
+    Controlla l'autenticazione e i permessi dell'utente prima di gestire una richiesta.
+
+    Questa funzione consente di:
+    - Verificare se l'utente è autenticato e se ha i permessi necessari per accedere alle rotte protette.
+    - Gestire la validità del token dell'utente, reindirizzando alla pagina di login se non autenticato o se il token è scaduto.
+
+    La funzione esegue le seguenti operazioni per ogni richiesta ricevuta:
+    - Verifica se la rotta corrente è esente dai controlli di autenticazione.
+    - Se l'utente non è autenticato, reindirizza alla pagina di login.
+    - Controlla la validità del token dell'utente e lo aggiorna, se necessario.
+    - Verifica i permessi dell'utente per accedere alla pagina richiesta.
+
+    Args:
+        Nessuno. Le informazioni di autenticazione e permesso sono gestite attraverso la sessione.
+
+    Returns:
+        Response:
+            - Se l'utente non è autenticato o il token non è valido, viene reindirizzato alla pagina di login.
+            - Se l'utente non ha i permessi per accedere alla pagina richiesta, viene generato un errore 403.
+            - In caso di errori durante il processo, viene generato un errore 500.
+
+    Notes:
+        - Le rotte esenti dal controllo di autenticazione e permessi sono definite in `exempt_routes`.
+        - La funzione utilizza i servizi `service_t_utenti` e `service_t_funzionalita` per gestire la validità del token e i permessi.
+        - Eventuali errori durante la verifica vengono registrati nel log per facilitare il debug.
+        - La scadenza del token viene gestita e impostata a 30 minuti dalla sua ultima validazione.
+    """
+
+    # Definisce le rotte esenti dal controllo di autenticazione e permessi
     exempt_routes = ['app_cucina.login', 'app_cucina.index', 'app_cucina.do_logout', 'app_cucina.contatti']
 
+    # Controlla se la rotta attuale è esente dal controllo
     if request.endpoint in exempt_routes:
-        return
+        return  # Non esegue ulteriori controlli se la rotta è esente
 
+    # Verifica se l'utente è autenticato
     if 'authenticated' not in session or not session.get('authenticated'):
-        return redirect(url_for('app_cucina.login'))
+        return redirect(url_for('app_cucina.login'))  # Reindirizza al login se non autenticato
 
     try:
+        # Recupera l'ID utente dalla sessione
         user_id = session.get('user_id')
         if not user_id:
-            return redirect(url_for('app_cucina.login'))
+            return redirect(url_for('app_cucina.login'))  # Reindirizza al login se non presente l'ID utente
 
+        # Recupera il token dalla sessione
         token = session.get('token')
+        # Verifica la validità del token
         is_token_valid = service_t_utenti.is_token_valid(user_id, token)
 
         if not is_token_valid:
+            # Se il token è scaduto, gestisce l'espulsione e pulisce la sessione
             service_t_utenti.expiredTokens()
             session.clear()
-            return redirect(url_for('app_cucina.login'))
+            return redirect(url_for('app_cucina.login'))  # Reindirizza al login
 
+        # Gestisce il token e lo aggiorna nella sessione
         response = service_t_utenti.manage_token(user_id, token)
         if response and 'token' in response.json:
-            session['token'] = response.json['token']
-            expires = datetime.now() + timedelta(minutes=30)
-            session['expires'] = expires
+            session['token'] = response.json['token']  # Aggiorna il token nella sessione
+            expires = datetime.now() + timedelta(minutes=30)  # Imposta la scadenza del token
+            session['expires'] = expires  # Salva la scadenza nella sessione
             
     except Exception as e:
+        # Cattura e registra eventuali errori durante la verifica del token
         logging.error(f"Error verifying token for user_id {user_id}: {str(e)}")
-        session.clear()
-        abort(500)  # In caso di errore nel processo di verifica del token
+        session.clear()  # Pulisce la sessione in caso di errore
+        abort(500)  # Lancia un errore 500 in caso di errore critico
 
     try:
+        # Recupera il tipo di utente dalla sessione
         user_type_id = session.get('fkTipoUtente')
+        # Ottiene il link della pagina attuale
         page_link = get_page_name_from_path(request.path)
 
+        # Verifica se l'utente ha accesso alla pagina richiesta
         access_granted, message = service_t_funzionalita.can_access(user_type_id=user_type_id, page_link=page_link)
 
         if not access_granted:
+            # Se l'accesso non è consentito, registra l'evento e lancia un errore 403
             logging.warning(f"Access denied for user_id {user_id} to {page_link}: {message}")
             abort(403)  # Lancia un errore 403 per accesso negato
             
     except Exception as e:
-        # Qui stai catturando gli errori che non riguardano i permessi
+        # Cattura gli errori relativi al controllo dei permessi
         logging.error(f"Error checking permissions for user_id {user_id}: {str(e)}")
         abort(500)  # Lancia un errore 500 in caso di problemi imprevisti
 
 
-
-
 @app_cucina.before_request
 def check_csrf():
+    """
+    Controlla la protezione CSRF (Cross-Site Request Forgery) per le richieste ricevute.
+
+    Questa funzione consente di:
+    - Applicare la protezione CSRF a tutte le rotte, eccetto quelle specificate come esenti.
+
+    """
     exempt_routes = ['app_cucina.login', 'app_cucina.index','app_cucina.do_logout','app_cucina.contatti' ]
     if request.endpoint not in exempt_routes:
         csrf.protect()
 
 
-
-
-
-
+#logga le richieste degli utente ma solo le richieste ('POST', 'PUT', 'DELETE')
 @app.before_request
 def log_request_info():
     if request.method in ['POST', 'PUT', 'DELETE']:
@@ -485,7 +552,7 @@ def log_request_info():
             route=request.path,
             data=data
         )
-
+#logga le risposte del server ma solo le richieste ('POST', 'PUT', 'DELETE')
 @app.after_request
 def log_request_success(response):
     if request.method in ['POST', 'PUT', 'DELETE'] and response.status_code == 200:
@@ -505,7 +572,7 @@ def log_request_success(response):
             data=None
         )
     return response
-
+#logga gli errori 
 @app.teardown_request
 def log_request_error(error):
     if error:
@@ -527,10 +594,53 @@ def log_request_error(error):
     return error
 
 
+#-------------------------------------------------INIZIO CHIAMATE API---------------------------------------
+
+
+
+#prima pagina che porta al login
+@app_cucina.route('/')
+def pagina_iniziale():
+    return redirect(url_for('login'))
+
 
 
 @app_cucina.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Gestisce l'autenticazione degli utenti attraverso il login.
+
+    Questa funzione consente di:
+    - Fornire un'interfaccia per l'inserimento delle credenziali dell'utente.
+    - Validare le credenziali fornite e gestire la sessione dell'utente autenticato.
+    - Reindirizzare l'utente a una pagina specificata dopo un accesso riuscito.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Visualizza il modulo di login.
+    - **POST**: Valida le credenziali dell'utente e, se valide, autentica l'utente e avvia una sessione.
+
+    Args:
+        Nessuno. Le informazioni di login sono gestite attraverso il modulo `LoginFormNoCSRF`.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'loginx.html' con il modulo di login.
+            - **POST**:
+                - Se le credenziali sono valide:
+                    - Autentica l'utente e memorizza i dati della sessione, inclusi ID utente, token e tipo di utente.
+                    - Reindirizza l'utente alla home page dell'applicazione.
+                - Se le credenziali non sono valide:
+                    - Mostra un messaggio di errore e riporta l'utente alla pagina di login.
+
+    Notes:
+        - Se si verifica un errore durante il processo di login, viene visualizzato un messaggio di errore e l'utente rimane sulla pagina di login.
+        - Le credenziali sono validate utilizzando il servizio `service_t_utenti` che gestisce l'autenticazione.
+        - Il sistema mantiene la struttura del menu dell'utente autenticato per l'accesso rapido alle funzionalità.
+        - È previsto l'uso di un modulo senza protezione CSRF per consentire la gestione delle richieste di login.
+    """
+
+    
     form = LoginFormNoCSRF()
     if form.validate_on_submit():
         username = form.username.data
@@ -564,14 +674,39 @@ def login():
 
 
 
-
 @app_cucina.context_processor
 def inject_user_data():
+
+    """
+    Inietta dati utente e struttura del menu nei template dell'applicazione.
+
+    Questa funzione consente di:
+    - Recuperare informazioni relative alla sessione dell'utente, inclusi menu e permessi.
+    - Fornire i dati necessari per il rendering delle pagine, garantendo che le informazioni siano disponibili nei template.
+
+    La funzione esegue le seguenti operazioni:
+    - Recupera la struttura del menu, il tipo di utente e il token dalla sessione.
+    - Per ogni pagina nella struttura del menu, controlla i permessi di accesso e scrittura.
+    - Gestisce anche i permessi per eventuali sotto-pagine e nipoti nella struttura del menu.
+
+    Returns:
+        dict: Un dizionario con i seguenti dati accessibili nei template:
+            - menu_structure (list): La struttura del menu recuperata dalla sessione.
+            - username (str): Il nome utente attualmente autenticato.
+            - token (str): Il token di autenticazione dell'utente.
+            - user_type (int): Il tipo di utente, recuperato dalla sessione.
+            - form (LogoutFormNoCSRF): Un modulo per il logout senza protezione CSRF.
+            - current_page_link (str): Il link della pagina attualmente visualizzata.
+            - page_permissions (dict): Un dizionario dei permessi per ciascuna pagina nel menu, con chiavi per 'can_write'.
+
+    Notes:
+        - I permessi di scrittura vengono determinati in base ai valori forniti dal servizio `service_t_funzionalita`.
+        - La funzione assicura che i template abbiano accesso a tutte le informazioni necessarie per gestire la visualizzazione e le funzionalità in base ai permessi dell'utente.
+        - Viene utilizzata per controllare l'accesso alle varie sezioni dell'applicazione in base al tipo di utente.
+    """
     menu_structure = session.get('menu_structure', [])
     user_type = session.get('fkTipoUtente')
     token = session.get('token')
-
-    username = session.get('username')
 
     # Prepara i permessi per le pagine presenti nella struttura del menu
     page_permissions = {}
@@ -605,7 +740,7 @@ def inject_user_data():
     # Ritorna i dati che devono essere accessibili nei template
     return dict(
         menu_structure=menu_structure,
-        username=username,
+        username=session.get('username'),
         token=token,
         user_type=user_type,
         form=LogoutFormNoCSRF(),
@@ -613,18 +748,164 @@ def inject_user_data():
         page_permissions=page_permissions  # Aggiungi i permessi delle pagine
     )
 
+
 #crea indice 
 @app_cucina.route('/index')
 def index():
-    if 'authenticated' in session:
-        
+    if 'authenticated' in session:       
         return render_template('index.html')
     else:
         return redirect(url_for('app_cucina.login'))
 
+
+
+@app_cucina.route('/home', methods=['GET', 'POST'])
+def home():
+    """
+    Gestisce la visualizzazione della pagina principale per gli utenti autenticati.
+
+    Questa funzione consente di:
+    - Visualizzare le informazioni quotidiane relative agli ordini, compresi i totali per servizio.
+    - Recuperare i dettagli dell'utente autenticato e dei servizi disponibili.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le informazioni relative agli ordini per il giorno specificato.
+    - **POST**: Attualmente non supporta la creazione o la modifica di dati, ma potrebbe essere esteso in futuro.
+
+    Args:
+        Nessuno. Le informazioni sul giorno, i servizi e gli ordini sono gestite attraverso le query string e i dati di sessione.
+
+    Query Parameters:
+        year (int, optional): L'anno da visualizzare (default è l'anno corrente).
+        month (int, optional): Il mese da visualizzare (default è il mese corrente).
+        day (int, optional): Il giorno da visualizzare (default è il giorno corrente).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'home.html' con i seguenti dati:
+                    - Informazioni sugli ordini totali per servizio per la data specificata.
+                    - Totale pazienti e personale per il giorno selezionato.
+                    - Dettagli dei piatti e dei servizi disponibili.
+                    - Controllo degli ordini associati all'utente.
+                    - Informazioni personali dell'utente autenticato, inclusi nome e cognome.
+                    - Mappa dei servizi disponibili e tipi di menu.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come ordini, piatti, e dettagli dell'utente.
+        - Viene calcolato il totale degli ordini per ogni servizio per il giorno specificato.
+        - La funzione gestisce anche il caso in cui non siano presenti ordini per il giorno e il servizio specificati, restituendo un valore di controllo appropriato.
+    """ 
+    if 'authenticated' in session:
+        
+        today = datetime.now()
+        year = request.args.get('year', today.year, type=int)
+        month = request.args.get('month', today.month, type=int)
+        day = request.args.get('day', today.day, type=int)
+        servizi = service_t_Servizi.get_all_servizi()
+       
+        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
+        
+        data = f'{year}-{month}-{day}'
+        nome = user['nome']
+        cognome = user['cognome']
+ 
+        # Dizionario per accumulare i risultati
+        ordini_totali_per_servizio = {}
+
+        # Utilizza il metodo del service per calcolare i totali
+        ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
+            service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
+
+        piatti = service_t_Piatti.get_all()
+        # Ottieni i reparti accessibili dall'utente
+        menu_personale = service_t_Schede.get_all_personale()
+        tipi_menu = service_t_TipiMenu.get_all()
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
+
+        dizionario_servizi = {}
+
+        for servizio in servizi:
+            controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(data, nome, cognome, servizio['id'], piatti, menu_personale)
+            
+            if controllo_ordine is None:
+                # Gestisci il caso in cui controllo_ordine è None
+                dizionario_servizi[servizio['id']] = {
+                    'inf_scheda': inf_scheda,
+                    'piatti_ordine_map': piatti_ordine_map,
+                    'controllo_ordine': 'Null'
+                }
+            else:
+                dizionario_servizi[servizio['id']] = {
+                    'inf_scheda': inf_scheda,
+                    'piatti_ordine_map': piatti_ordine_map,
+                    'controllo_ordine': controllo_ordine
+                }
+                     
+        return render_template(
+            'home.html',
+            year=year,
+            month=month,
+            day=day,
+            servizi=servizi,
+            ordini_totali_per_servizio=ordini_totali_per_servizio,
+            totale_pazienti=totale_pazienti,
+            totale_personale=totale_personale,
+            totale_completo=totale_completo,
+            controllo_ordine=controllo_ordine, 
+            inf_scheda=inf_scheda,                                                     
+            piatti_ordine_map=piatti_ordine_map, 
+            utente=user['username'],
+            nome=nome,
+            cognome=cognome,
+            servizi_map=servizi_map,
+            dizionario_servizi=dizionario_servizi,
+            tipi_menu_map=tipi_menu_map
+            )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
 @app_cucina.route('/alimenti', methods=['GET', 'POST'])
 def alimenti():
+    """
+    Gestisce la visualizzazione e la creazione di alimenti nel sistema.
+
+    Questa funzione consente di:
+    - Visualizzare un elenco di alimenti già esistenti.
+    - Creare un nuovo alimento specificando le sue caratteristiche e i suoi allergeni.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza l'elenco degli alimenti, le tipologie disponibili e gli allergeni.
+    - **POST**: Crea un nuovo alimento se il modulo viene inviato con dati validi.
+
+    Args:
+        Nessuno. Le informazioni sugli alimenti, le tipologie e gli allergeni sono gestite attraverso i servizi.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'alimenti.html' con i seguenti dati:
+                    - Elenco degli alimenti esistenti.
+                    - Lista delle tipologie di alimenti.
+                    - Lista degli allergeni.
+                    - Mappa delle tipologie e degli allergeni per un accesso facile.
+                    - Form per inserire un nuovo alimento.
+            - **POST**:
+                - Se il modulo è valido, viene creato un nuovo alimento con le informazioni specificate.
+                - Ritorna alla pagina aggiornata degli alimenti con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati da un database, inclusi alimenti, tipologie e allergeni.
+        - Il form per l'aggiunta di un alimento consente di specificare allergeni multipli e tipologie.
+        - Un messaggio di successo viene mostrato dopo l'aggiunta di un nuovo alimento.
+    """
     if 'authenticated' in session:
+
 
         # Retrieve the list of alimenti, tipologie, and allergeni from your database
         alimenti_list = service_t_Alimenti.get_all()
@@ -672,8 +953,32 @@ def alimenti():
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('/alimenti/<int:id>', methods=['DELETE'])
 def elimina_alimento(id):
+    """
+    Gestisce l'eliminazione di un alimento specifico dal sistema.
+
+    Questa funzione consente di:
+    - Eliminare un alimento esistente identificato dal suo ID.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **DELETE**: Rimuove l'alimento specificato dall'archivio dati.
+
+    Args:
+        id (int): L'ID dell'alimento da eliminare.
+
+    Returns:
+        Response:
+            - **DELETE**:
+                - Se l'eliminazione ha successo, restituisce un messaggio di conferma con codice di stato 204 (No Content).
+                - Se si verifica un errore durante l'eliminazione, restituisce un messaggio di errore con codice di stato 400 (Bad Request).
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione esegue un log della richiesta di eliminazione e gestisce eventuali eccezioni durante il processo di eliminazione.
+        - Un messaggio di successo o errore viene mostrato all'utente tramite il sistema di flash messages.
+    """  
     if 'authenticated' in session:
 
         print(f"Request to delete Alimento with ID: {id}")  # Aggiungi questo log
@@ -691,25 +996,53 @@ def elimina_alimento(id):
 
 
 
-
-
-
-
 @app_cucina.route('/preparazioni', methods=['GET', 'POST'])
 def preparazioni():
+    """
+    Gestisce la visualizzazione e la creazione di preparazioni culinarie.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco delle preparazioni esistenti.
+    - Creare una nuova preparazione con relativi ingredienti e associazioni ai piatti.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutte le preparazioni, i tipi di preparazione, gli alimenti e i tipi di quantità.
+    - **POST**: Crea una nuova preparazione e associa gli ingredienti specificati.
+
+    Args:
+        Nessuno. Le informazioni sulle preparazioni, gli alimenti e i tipi di preparazione sono gestite attraverso i dati recuperati dai servizi e dai moduli.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'preparazioni.html' con i seguenti dati:
+                    - Elenco delle preparazioni esistenti.
+                    - Elenco dei tipi di preparazione disponibili.
+                    - Elenco degli alimenti disponibili.
+                    - Elenco dei tipi di quantità disponibili.
+                    - Moduli per inserire nuove preparazioni e ingredienti.
+            - **POST**:
+                - Se il modulo di preparazione è valido, viene creata una nuova preparazione e associati gli ingredienti specificati.
+                - Reindirizza alla pagina aggiornata delle preparazioni con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come preparazioni, tipi di preparazione, alimenti, e tipi di quantità.
+        - La gestione del caricamento delle immagini è inclusa nel processo di creazione delle preparazioni.
+        - Gli ingredienti della preparazione sono gestiti come una lista JSON che viene elaborata e salvata nel database.
+    """
     if 'authenticated' in session:
         #FACCIAMO TUTTE LE GET CHE CI SEERVONO
-        preparazioni = service_t_preparazioni.get_all_preparazioni()
-        tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()
-        preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()
-        piatti = service_t_Piatti.get_all()
-        alimenti = service_t_Alimenti.get_all()  # Assuming this method returns a list of alimenti
-        tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()  # Assuming this returns a list
-        associazione = service_t_AssociazionePiattiPreparazionie.get_all()
-        preparazioni_base = service_t_preparazioni.get_all_preparazioni_base()
-
-
+        preparazioni = service_t_preparazioni.get_all_preparazioni()#recupera tutte le preparazioni
+        tipiPreparazioni = service_t_tipipreparazioni.get_all_tipipreparazioni()#recupera tutti i tipiPreparazioni
+        preparazioniContenuti = service_t_preparazionicontenuti.get_all_preparazioni_contenuti()#recupera tutti i preparazioniContenuti
+        piatti = service_t_Piatti.get_all()#recupera tutti i piatti
+        alimenti = service_t_Alimenti.get_all()#recupera tutti gli alimenti
+        tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()#recupera tutti i tipi_quantita
+        preparazioni_base = service_t_preparazioni.get_all_preparazioni_base()#recupera tutte le preparazioni_base
+        #recupera tutte le preparazioni base base senza ingredienti così da segnalarle nel front end
         preparazioni_senza_ingredienti = service_t_preparazionicontenuti.get_preparazioni_senza_ingredienti()
+        
 
             
         #ISTANZIAMO LE FORM PER COSTRUIRE I FORM NEL HTML
@@ -717,20 +1050,23 @@ def preparazioni():
         form = PreparazioniForm()
         alimform = AlimentoForm()
 
-        #REIMPIAMO LE POSSIBILI SCELTE DELLE FORM
+        # Popoliamo le scelte per il campo del tipo di preparazione nel modulo
         form.fkTipoPreparazione.choices = [
             (tipoPreparazione['id'], tipoPreparazione['descrizione']) for tipoPreparazione in tipiPreparazioni
         ]
 
+        # Popoliamo le scelte per il campo dell'alimento nel modulo alimform
         alimform.fkAlimento.choices = [
-            (alimento['id'], alimento['alimento']) for alimento in alimenti
+            (alimento['id'], alimento['alimento']) for alimento in alimenti  # Aggiungiamo tutti gli alimenti
         ] + [
-            (preparazione['id'] + 100000, preparazione['descrizione']) for preparazione in preparazioni_base
+            (preparazione['id'] + 100000, preparazione['descrizione']) for preparazione in preparazioni_base  # Aggiungiamo le preparazioni base con un offset unico per l'ID
         ]
 
+        # Popoliamo le scelte per il campo del tipo di quantità nel modulo alimform
         alimform.fkTipoQuantita.choices = [
-            (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita
+            (tipo_quantita['id'], tipo_quantita['tipo']) for tipo_quantita in tipi_quantita  # Aggiungiamo tutti i tipi di quantità
         ]
+
 
         TipoPreparazione_map = {int(tipoPreparazione['id']): tipoPreparazione['descrizione'] for tipoPreparazione in tipiPreparazioni}
         alimento_map = {int(alimento['id']): alimento['alimento'] for alimento in alimenti}
@@ -762,16 +1098,11 @@ def preparazioni():
                 immagine=image_filename
             )
 
-
-
             service_t_AssociazionePiattiPreparazionie.create(
                 fkPiatto=fk_piatto, 
                 fkPreparazione = new_preparazione_id,
                 utenteInserimento = session.get('username')
-            )
-
-
-            
+            )       
 
             ingredient_list = json.loads(request.form['ingredientList'])
 
@@ -816,9 +1147,46 @@ def preparazioni():
         flash('Please log in first.', 'warning')
         return redirect(url_for('app_cucina.login'))
 
-        
+
+
 @app_cucina.route('/preparazioni/<int:id_preparazione>', methods=['GET', 'POST', 'DELETE'])
 def preparazione_dettagli(id_preparazione):
+    """
+    Gestisce i dettagli di una preparazione specifica, inclusa la visualizzazione, modifica ed eliminazione.
+
+    Questa funzione consente di:
+    - Visualizzare i dettagli di una preparazione esistente.
+    - Modificare le informazioni relative a una preparazione specifica.
+    - Eliminare una preparazione esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera i dettagli della preparazione specificata dall'ID e restituisce i dati in formato JSON.
+    - **POST**: Aggiorna i dettagli della preparazione con i dati forniti nel form.
+    - **DELETE**: Rimuove la preparazione specificata dall'ID.
+
+    Args:
+        id_preparazione (int): L'ID della preparazione da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Restituisce un JSON contenente:
+                    - Dettagli della preparazione, inclusi tipo, descrizione, stato estivo/invernale e date di inizio e fine.
+                    - Lista degli ingredienti associati alla preparazione.
+                    - Scelte disponibili per tipi di preparazione, alimenti e quantità.
+            - **POST**:
+                - Se la modifica è avvenuta con successo, reindirizza alla lista delle preparazioni.
+                - In caso di errore, mostra un messaggio di errore e reindirizza alla lista delle preparazioni.
+            - **DELETE**:
+                - Se la preparazione è stata eliminata con successo, restituisce un codice di stato 204 (No Content).
+                - In caso di errore, restituisce un codice di stato 400 (Bad Request) con un messaggio di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza diversi servizi per recuperare e gestire i dati delle preparazioni e degli ingredienti associati.
+        - La funzione gestisce anche l'associazione di piatti e il contenuto delle preparazioni per una corretta manipolazione dei dati.
+        - Per la modifica, la funzione si aspetta che i dati degli ingredienti siano forniti come una lista JSON nel campo 'ingredientList' del form.
+    """ 
     if 'authenticated' in session:
         
         if request.method == 'GET':
@@ -913,7 +1281,7 @@ def preparazione_dettagli(id_preparazione):
                 
                 # Gestisci gli ingredienti
                 ingredient_list = json.loads(request.form.get('ingredientList', '[]'))  # Assicurati che sia una lista valida
-                service_t_preparazionicontenuti.delete_preparazioni_contenuti(id_preparazione, utenteCancellazione=get_username())  # Pulisci ingredienti esistenti
+                service_t_preparazionicontenuti.delete_preparazioni_contenuti(id_preparazione, utenteCancellazione=session.get('username'))  # Pulisci ingredienti esistenti
 
                 for ingrediente in ingredient_list:
                     if isinstance(ingrediente, dict):
@@ -936,9 +1304,9 @@ def preparazione_dettagli(id_preparazione):
         if request.method == 'DELETE':
             print(f"Request to delete preparazione with ID: {id_preparazione}")
             try:
-                service_t_AssociazionePiattiPreparazionie.delete_associazione(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
-                service_t_preparazionicontenuti.delete_preparazioni_contenuti(fkPreparazione=id_preparazione, utenteCancellazione=get_username())
-                service_t_preparazioni.delete_preparazione(id=id_preparazione, utenteCancellazione=get_username())
+                service_t_AssociazionePiattiPreparazionie.delete_associazione(fkPreparazione=id_preparazione, utenteCancellazione=session.get('username'))
+                service_t_preparazionicontenuti.delete_preparazioni_contenuti(fkPreparazione=id_preparazione, utenteCancellazione=session.get('username'))
+                service_t_preparazioni.delete_preparazione(id=id_preparazione, utenteCancellazione=session.get('username'))
                 
                 flash('Preparazione eliminata con successo!', 'success')
                 return '', 204
@@ -952,34 +1320,75 @@ def preparazione_dettagli(id_preparazione):
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('preparazioni/get_tipi_piatti/<int:fkTipoPreparazione>', methods=['GET'])
 def get_by_fkTipoPreparazione(fkTipoPreparazione):
+    """
+    Recupera i tipi di piatti associati a una specifica tipologia di preparazione.
+
+    Questa funzione consente di:
+    - Ottenere la lista dei piatti disponibili per un determinato tipo di preparazione.
+    - Se non ci sono piatti associati, restituisce l'elenco completo di tutti i piatti.
+    """
     piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
     tutti_i_piatti = service_t_Piatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
 
 
+
 @app_cucina.route('/piatti', methods=['GET', 'POST'])
 def piatti():
-    # Ottenere tutti i piatti e le tipologie di piatti dal servizio
-    piatti = service_t_Piatti.get_all()
-    tipologia_piatti = service_t_TipiPiatti.get_all()
+    """
+    Gestisce la visualizzazione e la creazione di piatti.
 
-    # Mappare le tipologie di piatti per l'uso nel template
-    TipoPiatto_map = {int(tipoPiatto['id']): tipoPiatto['descrizione'] for tipoPiatto in tipologia_piatti}
+    Questa funzione consente di:
+    - Visualizzare l'elenco di tutti i piatti esistenti.
+    - Creare un nuovo piatto attraverso un form.
 
-    # Creare un'istanza del form per l'aggiunta di piatti
-    form = PiattiForm()
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e mostra tutti i piatti disponibili insieme alle rispettive tipologie.
+    - **POST**: Consente di creare un nuovo piatto utilizzando i dati inviati attraverso un form.
 
-    # Popolare le scelte per il campo fkTipoPiatto nel form
-    form.fkTipoPiatto.choices = [(tipoPiatto['id'], tipoPiatto['descrizione']) for tipoPiatto in tipologia_piatti]
+    Args:
+        Nessuno. Le informazioni sugli utenti e i piatti sono gestite a livello di sessione e servizio.
 
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'piatti.html' con i seguenti dati:
+                    - Elenco di tutti i piatti.
+                    - Mappa delle tipologie di piatti con i rispettivi ID e descrizioni.
+                    - Form per la creazione di un nuovo piatto.
+            - **POST**:
+                - Se il form è valido e i dati sono corretti:
+                    - Viene creato un nuovo piatto nel database.
+                    - Reindirizza alla pagina dei piatti per mostrare l'elenco aggiornato.
+                - Se c'è un errore durante la creazione:
+                    - Restituisce un messaggio di errore con status code 500.
+                    - Mantiene il form con gli errori di validazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Il form di creazione di un piatto include campi per selezionare la tipologia, il codice, il titolo, la descrizione,
+          lo stato di 'inMenu', l'ordinatore, e registra l'utente che ha inserito il piatto.
+    """
     # Verificare se l'utente è autenticato
     if 'authenticated' in session:
+        # Ottenere tutti i piatti e le tipologie di piatti dal servizio
+        piatti = service_t_Piatti.get_all()
+        tipologia_piatti = service_t_TipiPiatti.get_all()
+
+        # Mappare le tipologie di piatti per l'uso nel template
+        TipoPiatto_map = {int(tipoPiatto['id']): tipoPiatto['descrizione'] for tipoPiatto in tipologia_piatti}
+
+        # Creare un'istanza del form per l'aggiunta di piatti
+        form = PiattiForm()
+
+        # Popolare le scelte per il campo fkTipoPiatto nel form
+        form.fkTipoPiatto.choices = [(tipoPiatto['id'], tipoPiatto['descrizione']) for tipoPiatto in tipologia_piatti]
+    
         # Se il form è stato inviato e è valido, processa i dati del form
-        if form.validate_on_submit():
-           
-            utente_inserimento = get_username()
+        if form.validate_on_submit():         
            
             try:
                 service_t_Piatti.create(
@@ -989,7 +1398,7 @@ def piatti():
                     descrizione=form.descrizione.data, 
                     inMenu=form.inMenu.data, 
                     ordinatore=form.ordinatore.data, 
-                    utenteInserimento=utente_inserimento
+                    utenteInserimento=session.get('username')
                 )
                 app.logger.debug("Piatto creato con successo nel database.")
             except Exception as e:
@@ -1002,19 +1411,54 @@ def piatti():
             return redirect(url_for('app_cucina.piatti'))
     
     # Se il form non è stato inviato o non è valido, mostra il template con il form vuoto o con errori
-        return render_template('piatti.html',
-                           piatti=piatti,
-                           tipologia_piatti=tipologia_piatti,
-                           TipoPiatto_map=TipoPiatto_map,
-                           form=form)
+        return render_template(
+            'piatti.html',
+            piatti=piatti,
+            tipologia_piatti=tipologia_piatti,
+            TipoPiatto_map=TipoPiatto_map,
+            form=form
+            )
     
     # Se l'utente non è autenticato, reindirizzalo alla pagina di login
     else:
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('/piatti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def modifica_piatti(id):
+    """
+    Gestisce le operazioni di recupero, aggiornamento e cancellazione di un piatto.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di un piatto esistente tramite l'ID specificato.
+    - Aggiornare le informazioni di un piatto esistente.
+    - Cancellare un piatto esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli del piatto con l'ID specificato in formato JSON.
+    - **PUT**: Aggiorna i dettagli del piatto con l'ID specificato utilizzando i dati forniti nel modulo.
+    - **DELETE**: Cancellare il piatto con l'ID specificato.
+
+    Args:
+        id (int): L'ID del piatto da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli del piatto, se trovato.
+                - Status code 404 se il piatto non è trovato.
+            - **PUT**:
+                - JSON con un messaggio di successo o errore a seconda del risultato dell'operazione di aggiornamento.
+                - Status code 400 se ci sono errori di validazione del form.
+                - Status code 500 in caso di errore durante l'aggiornamento.
+            - **DELETE**:
+                - Status code 204 se il piatto è stato eliminato con successo.
+                - Status code 400 in caso di errore durante l'eliminazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """
     if 'authenticated' in session:
 
 
@@ -1049,7 +1493,7 @@ def modifica_piatti(id):
             
             if form.validate_on_submit():
                 try:
-                    result = service_t_Piatti.update(
+                    service_t_Piatti.update(
                         id=id,
                         fkTipoPiatto=form.fkTipoPiatto.data,
                         codice=form.codice.data,
@@ -1057,7 +1501,7 @@ def modifica_piatti(id):
                         descrizione=form.descrizione.data,
                         inMenu=form.inMenu.data,
                         ordinatore=form.ordinatore.data,
-                        utenteInserimento=get_username()
+                        utenteInserimento=session.get('username')
                     )
 
 
@@ -1075,7 +1519,7 @@ def modifica_piatti(id):
 
         if request.method == 'DELETE':
             try:
-                service_t_Piatti.delete(id, utenteCancellazione=get_username())
+                service_t_Piatti.delete(id, utenteCancellazione=session.get('username'))
                 flash('Piatto eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
             
@@ -1088,8 +1532,39 @@ def modifica_piatti(id):
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('/tipologia_piatti', methods=['GET', 'POST'])
 def tipologia_piatti():
+    """
+    Gestisce la visualizzazione e la creazione delle tipologie di piatti.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco delle tipologie di piatti esistenti.
+    - Creare una nuova tipologia di piatto se l'utente è autenticato.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutte le tipologie di piatti esistenti e un modulo per la creazione di una nuova tipologia.
+    - **POST**: Crea una nuova tipologia di piatto con i dati forniti nel modulo, se l'utente ha effettuato il login.
+
+    Args:
+        Nessuno. La funzione gestisce l'autenticazione tramite sessione per garantire l'accesso.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'tipologia_piatti.html' con i seguenti dati:
+                    - Elenco delle tipologie di piatti esistenti.
+                    - Un modulo per inserire una nuova tipologia di piatto.
+            - **POST**:
+                - Se la creazione della tipologia di piatto ha successo, reindirizza alla stessa pagina con un messaggio di conferma.
+                - Se il modulo non è valido, rimane sulla stessa pagina mostrando eventuali messaggi di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza il servizio `service_t_TipiPiatti` per recuperare e gestire le tipologie di piatti.
+        - La funzione gestisce la validazione del modulo e la comunicazione di successi o errori all'utente.
+    """
+    
     if 'authenticated' in session:
         tipologia_piatti = service_t_TipiPiatti.get_all()
 
@@ -1097,13 +1572,14 @@ def tipologia_piatti():
 
         if form.validate_on_submit():
             
-            service_t_TipiPiatti.create(descrizione=form.descrizione.data, 
-                                        descrizionePlurale=form.descrizionePlurale.data, 
-                                        inMenu=form.inMenu.data, 
-                                        ordinatore=form.ordinatore.data, 
-                                        color=form.color.data, 
-                                        backgroundColor=form.backgroundColor.data, 
-                                        utenteInserimento=get_username())
+            service_t_TipiPiatti.create(
+                descrizione=form.descrizione.data, 
+                descrizionePlurale=form.descrizionePlurale.data, 
+                inMenu=form.inMenu.data, 
+                ordinatore=form.ordinatore.data, 
+                color=form.color.data, 
+                backgroundColor=form.backgroundColor.data, 
+                utenteInserimento=session.get('username'))
             
             flash('Scheda aggiunta con successo!', 'success')
             return redirect(url_for('app_cucina.tipologia_piatti'))
@@ -1119,6 +1595,38 @@ def tipologia_piatti():
 
 @app_cucina.route('/tipologia_piatti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def modifica_tipologia_piatti(id):
+    """
+    Gestisce le operazioni di recupero, aggiornamento e cancellazione di una tipologia di piatto.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di una tipologia di piatto esistente tramite l'ID specificato.
+    - Aggiornare le informazioni di una tipologia di piatto esistente.
+    - Cancellare una tipologia di piatto esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli della tipologia di piatto con l'ID specificato in formato JSON.
+    - **PUT**: Aggiorna i dettagli della tipologia di piatto con l'ID specificato utilizzando i dati forniti nel modulo.
+    - **DELETE**: Cancellare la tipologia di piatto con l'ID specificato.
+
+    Args:
+        id (int): L'ID della tipologia di piatto da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli della tipologia di piatto, se trovata.
+                - Status code 404 se la tipologia di piatto non è trovata.
+            - **PUT**:
+                - JSON con un messaggio di successo o errore a seconda del risultato dell'operazione di aggiornamento.
+                - Status code 400 se ci sono errori di validazione del form.
+                - Status code 500 in caso di errore durante l'aggiornamento.
+            - **DELETE**:
+                - Status code 204 se la tipologia di piatto è stata eliminata con successo.
+                - Status code 400 in caso di errore durante l'eliminazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """
     if 'authenticated' in session:
 
 
@@ -1151,17 +1659,16 @@ def modifica_tipologia_piatti(id):
             if form.validate_on_submit():
                 try:
                     service_t_TipiPiatti.update(
-                                        id=id,
-                                        descrizione=form.descrizione.data, 
-                                        descrizionePlurale=form.descrizionePlurale.data, 
-                                        inMenu=form.inMenu.data, 
-                                        ordinatore=form.ordinatore.data, 
-                                        color=form.color.data, 
-                                        backgroundColor=form.backgroundColor.data, 
-                                        utenteInserimento=get_username())
+                        id=id,
+                        descrizione=form.descrizione.data, 
+                        descrizionePlurale=form.descrizionePlurale.data, 
+                        inMenu=form.inMenu.data, 
+                        ordinatore=form.ordinatore.data, 
+                        color=form.color.data, 
+                        backgroundColor=form.backgroundColor.data, 
+                        utenteInserimento=session.get('username'))
 
                     
-
                     # Restituisci una risposta JSON senza redirect
                     return jsonify({'message': 'Tipologia piatto aggiornato con successo!'}), 200
 
@@ -1177,7 +1684,7 @@ def modifica_tipologia_piatti(id):
 
         if request.method == 'DELETE':
             try:
-                service_t_TipiPiatti.delete(id, utenteCancellazione=get_username())
+                service_t_TipiPiatti.delete(id, utenteCancellazione=session.get('username'))
                 flash('Tipolgia piatto eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
             
@@ -1189,8 +1696,41 @@ def modifica_tipologia_piatti(id):
     else:
         return redirect(url_for('app_cucina.login'))  
 
+
+
 @app_cucina.route('/reparti', methods=['GET', 'POST'])
 def reparti():
+    """
+    Gestisce la visualizzazione e la creazione dei reparti.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco dei reparti esistenti.
+    - Creare un nuovo reparto se l'utente è autenticato.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutti i reparti esistenti e un modulo per la creazione di un nuovo reparto.
+    - **POST**: Crea un nuovo reparto con i dati forniti nel modulo, se l'utente ha effettuato il login.
+
+    Args:
+        Nessuno. La funzione gestisce l'autenticazione tramite sessione per garantire l'accesso.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'reparti.html' con i seguenti dati:
+                    - Elenco dei reparti esistenti.
+                    - Un modulo per inserire un nuovo reparto.
+            - **POST**:
+                - Se la creazione del reparto ha successo, reindirizza alla stessa pagina con un messaggio di conferma.
+                - Se il modulo non è valido, rimane sulla stessa pagina mostrando eventuali messaggi di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza il servizio `service_t_Reparti` per recuperare e gestire i reparti.
+        - La funzione gestisce la validazione del modulo e la comunicazione di successi o errori all'utente.
+    """
+
+    
     if 'authenticated' in session:
         reparti = service_t_Reparti.get_all()
         form = RepartiForm()
@@ -1198,16 +1738,16 @@ def reparti():
         if form.validate_on_submit():
 
             service_t_Reparti.create(
-                            codiceAreas=form.codiceAreas.data, 
-                            descrizione=form.descrizione.data, 
-                            sezione=form.sezione.data, 
-                            ordinatore=form.ordinatore.data,
-                            padiglione=form.padiglione.data, 
-                            piano=form.piano.data, 
-                            lato=form.lato.data, 
-                            inizio=form.inizio.data,
-                            fine=form.fine.data,
-                            utenteInserimento=get_username()
+                codiceAreas=form.codiceAreas.data, 
+                descrizione=form.descrizione.data, 
+                sezione=form.sezione.data, 
+                ordinatore=form.ordinatore.data,
+                padiglione=form.padiglione.data, 
+                piano=form.piano.data, 
+                lato=form.lato.data, 
+                inizio=form.inizio.data,
+                fine=form.fine.data,
+                utenteInserimento=session.get('username')
                             )
             
             flash('reparto aggiunto con successo!', 'success')
@@ -1223,12 +1763,42 @@ def reparti():
 
 @app_cucina.route('/reparti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def modifica_reparti(id):
+    """
+    Gestisce le operazioni di recupero, aggiornamento e cancellazione di un reparto.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di un reparto esistente tramite l'ID specificato.
+    - Aggiornare le informazioni di un reparto esistente.
+    - Cancellare un reparto esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli del reparto con l'ID specificato in formato JSON.
+    - **PUT**: Aggiorna i dettagli del reparto con l'ID specificato utilizzando i dati forniti nel modulo.
+    - **DELETE**: Cancellare il reparto con l'ID specificato.
+
+    Args:
+        id (int): L'ID del reparto da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli del reparto, se trovato.
+                - Status code 404 se il reparto non è trovato.
+            - **PUT**:
+                - JSON con un messaggio di successo o errore a seconda del risultato dell'operazione di aggiornamento.
+                - Status code 400 se ci sono errori di validazione del form.
+                - Status code 500 in caso di errore durante l'aggiornamento.
+            - **DELETE**:
+                - Status code 204 se il reparto è stato eliminato con successo.
+                - Status code 400 in caso di errore durante l'eliminazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """
     if 'authenticated' in session:
 
-
         if request.method == 'GET':
-            
-            
+                 
             reparto = service_t_Reparti.get_by_id(id)  
             
             # Create the form with existing Reparto data
@@ -1259,17 +1829,17 @@ def modifica_reparti(id):
             if form.validate_on_submit():
                 try:
                     service_t_Reparti.update(
-                                        id=id,
-                                        codiceAreas=form.codiceAreas.data, 
-                                        descrizione=form.descrizione.data, 
-                                        sezione=form.sezione.data, 
-                                        ordinatore=form.ordinatore.data,
-                                        padiglione=form.padiglione.data, 
-                                        piano=form.piano.data, 
-                                        lato=form.lato.data, 
-                                        inizio=form.inizio.data,
-                                        fine=form.fine.data,
-                                        utenteInserimento=get_username()
+                        id=id,
+                        codiceAreas=form.codiceAreas.data, 
+                        descrizione=form.descrizione.data, 
+                        sezione=form.sezione.data, 
+                        ordinatore=form.ordinatore.data,
+                        padiglione=form.padiglione.data, 
+                        piano=form.piano.data, 
+                        lato=form.lato.data, 
+                        inizio=form.inizio.data,
+                        fine=form.fine.data,
+                        utenteInserimento=session.get('username')
                     )
 
                     
@@ -1288,7 +1858,7 @@ def modifica_reparti(id):
 
         if request.method == 'DELETE':
             try:
-                service_t_Reparti.delete(id, utenteCancellazione=get_username())
+                service_t_Reparti.delete(id, utenteCancellazione=session.get('username'))
                 flash('Reparto eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
             
@@ -1303,6 +1873,35 @@ def modifica_reparti(id):
 
 @app_cucina.route('/servizi', methods=['GET', 'POST'])
 def servizi():
+    """
+    Gestisce la visualizzazione e la creazione dei servizi.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco dei servizi esistenti.
+    - Creare un nuovo servizio se l'utente è autenticato.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutti i servizi esistenti e un modulo per la creazione di un nuovo servizio.
+    - **POST**: Crea un nuovo servizio con i dati forniti nel modulo, se l'utente ha effettuato il login.
+
+    Args:
+        Nessuno. La funzione gestisce l'autenticazione tramite sessione per garantire l'accesso.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'servizi.html' con i seguenti dati:
+                    - Elenco dei servizi esistenti.
+                    - Un modulo per inserire un nuovo servizio.
+            - **POST**:
+                - Se la creazione del servizio ha successo, ricarica la pagina mostrando l'elenco aggiornato dei servizi.
+                - Se il modulo non è valido, rimane sulla stessa pagina mostrando eventuali messaggi di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza il servizio `service_t_Servizi` per recuperare e gestire i servizi.
+        - La funzione gestisce la validazione del modulo e la comunicazione di successi o errori all'utente.
+    """
     if 'authenticated' in session:
         servizi = service_t_Servizi.get_all_servizi()
 
@@ -1310,9 +1909,9 @@ def servizi():
 
         if form.validate_on_submit():
             service_t_Servizi.create_servizio(
-                            descrizione=form.descrizione.data,
-                            ordinatore=form.ordinatore.data,
-                            inMenu=form.inMenu.data
+                descrizione=form.descrizione.data,
+                ordinatore=form.ordinatore.data,
+                inMenu=form.inMenu.data
             )
 
         return render_template('servizi.html',servizi=servizi, form=form)
@@ -1323,6 +1922,37 @@ def servizi():
 
 @app_cucina.route('/servizi/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def modifica_servizi(id):
+    """
+    Gestisce le operazioni di recupero, aggiornamento e cancellazione di un servizio.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di un servizio esistente tramite l'ID specificato.
+    - Aggiornare le informazioni di un servizio esistente.
+    - Cancellare un servizio esistente (attualmente la cancellazione è commentata).
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli del servizio con l'ID specificato in formato JSON.
+    - **PUT**: Aggiorna i dettagli del servizio con l'ID specificato utilizzando i dati forniti nel modulo.
+    - **DELETE**: (non attualmente implementata) Cancellare il servizio con l'ID specificato.
+
+    Args:
+        id (int): L'ID del servizio da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli del servizio, se trovato.
+                - Status code 404 se il servizio non è trovato.
+            - **PUT**:
+                - JSON con un messaggio di successo o errore a seconda del risultato dell'operazione di aggiornamento.
+                - Status code 400 se ci sono errori di validazione del form.
+                - Status code 500 in caso di errore durante l'aggiornamento.
+            - **DELETE**:
+                - Attualmente non implementata, la cancellazione restituirebbe un messaggio di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """
     if 'authenticated' in session:
 
 
@@ -1354,10 +1984,10 @@ def modifica_servizi(id):
             if form.validate_on_submit():
                 try:
                     service_t_Servizi.update_servizio(
-                                        id=id,                                     
-                                        descrizione=form.descrizione.data, 
-                                        ordinatore=form.ordinatore.data,
-                                        inMenu=form.inMenu.data
+                        id=id,                                     
+                        descrizione=form.descrizione.data, 
+                        ordinatore=form.ordinatore.data,
+                        inMenu=form.inMenu.data
                                        
                     )
 
@@ -1394,6 +2024,35 @@ def modifica_servizi(id):
 
 @app_cucina.route('/tipologia_menu', methods=['GET', 'POST'])
 def tipologia_menu():
+    """
+    Gestisce la visualizzazione e la creazione delle tipologie di menu.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco delle tipologie di menu esistenti.
+    - Creare una nuova tipologia di menu se l'utente è autenticato.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutte le tipologie di menu esistenti e un modulo per la creazione di una nuova tipologia di menu.
+    - **POST**: Crea una nuova tipologia di menu con i dati forniti nel modulo, se l'utente ha effettuato il login.
+
+    Args:
+        Nessuno. La funzione gestisce l'autenticazione tramite sessione per garantire l'accesso.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'tipologia_menu.html' con i seguenti dati:
+                    - Elenco delle tipologie di menu esistenti.
+                    - Un modulo per inserire una nuova tipologia di menu.
+            - **POST**:
+                - Se la creazione della tipologia di menu ha successo, ricarica la pagina mostrando l'elenco aggiornato delle tipologie di menu.
+                - Se il modulo non è valido, rimane sulla stessa pagina mostrando eventuali messaggi di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza il servizio `service_t_TipiMenu` per recuperare e gestire le tipologie di menu.
+        - La funzione gestisce la validazione del modulo e mostra un messaggio di successo quando una nuova tipologia di menu viene aggiunta correttamente.
+    """
     if 'authenticated' in session:
         tipologie_menu = service_t_TipiMenu.get_all()
     
@@ -1401,11 +2060,12 @@ def tipologia_menu():
 
         if form.validate_on_submit():
             
-            service_t_TipiMenu.create(descrizione=form.descrizione.data, 
-                                        ordinatore=form.ordinatore.data, 
-                                        color=form.color.data, 
-                                        backgroundColor=form.backgroundColor.data, 
-                                        utenteInserimento=get_username())
+            service_t_TipiMenu.create(
+                descrizione=form.descrizione.data, 
+                ordinatore=form.ordinatore.data, 
+                color=form.color.data, 
+                backgroundColor=form.backgroundColor.data, 
+                utenteInserimento=session.get('username'))
             
             flash('tipo menu aggiunto con successo!', 'success')
             return redirect(url_for('app_cucina.tipologia_menu'))
@@ -1416,10 +2076,44 @@ def tipologia_menu():
                                form=form)
     else:
         return redirect(url_for('app_cucina.login'))
-    
+
+
 
 @app_cucina.route('/tipologia_menu/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def nodifica_tipologia_menu(id):
+    """
+    Gestisce le operazioni di recupero, aggiornamento e cancellazione di una tipologia di menu.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di una tipologia di menu esistente tramite l'ID specificato.
+    - Aggiornare le informazioni di una tipologia di menu esistente.
+    - Cancellare una tipologia di menu esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli della tipologia di menu con l'ID specificato in formato JSON.
+    - **PUT**: Aggiorna i dettagli della tipologia di menu con l'ID specificato utilizzando i dati forniti nel modulo.
+    - **DELETE**: Cancella la tipologia di menu con l'ID specificato.
+
+    Args:
+        id (int): L'ID della tipologia di menu da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli della tipologia di menu, se trovata.
+                - Status code 404 se la tipologia di menu non è trovata.
+            - **PUT**:
+                - JSON con un messaggio di successo o errore a seconda del risultato dell'operazione di aggiornamento.
+                - Status code 400 se ci sono errori di validazione del form.
+                - Status code 500 in caso di errore durante l'aggiornamento.
+            - **DELETE**:
+                - JSON con un messaggio di successo o errore a seconda del risultato della cancellazione.
+                - Status code 200 se la cancellazione è avvenuta con successo.
+                - Status code 400 in caso di errore durante la cancellazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """
     if 'authenticated' in session:
 
 
@@ -1450,14 +2144,12 @@ def nodifica_tipologia_menu(id):
             if form.validate_on_submit():
                 try:
                     service_t_TipiMenu.update(
-                                        id=id,
-                                        descrizione=form.descrizione.data, 
-                                        ordinatore=form.ordinatore.data, 
-                                        color=form.color.data, 
-                                        backgroundColor=form.backgroundColor.data, 
-                                        utenteInserimento=get_username())
-
-                    
+                        id=id,
+                        descrizione=form.descrizione.data, 
+                        ordinatore=form.ordinatore.data, 
+                        color=form.color.data, 
+                        backgroundColor=form.backgroundColor.data, 
+                        utenteInserimento=session.get('username'))
 
                     # Restituisci una risposta JSON senza redirect
                     return jsonify({'message': 'Tipologia menu aggiornato con successo!'}), 200
@@ -1474,7 +2166,7 @@ def nodifica_tipologia_menu(id):
 
         if request.method == 'DELETE':
             try:
-                service_t_TipiMenu.delete(id, utenteCancellazione=get_username())
+                service_t_TipiMenu.delete(id, utenteCancellazione=session.get('username'))
                 flash('Tipologia Menu eliminato con successo!', 'success')
                 return jsonify({'message': f'Menu {id} eliminato con successo.'}), 200  # Cambiato a 200 se vuoi includere un messaggio
             except Exception as e:
@@ -1483,11 +2175,53 @@ def nodifica_tipologia_menu(id):
                 return jsonify({'message': f'Errore nell\'eliminazione del menu {id}: {str(e)}'}), 400
         else:
             return redirect(url_for('app_cucina.login'))  
-    
+
+
 
 @app_cucina.route('/menu', methods=['GET', 'POST'])
 def menu():
+    """
+    Gestisce la visualizzazione e la clonazione del menu per un mese specifico.
+
+    Questa funzione consente di:
+    - Visualizzare il menu esistente per un determinato mese e tipo di menu.
+    - Clonare il menu esistente per un nuovo mese.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza i menu esistenti per il mese e il tipo di menu specificati.
+    - **POST**: Clona un menu esistente per il giorno specificato o per un insieme di giorni consecutivi.
+
+    Args:
+        Nessuno. Le informazioni sul mese, il tipo di menu e i menu esistenti sono gestite attraverso le query string e i dati di sessione.
+
+    Query Parameters:
+        year (int, optional): L'anno da visualizzare o su cui clonare il menu (default è l'anno corrente).
+        month (int, optional): Il mese da visualizzare o su cui clonare il menu (default è il mese corrente).
+        tipo_menu (int, optional): Il tipo di menu da visualizzare o su cui clonare il menu (default è '1').
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'menu.html' con i seguenti dati:
+                    - Informazioni sui menu esistenti per la data e il tipo di menu selezionati.
+                    - Mappa delle tipologie di menu e delle preparazioni associate.
+                    - Form per clonare un menu esistente.
+                    - Dati aggregati sui menu, come le associazioni tra piatti e preparazioni.
+
+            - **POST**:
+                - Se il form di clonazione è valido, il menu viene clonato per il giorno e i servizi selezionati.
+                - Reindirizza alla pagina aggiornata del menu.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come tipologie di menu, piatti e servizi associati.
+        - Il form per la clonazione del menu consente di selezionare un menu esistente e specificare una data per il clone.
+        - Se si verifica un errore durante la clonazione, viene visualizzato un messaggio di errore appropriato.
+    """
+
+
     if 'authenticated' in session:
+        #fa visualizare i mesi in italiano
         locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
         # Ottieni i parametri dai query string
         year = request.args.get('year', datetime.now().year, type=int)
@@ -1512,9 +2246,7 @@ def menu():
         full_weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
 
         # Mappa per i giorni della settimana
-        weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
-        
-        
+        weekdays = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']  
 
         # Calcola il numero della settimana per ogni giorno
         week_numbers = {}
@@ -1597,8 +2329,6 @@ def menu():
                 'preparazione': preparazione_descrizione
             }
 
-
-
         clona_mese = CloneMenuForm() 
         form = CloneMenuForm()
 
@@ -1609,7 +2339,7 @@ def menu():
                     clone_date_str = form.clone_date.data.strftime('%Y-%m-%d')
                     clone_date = datetime.strptime(clone_date_str, '%Y-%m-%d')
                     next_url = request.form.get('next_url', url_for('app_cucina.menu'))
-                    utente_inserimento = get_username()
+                    utente_inserimento = session.get('username')
 
                     # Recupera gli ID dei menu dal form
                     menu_ids = request.form.get('menu_ids').split(',')
@@ -1635,18 +2365,14 @@ def menu():
                     return redirect(next_url)
 
                 except Exception as e:
-                    print(f"Errore: {str(e)}")
-
-
-
-            
+                    print(f"Errore: {str(e)}") 
             
             if form.validate_on_submit():
                 try:
                     menu_id = request.form['menu_id']
                     clone_date = form.clone_date.data.strftime('%Y-%m-%d')
                     next_url = request.form.get('next_url', url_for('app_cucina.menu'))
-                    utente_inserimento = get_username()
+                    utente_inserimento = session.get('username')
 
                     # Chiama la funzione per clonare il menu
                     if clona_menu(menu_id, clone_date, utente_inserimento):
@@ -1661,30 +2387,30 @@ def menu():
 
 
         return render_template(
-                    'menu.html',
-                    year=year,
-                    month=month,
-                    month_name=calendar.month_name[month],
-                    full_weeks=full_weeks,
-                    weekdays=weekdays,
-                    tipologie_menu=tipologie_menu,
-                    menu_per_giorno=menu_per_giorno,
-                    piatti_map=piatti_map,
-                    preparazioni_map=preparazioni_map,
-                    associazione_map=associazione_map,
-                    piattimenu=piattimenu,  # Passa piattimenu al template
-                    preparazioni=preparazioni,
-                    datetime=datetime,
-                    calendar=calendar,
-                    week_numbers=week_numbers,  # Passa i numeri delle settimane al template
-                    form=form,
-                    clona_mese=clona_mese,
-                    menu_ids=menu_ids,
-                    servizi=servizi,
-                    piatti=piatti,
-                    tipologia_piatti_map=tipologia_piatti_map
+            'menu.html',
+            year=year,
+            month=month,
+            month_name=calendar.month_name[month],
+            full_weeks=full_weeks,
+            weekdays=weekdays,
+            tipologie_menu=tipologie_menu,
+            menu_per_giorno=menu_per_giorno,
+            piatti_map=piatti_map,
+            preparazioni_map=preparazioni_map,
+            associazione_map=associazione_map,
+            piattimenu=piattimenu,  # Passa piattimenu al template
+            preparazioni=preparazioni,
+            datetime=datetime,
+            calendar=calendar,
+            week_numbers=week_numbers,  # Passa i numeri delle settimane al template
+            form=form,
+            clona_mese=clona_mese,
+            menu_ids=menu_ids,
+            servizi=servizi,
+            piatti=piatti,
+            tipologia_piatti_map=tipologia_piatti_map
                     
-                )
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
@@ -1692,13 +2418,39 @@ def menu():
 
 @app_cucina.route('/menu/<int:id_menu>', methods=['DELETE'])
 def cose_menu(id_menu):
+    """
+    Gestisce l'eliminazione di un menu specifico.
+
+    Questa funzione consente di:
+    - Eliminare un menu associato all'identificativo fornito.
+    
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **DELETE**: Rimuove il menu specificato dall'ID fornito.
+
+    Args:
+        id_menu (int): L'ID del menu da eliminare.
+
+    Returns:
+        Response:
+            - **DELETE**:
+                - Se l'eliminazione è avvenuta con successo, restituisce un codice di stato 204 (No Content).
+                - Se si verifica un errore durante l'eliminazione, restituisce un codice di stato 400 (Bad Request).
+                - Se l'utente non è autenticato, viene reindirizzato alla pagina di login con un messaggio di avviso.
+
+    Notes:
+        - Se l'utente non è autenticato, viene visualizzato un messaggio di avviso per effettuare il login.
+        - La funzione utilizza il servizio `service_t_MenuServiziAssociazione` per recuperare e eliminare il menu.
+        - Se l'eliminazione ha successo, viene visualizzato un messaggio di conferma tramite `flash`.
+        - Eventuali eccezioni durante il processo di eliminazione vengono catturate e gestite, con un messaggio di errore visualizzato tramite `flash`.
+    """
+    
     if 'authenticated' in session:
 
         if request.method == 'DELETE':
             # Gestione dell'Eliminazione del Menu
             try:
                 menu = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
-                service_t_MenuServiziAssociazione.delete_per_menu(id_menu, utenteCancellazione=get_username())
+                service_t_MenuServiziAssociazione.delete_per_menu(id_menu, utenteCancellazione=session.get('username'))
                 flash('Menu eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content
             except Exception as e:
@@ -1713,9 +2465,38 @@ def cose_menu(id_menu):
 
 
 
-
 @app_cucina.route('/menu/dettagli/<int:id_menu>', methods=['GET', 'POST'])
 def menu_dettagli(id_menu):
+    """
+    Gestisce le operazioni di visualizzazione e modifica dei dettagli di un menu specifico.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di un menu esistente tramite l'ID specificato.
+    - Modificare le associazioni di piatti e preparazioni per un menu esistente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli del menu e le associazioni esistenti di piatti e preparazioni.
+    - **POST**: Aggiorna le associazioni di piatti e preparazioni per il menu specificato utilizzando i dati forniti nel modulo.
+
+    Args:
+        id_menu (int): L'ID del menu da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Rende il template 'dettaglio_menu.html' con i dettagli del menu, le associazioni di piatti e preparazioni, e i relativi moduli.
+                - Redirect alla pagina di login se l'utente non è autenticato.
+            - **POST**:
+                - Redirect alla pagina del menu se l'aggiornamento ha successo.
+                - JSON con un messaggio di errore se ci sono problemi durante l'aggiornamento.
+                - Status code 500 in caso di errore durante l'operazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Il modulo consente di selezionare piatti e preparazioni, e salva le associazioni nel database.
+        - Viene gestito il logging per eventuali errori durante le operazioni.
+    """
+
     if 'authenticated' in session:
         # Recupera le associazioni esistenti
         associazioni = service_t_MenuServiziAssociazione.get_by_fk_menu_servizio(id_menu)
@@ -1726,9 +2507,6 @@ def menu_dettagli(id_menu):
         servizi = service_t_Servizi.get_all_servizi()
 
         servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
-
-
-
 
         piatti_e_prep = []
         for associazione in associazioni:
@@ -1768,7 +2546,7 @@ def menu_dettagli(id_menu):
 
         if form.validate_on_submit():
             app.logger.debug("Form valido.")
-            utente = get_username()
+            
             
             # Raccogli le associazioni selezionate dall'utente
             piatto_e_prep = []
@@ -1791,14 +2569,14 @@ def menu_dettagli(id_menu):
             try:
                 # Elimina le associazioni esistenti
                 if associazioni:
-                    service_t_MenuServiziAssociazione.delete_per_menu(fkMenuServizio=id_menu, utenteCancellazione=utente)
+                    service_t_MenuServiziAssociazione.delete_per_menu(fkMenuServizio=id_menu, utenteCancellazione=session.get('username'))
                
                 # Crea le nuove associazioni
                 for assoc_id in associazioni_id:
                     response = service_t_MenuServiziAssociazione.create(
                         fkMenuServizio=id_menu,
                         fkAssociazione=assoc_id,
-                        utenteInserimento=utente
+                        utenteInserimento=session.get('username')
                     )
 
                     if 'Error' in response:
@@ -1814,28 +2592,58 @@ def menu_dettagli(id_menu):
             app.logger.debug("Form non valido: {}".format(form.errors))
 
         # Renderizza il template se il form non è stato sottomesso con successo
-        return render_template('dettaglio_menu.html', 
-                                form=form,
-                                preparazioni=preparazioni,
-                                piatti_map=piatti_map,
-                                preparazioni_map=preparazioni_map,
-                                piatti=piatti,
-                                tipologia_piatti=tipologia_piatti,
-                                piatti_to_preparazioni=piatti_to_preparazioni,
-                                prep_per_piatto=prep_per_piatto,
-                                codice_map=codice_map,
-                                menu_servizio=menu_servizio,
-                                menu_giorno=menu_giorno,
-                                servizi_map=servizi_map
-
-        
-                                )
+        return render_template(
+            'dettaglio_menu.html', 
+            form=form,
+            preparazioni=preparazioni,
+            piatti_map=piatti_map,
+            preparazioni_map=preparazioni_map,
+            piatti=piatti,
+            tipologia_piatti=tipologia_piatti,
+            piatti_to_preparazioni=piatti_to_preparazioni,
+            prep_per_piatto=prep_per_piatto,
+            codice_map=codice_map,
+            menu_servizio=menu_servizio,
+            menu_giorno=menu_giorno,
+            servizi_map=servizi_map
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('/schede', methods=['GET', 'POST'])
 def schede():
+    """
+    Gestisce la visualizzazione e la creazione di schede.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco delle schede esistenti.
+    - Creare una nuova scheda con dettagli specifici.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutte le schede e i tipi di menu e alimentazione disponibili.
+    - **POST**: Crea una nuova scheda se il modulo è stato inviato e validato con successo.
+
+    Args:
+        Nessuno. Le informazioni sulle schede sono gestite attraverso i dati di sessione e il modulo.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'schede.html' con i seguenti dati:
+                    - Elenco delle schede esistenti.
+                    - Mappa dei tipi di menu e dei tipi di alimentazione disponibili.
+                    - Form per inserire una nuova scheda.
+            - **POST**:
+                - Se il modulo è valido, crea una nuova scheda e reindirizza alla pagina aggiornata delle schede.
+                - Visualizza un messaggio di conferma tramite `flash`.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come schede, tipi di menu e tipi di alimentazione.
+        - Il form per le schede consente di selezionare tipi di menu e alimentazione, e di inserire dettagli come nome, titolo, descrizione, date, e note.
+    """  
     if 'authenticated' in session:
         schede = service_t_Schede.get_all()
         tipi_menu = service_t_TipiMenu.get_all()
@@ -1865,24 +2673,60 @@ def schede():
                 inizio=form.inizio.data,
                 fine=form.fine.data,
                 nominativa=form.nominativa.data,
-                utenteInserimento=get_username()
+                utenteInserimento=session.get('username')
             )
 
             flash('Scheda aggiunta con successo!', 'success')
             return redirect(url_for('app_cucina.schede'))
 
-        return render_template('schede.html',
-                               schede=schede,
-                               tipi_menu_map=tipi_menu_map,
-                               tipi_alimentazione_map=tipi_alimentazione_map,
-                               form=form,
-                               )
+        return render_template(
+            'schede.html',
+            schede=schede,
+            tipi_menu_map=tipi_menu_map,
+            tipi_alimentazione_map=tipi_alimentazione_map,
+            form=form,
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/schede/<int:id>', methods=['GET', 'POST', 'DELETE'])
 def modifica_scheda(id):
+    """
+    Gestisce le operazioni di visualizzazione, aggiornamento e eliminazione di una scheda specifica.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di una scheda esistente tramite l'ID specificato.
+    - Aggiornare i dettagli di una scheda esistente.
+    - Eliminare una scheda specificata.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli della scheda e le scelte dei tipi di alimentazione e menu.
+    - **POST**: Aggiorna i dettagli della scheda esistente con i dati forniti nel modulo.
+    - **DELETE**: Elimina la scheda specificata.
+
+    Args:
+        id (int): L'ID della scheda da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli della scheda, inclusi campi come `backgroundColor`, `fkTipoAlimentazione`, `fkTipoMenu`, `nome`, `titolo`, `sottotitolo`, `descrizione`, `dipendente`, `nominativa`, `inizio`, `fine`, e `note`.
+                - Redirect alla pagina delle schede se la scheda non viene trovata.
+                - Redirect alla pagina di login se l'utente non è autenticato.
+            - **POST**:
+                - Redirect alla pagina delle schede se l'aggiornamento ha successo.
+                - Flash message di successo se l'aggiornamento avviene correttamente.
+            - **DELETE**:
+                - Status code 204 No Content se la scheda è stata eliminata con successo.
+                - Flash message di successo se l'eliminazione avviene correttamente.
+                - Status code 400 Bad Request in caso di errore durante l'eliminazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Viene gestito il logging per eventuali errori durante le operazioni.
+    """
+
     if 'authenticated' in session:
 
         
@@ -1933,7 +2777,7 @@ def modifica_scheda(id):
                 inizio=form.inizio.data,
                 fine=form.fine.data,
                 nominativa=form.nominativa.data,
-                utenteInserimento=get_username()
+                utenteInserimento=session.get('username')
             )
 
             flash('Scheda aggiornata con successo!', 'success')
@@ -1943,7 +2787,7 @@ def modifica_scheda(id):
     if request.method == 'DELETE':
         print(f"Request to delete scheda with ID: {id}")  # Aggiungi questo log
         try:
-            service_t_Schede.delete(id=id, utenteCancellazione=get_username())
+            service_t_Schede.delete(id=id, utenteCancellazione=session.get('username'))
             flash('Scheda eliminata con successo!', 'success')
             return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
         except Exception as e:
@@ -1956,9 +2800,45 @@ def modifica_scheda(id):
         return redirect(url_for('app_cucina.login'))
 
 
-
 @app_cucina.route('/schede/piatti/<int:id>', methods=['GET', 'POST'])
 def schede_piatti(id):
+    """
+    Gestisce la visualizzazione e la creazione di piatti per una specifica scheda.
+
+    Questa funzione consente di:
+    - Visualizzare i piatti associati a una scheda specifica.
+    - Aggiungere un nuovo piatto alla scheda per un determinato servizio.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza i piatti associati alla scheda specificata e i dettagli correlati.
+    - **POST**: Aggiunge un nuovo piatto alla scheda se il modulo è stato inviato e validato con successo.
+
+    Args:
+        id (int): L'ID della scheda per cui visualizzare o aggiungere piatti.
+
+    Query Parameters:
+        servizio (int, optional): L'ID del servizio associato ai piatti da visualizzare o aggiungere (default è '1').
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'schede_piatti.html' con i seguenti dati:
+                    - Dettagli sulla scheda specificata.
+                    - Elenco di piatti disponibili.
+                    - Elenco di piatti associati alla scheda (esclusi dolci).
+                    - Elenco di dolci associati alla scheda.
+                    - Mappa dei tipi di piatti e dei tipi di menu disponibili.
+                    - Form per inserire un nuovo piatto.
+            - **POST**:
+                - Se il modulo è valido, aggiunge un nuovo piatto alla scheda e reindirizza alla pagina aggiornata dei piatti della scheda.
+                - Visualizza un messaggio di conferma tramite `flash` in caso di successo o di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come schede, piatti, servizi e tipi di piatti.
+        - Il form per i piatti consente di selezionare un piatto, aggiungere note e specificare l'ordinatore.
+        - In caso di errore durante l'aggiunta di un piatto, viene registrato l'errore nei log dell'applicazione.
+    """  
     if 'authenticated' in session:
         
         servizio_corrente = request.args.get('servizio', '1')
@@ -1998,7 +2878,7 @@ def schede_piatti(id):
                     riga=0,  # Adjust riga if necessary
                     note=form.note.data,
                     ordinatore=form.ordinatore.data,
-                    utenteInserimento=get_username()
+                    utenteInserimento=session.get('username')
                 )
                 
                 flash('Scheda aggiunta con successo!', 'success')
@@ -2008,41 +2888,76 @@ def schede_piatti(id):
                 # Potresti anche loggare l'eccezione se necessario
                 app.logger.error(f'Errore: {str(e)}')
 
-        return render_template('schede_piatti.html',
-                               scheda=scheda,
-                               piatti=piatti,
-                               servizi=servizi,
-                               schedePiatti=schedePiatti,
-                               tipi_piatti=tipi_piatti,
-                               piatti_map=piatti_map,
-                               tipi_menu_map=tipi_menu_map,
-                               schedeDolci=schedeDolci,
-                               form=form
-                               )
+        return render_template(
+            'schede_piatti.html',
+            scheda=scheda,
+            piatti=piatti,
+            servizi=servizi,
+            schedePiatti=schedePiatti,
+            tipi_piatti=tipi_piatti,
+            piatti_map=piatti_map,
+            tipi_menu_map=tipi_menu_map,
+            schedeDolci=schedeDolci,
+            form=form
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
-
-
-
-
 @app_cucina.route('/schede/piatti/info/<int:id_scheda>/<int:id_piatto_scheda>', methods=['GET', 'POST', 'DELETE', 'PUT'])
 def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
+    """
+    Gestisce le operazioni di visualizzazione, aggiunta, eliminazione e modifica di piatti all'interno di una scheda.
+
+    Questa funzione consente di:
+    - Recuperare i dettagli di un piatto specifico in una scheda.
+    - Aggiungere un nuovo piatto alla scheda, eliminando prima il piatto esistente.
+    - Modificare un piatto esistente, impostando un piatto vuoto.
+    - Eliminare un piatto specificato dalla scheda.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce i dettagli del piatto specificato.
+    - **POST**: Aggiunge un nuovo piatto alla scheda, dopo aver eliminato il piatto esistente.
+    - **PUT**: Modifica un piatto esistente impostando un piatto vuoto.
+    - **DELETE**: Elimina il piatto specificato dalla scheda.
+
+    Args:
+        id_scheda (int): L'ID della scheda contenente il piatto.
+        id_piatto_scheda (int): L'ID del piatto da gestire.
+
+    Returns:
+        Response:
+            - **GET**:
+                - JSON contenente i dettagli del piatto, inclusi campi come `piatti`, `note` e `ordinatore`.
+                - Status code 404 se il piatto non viene trovato.
+                - Status code 500 in caso di errore interno.
+            - **POST**:
+                - Redirect alla pagina dei piatti della scheda se l'aggiunta ha successo.
+                - Flash message di successo se l'aggiunta avviene correttamente.
+                - Flash message di errore in caso di problemi durante l'aggiunta.
+            - **PUT**:
+                - Status code 204 No Content se la modifica del piatto avviene con successo.
+                - Flash message di errore in caso di problemi durante la modifica.
+            - **DELETE**:
+                - Status code 204 No Content se il piatto è stato eliminato con successo.
+                - Flash message di successo se l'eliminazione avviene correttamente.
+                - Flash message di errore in caso di problemi durante l'eliminazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Viene fornito un sistema di flash messages per comunicare il successo o il fallimento delle operazioni agli utenti.
+        - La funzione include logging per monitorare eventuali errori che possono verificarsi durante l'esecuzione delle operazioni.
+    """
+
     if 'authenticated' in session:
         servizio_corrente = request.args.get('servizio', '1')
 
-
-        
         if request.method == 'GET':
             try:
                 schedaPiatto = service_t_SchedePiatti.get_by_id(id_piatto_scheda)
                 if not schedaPiatto:
                     return jsonify({'error': 'Piatto non trovato!'}), 404
-                
-                
-                
-                
+
                 piatti = service_t_Piatti.get_all()
                 form = schedaPiattiForm(obj=schedaPiatto)
                 form.piatti.choices = [(piatto['id'], piatto['titolo']) for piatto in piatti]
@@ -2052,13 +2967,14 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
                     'note': schedaPiatto.get('note'),
                     'ordinatore': schedaPiatto.get('ordinatore')
                 })
+            
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
         
         if request.method == 'POST':
             try:
                 form = schedaPiattiForm()
-                service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=get_username())
+                service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=session.get('username'))
 
                 piatto_id = form.piatti.data
                 infopiatto = service_t_Piatti.get_by_id(piatto_id)
@@ -2072,7 +2988,7 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
                     riga=0,
                     note=form.note.data,
                     ordinatore=form.ordinatore.data,
-                    utenteInserimento=get_username()
+                    utenteInserimento=session.get('username')
                 )
 
                 flash('Scheda aggiunta con successo!', 'success')
@@ -2099,14 +3015,13 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
         if request.method == 'DELETE':
             print(f"Request to delete scheda with ID: {id_piatto_scheda}")  # Aggiungi questo log
             try:
-                service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=get_username())
+                service_t_SchedePiatti.delete_piatto_singolo(id=id_piatto_scheda, utenteCancellazione=session.get('username'))
                 flash('piatto eliminato con successo!', 'success')
                 return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
             except Exception as e:
                 print(f"Error deleting scheda: {e}")  # Log per l'errore
                 flash('Errore durante l\'eliminazione del piatto.', 'danger')
                 return '', 400  # Status code 400 Bad Request per errori
-
 
     else:
         return redirect(url_for('app_cucina.login'))
@@ -2115,6 +3030,44 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
 
 @app_cucina.route('/ordini/brodi', methods=['POST'])
 def update_scheda_count():
+    """
+    Gestisce l'aggiornamento del conteggio delle schede associate a un ordine per i brodi.
+
+    Questa funzione consente di:
+    - Aggiornare il conteggio totale dei brodi per un determinato reparto all'interno di un ordine.
+    - Creare nuove schede di ordine per i brodi, eliminando eventuali schede precedenti associate.
+
+    La funzione esegue le seguenti operazioni a seconda della richiesta POST:
+    - Recupera i dati dalla richiesta JSON per l'ID dell'ordine, ID del servizio, ID del reparto, ID della scheda e il nuovo conteggio.
+    - Se esistono già schede di brodo associate all'ordine, queste vengono eliminate.
+    - Crea un numero di nuove schede di ordine per i brodi pari al conteggio specificato.
+
+    Args:
+        Nessuno. I dati per l'aggiornamento sono forniti nel corpo della richiesta JSON.
+
+    Request Body (JSON):
+        {
+            "ordineId": int,        # ID dell'ordine da aggiornare
+            "servizioId": int,      # ID del servizio associato
+            "reparto_id": int,      # ID del reparto
+            "scheda_id": int,       # ID della scheda di brodo
+            "new_count": int         # Nuovo conteggio di schede di brodo da creare
+        }
+
+    Returns:
+        Response:
+            - **POST**:
+                - Ritorna un oggetto JSON che indica il successo dell'operazione.
+                - In caso di errore, ritorna un oggetto JSON con un messaggio di errore e codice di stato 500.
+
+    Notes:
+        - Se l'utente non è autenticato, l'operazione potrebbe fallire a causa di problemi di autorizzazione.
+        - Viene eseguito un inserimento unico del totale dei brodi per l'intero reparto.
+        - È prevista la gestione delle eccezioni per garantire la stabilità del servizio e il corretto logging degli errori.
+        - La scheda brodi viene gestita in maniera diversa rispetto alle altre schede.  
+            Aggiorna il conteggio delle schede associate a un ordine per i brodi.
+            viene fatto un inserimento unico del totale dei brodi per l'intero reparto.
+    """
     try:
         # Recupera i dati dalla richiesta JSON
         data = request.get_json()
@@ -2133,7 +3086,7 @@ def update_scheda_count():
         if brodi:
             for brodo in brodi:
                 service_t_OrdiniPiatti.delete_by_fkOrdine(brodo['id'])
-                service_t_OrdiniSchede.delete(brodo['id'], utenteCancellazione=get_username())
+                service_t_OrdiniSchede.delete(brodo['id'], utenteCancellazione=session.get('username'))
 
 
         # Aggiorna o crea i dati della scheda
@@ -2147,7 +3100,7 @@ def update_scheda_count():
                 cognome='*',
                 nome='*',
                 letto=None,
-                utenteInserimento=get_username()
+                utenteInserimento=session.get('username')
             )
 
             # Inserisci il piatto fisso
@@ -2168,25 +3121,45 @@ def update_scheda_count():
         return jsonify({'success': False, 'message': 'Errore interno del server'}), 500
 
 
-
-       
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
 @app_cucina.route('/ordini/schede_piatti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
 def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
+    """
+    Gestisce la visualizzazione e la creazione di ordini di piatti per una scheda specifica.
+
+    Questa funzione consente di:
+    - Visualizzare i dettagli degli ordini di piatti per un determinato giorno, servizio e scheda.
+    - Creare un nuovo ordine di piatti, se non esiste già un ordine per il giorno e il servizio specificati.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza i dettagli degli ordini di piatti per il giorno, servizio, reparto e scheda selezionati.
+    - **POST**: Crea un nuovo ordine di piatti se non ne esiste già uno per il giorno e il servizio selezionati.
+
+    Args:
+        id (int): L'ID dell'ordine principale.
+        servizio (int): L'ID del servizio (ad esempio colazione, pranzo).
+        reparto (int): L'ID del reparto per cui si sta creando l'ordine.
+        scheda (int): L'ID della scheda per cui si stanno ordinando i piatti.
+        ordine_id (int, optional): L'ID dell'ordine di scheda specifico (default è None).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'ordine_schede_piatti.html' con i seguenti dati:
+                    - Dettagli sull'ordine principale per la data e il servizio specificati.
+                    - Informazioni su piatti non dolci e dolci, schede, tipi di menu e reparti.
+                    - Form per inserire un nuovo ordine di piatti.
+                    - Dati aggregati sugli ordini, come i dettagli degli utenti e dei piatti.
+            - **POST**:
+                - Se un ordine non esiste già per il giorno e il servizio selezionati, ne viene creato uno nuovo.
+                - Reindirizza alla pagina aggiornata degli ordini con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come piatti, schede, tipi di menu, e informazioni sul servizio e reparto.
+        - È previsto un controllo sui tempi di ordine per evitare ordini effettuati dopo le 10 del mattino per il giorno successivo.
+        - Il form per l'ordine consente di selezionare i piatti e di specificare la quantità e eventuali note aggiuntive.
+    """
     if 'authenticated' in session:
         
         # Recupera i dati necessari
@@ -2201,8 +3174,6 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         tipi_piatti = service_t_TipiPiatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
 
-
-
         # Costruisci una mappa delle preparazioni
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
@@ -2213,9 +3184,6 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         day = ordine_data.day
 
         preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
-
-
-    
 
         form = ordineSchedaForm()
         
@@ -2269,9 +3237,6 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
             info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
 
-
-
-
         if form.validate_on_submit():
 
                      # Time limit check
@@ -2294,10 +3259,9 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
                     flash(f"il letto numero {letto} è gia occupato.", 'error')
                     return redirect(url_for('app_cucina.ordine_schede_piatti', id=id, servizio=servizio, reparto=reparto, scheda=scheda['id']))
                         
-
             if ordine_id and ordine_id != 0:
                 service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
-                service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
+                service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=session.get('username'))
 
             # Creazione di un nuovo ordine
             new_scheda_ordine = service_t_OrdiniSchede.create(
@@ -2309,7 +3273,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
                 cognome=form.cognome.data,
                 nome=form.nome.data,
                 letto=letto,
-                utenteInserimento=get_username()
+                utenteInserimento=session.get('username')
             )
 
             piatti_list = json.loads(request.form['piattiList'])
@@ -2329,7 +3293,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             return redirect(url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio))
 
 
-        return render_template('ordine_schede_piatti.html',
+        return render_template(
+            'ordine_schede_piatti.html',
             id=id,
             scheda=scheda,
             piatti=piatti,
@@ -2357,13 +3322,41 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         )
     else:
         return redirect(url_for('app_cucina.login'))
+   
 
-
-
-    
 
 @app_cucina.route('/ordini/print/<int:id>', methods=['GET', 'POST'])
 def print_ordini(id):
+    """
+    Gestisce la visualizzazione e la stampa degli ordini associati a un determinato ID.
+
+    Questa funzione consente di:
+    - Recuperare tutti gli ordini associati all'ID fornito per visualizzarli in un formato stampabile.
+    - Mostrare informazioni dettagliate sui piatti ordinati, inclusi i preparativi e le schede.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera i dettagli degli ordini per l'ID fornito e li prepara per la visualizzazione in formato stampabile.
+    - **POST**: Attualmente non gestito; la funzione è focalizzata sulla visualizzazione.
+
+    Args:
+        id (int): L'ID dell'ordine per il quale si desidera visualizzare e stampare i dettagli.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'print_ordini.html' con i seguenti dati:
+                    - Dettagli sugli ordini associati all'ID fornito, inclusi i piatti ordinati, le schede e le informazioni sul reparto.
+                    - Mappa delle preparazioni associate a ciascun piatto ordinato.
+                    - Informazioni sui tipi di menu e schede disponibili per il servizio.
+            - **POST**:
+                - Non implementato, quindi non restituisce dati.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come ordini, piatti, schede, tipi di menu, e preparazioni.
+        - Viene gestita la creazione di mappe per organizzare i dati in modo efficace prima della visualizzazione.
+        - La funzione attualmente non gestisce il metodo POST; pertanto, l'attenzione è sulla visualizzazione dei dati.
+    """
     if 'authenticated' in session:
         # Recupera tutti gli ordini associati all'ID fornito
         tutti_gli_ordini = service_t_OrdiniSchede.get_all_by_ordine_per_stampa(id)
@@ -2448,81 +3441,109 @@ def print_ordini(id):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 @app_cucina.route('/ordini/printProspetto/<int:id>', methods=['GET'])
 def print_printProspetto(id):
-    if 'authenticated' in session:
-        # Passo 1: Ottieni i dati dell'ordine
-        ordine = service_t_Ordini.get_by_id(id)
-        schede = service_t_OrdiniSchede.get_all_by_ordine(id)
-        preparazioni = service_t_preparazioni.get_all_preparazioni()
-        piatti = service_t_Piatti.get_all()
-        reparti = service_t_Reparti.get_all()
+    """
+    (DOBBIAMO IMPLEMENTARE LA DIVISIONE DEI PIATTI)
+    Genera e visualizza un prospetto di ordinazione per un determinato ordine.
 
+    Questa funzione consente di:
+    - Recuperare e aggregare i dati relativi a un ordine specifico, comprese le schede, i piatti, le preparazioni e i reparti.
+    - Presentare un prospetto che mostra il conteggio dei piatti ordinati suddivisi per reparto e preparazione.
+
+    La funzione esegue le seguenti operazioni quando viene effettuata una richiesta **GET**:
+    - Recupera l'ordine specificato dall'ID.
+    - Recupera tutte le schede associate a quell'ordine.
+    - Ottiene informazioni su preparazioni, piatti e reparti disponibili.
+    - Raccoglie dati dettagliati sulle preparazioni e i piatti ordinati, aggregando le informazioni per reparto.
+    - Calcola i totali per ciascuna preparazione e per l'azienda nel suo complesso.
+
+    Args:
+        id (int): L'ID dell'ordine di cui generare il prospetto.
+
+    Returns:
+        Response:
+            - Mostra la pagina 'printProspetto.html' con i seguenti dati:
+                - Mappa delle preparazioni con le loro descrizioni.
+                - Conteggi dei piatti ordinati suddivisi per reparto e preparazione.
+                - Totali per ogni preparazione e il totale complessivo di piatti ordinati.
+                - Mappe dei piatti e dei reparti con le loro descrizioni.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione si basa su diversi servizi per recuperare le informazioni necessarie, tra cui gli ordini, le schede, le preparazioni, i piatti e i reparti.
+        - La logica include la gestione delle associazioni tra piatti e preparazioni per garantire un conteggio accurato.
+    """
+    if 'authenticated' in session:
+        # Passo 1: Ottieni i dati dell'ordine, le schede, le preparazioni, i piatti e i reparti
+        ordine = service_t_Ordini.get_by_id(id)  # Recupera l'ordine specificato dall'ID
+        schede = service_t_OrdiniSchede.get_all_by_ordine(id)  # Recupera tutte le schede associate all'ordine
+        preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni disponibili
+        piatti = service_t_Piatti.get_all()  # Recupera tutti i piatti disponibili
+        reparti = service_t_Reparti.get_all()  # Recupera tutti i reparti disponibili
+
+        # Crea mappe per le descrizioni delle preparazioni, reparti e piatti
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
         reparti_map = {reparto['id']: reparto['descrizione'] for reparto in reparti}
         piatti_map = {piatto['id']: piatto['titolo'] for piatto in piatti}
 
+        # Inizializza un dizionario per contare i piatti per reparto
         piatti_count = {reparto['id']: {} for reparto in reparti}
-        used_preparazioni = set()
+        used_preparazioni = set()  # Set per tenere traccia delle preparazioni utilizzate
 
+        # Itera attraverso ogni scheda per raccogliere dati aggiuntivi
         for scheda in schede:
             # Passo 2: Ottieni il giorno e il servizio del menu
-            menu_by_scheda = service_t_Schede.get_by_id(scheda['fkScheda'])
-            tipo_menu = service_t_Menu.get_by_data(ordine['data'], menu_by_scheda['fkTipoMenu'])
-            tipo_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio_per_stampa(tipo_menu['id'], ordine['fkServizio'])
+            menu_by_scheda = service_t_Schede.get_by_id(scheda['fkScheda'])  # Recupera la scheda del menu
+            tipo_menu = service_t_Menu.get_by_data(ordine['data'], menu_by_scheda['fkTipoMenu'])  # Recupera il tipo di menu per la data dell'ordine
+            tipo_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio_per_stampa(tipo_menu['id'], ordine['fkServizio'])  # Recupera il servizio associato al menu
 
             if tipo_servizio:
-                tipo_servizio = tipo_servizio[0]
-                piatti_del_menu = service_t_MenuServiziAssociazione.get_info_by_fk_menu_servizio(tipo_servizio['id'])
+                tipo_servizio = tipo_servizio[0]  # Prendi il primo tipo di servizio
+                piatti_del_menu = service_t_MenuServiziAssociazione.get_info_by_fk_menu_servizio(tipo_servizio['id'])  # Recupera i piatti associati al menu e servizio
 
+                # Estrae le associazioni valide per i piatti del menu
                 associazioni_valide = {item['fkAssociazione'] for item in piatti_del_menu}
-                piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(scheda['id'])
+                piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(scheda['id'])  # Recupera i piatti ordinati nella scheda
 
+                # Itera attraverso i piatti ordinati
                 for piatto_ordinato in piatti_ordinati:
-                    fkPiatto = piatto_ordinato['fkPiatto']
-                    quantità = piatto_ordinato['quantita']
+                    fkPiatto = piatto_ordinato['fkPiatto']  # ID del piatto ordinato
+                    quantità = piatto_ordinato['quantita']  # Quantità ordinata
 
+                    # Recupera tutte le associazioni di preparazione per il piatto
                     tutte_associazioni = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(fkPiatto)
-                    associazioni_filtrate = [assoc for assoc in tutte_associazioni if assoc['id'] in associazioni_valide]
+                    associazioni_filtrate = [assoc for assoc in tutte_associazioni if assoc['id'] in associazioni_valide]  # Filtra le associazioni valide
 
+                    # Controlla se ci sono associazioni valide per il piatto ordinato
                     for assoc in associazioni_filtrate:
-                        fkPreparazione = assoc['fkPreparazione']
-                        preparazione_nome = preparazioni_map.get(fkPreparazione, "Non Disponibile")
+                        fkPreparazione = assoc['fkPreparazione']  # ID della preparazione
+                        preparazione_nome = preparazioni_map.get(fkPreparazione, "Non Disponibile")  # Nome della preparazione
 
+                        # Aggiorna il conteggio delle preparazioni per il reparto
                         if preparazione_nome not in piatti_count[scheda['fkReparto']]:
-                            piatti_count[scheda['fkReparto']][preparazione_nome] = 0
-                        piatti_count[scheda['fkReparto']][preparazione_nome] += quantità
-                        used_preparazioni.add(fkPreparazione)
+                            piatti_count[scheda['fkReparto']][preparazione_nome] = 0  # Inizializza il conteggio se non esiste
+                        piatti_count[scheda['fkReparto']][preparazione_nome] += quantità  # Incrementa la quantità
+                        used_preparazioni.add(fkPreparazione)  # Aggiungi la preparazione all'insieme delle preparazioni utilizzate
 
+                    # Se non ci sono associazioni valide, conta il piatto stesso
                     if not associazioni_filtrate:
-                        piatto_nome = piatti_map.get(fkPiatto, "Non Disponibile")
+                        piatto_nome = piatti_map.get(fkPiatto, "Non Disponibile")  # Nome del piatto
                         if piatto_nome not in piatti_count[scheda['fkReparto']]:
-                            piatti_count[scheda['fkReparto']][piatto_nome] = 0
-                        piatti_count[scheda['fkReparto']][piatto_nome] += quantità
+                            piatti_count[scheda['fkReparto']][piatto_nome] = 0  # Inizializza il conteggio se non esiste
+                        piatti_count[scheda['fkReparto']][piatto_nome] += quantità  # Incrementa la quantità
 
-        
-       # Calcolo dei totali per preparazioni
+        # Calcolo dei totali per preparazioni
         preparazioni_totals = {preparazione: 0 for preparazione in set(p for d in piatti_count.values() for p in d.keys())}
         for counts in piatti_count.values():
             for preparazione_nome, count in counts.items():
                 if preparazione_nome in preparazioni_totals:
-                    preparazioni_totals[preparazione_nome] += count
+                    preparazioni_totals[preparazione_nome] += count  # Somma le quantità per ogni preparazione
 
         # Calcolo del totale aziendale
-        totale_azienda = sum(count for counts in piatti_count.values() for count in counts.values())
+        totale_azienda = sum(count for counts in piatti_count.values() for count in counts.values())  # Somma totale di tutti i piatti
 
-
+        # Restituisci il template con i dati calcolati
         return render_template(
             'printProspetto.html', 
             preparazioni_map=preparazioni_map,
@@ -2533,12 +3554,46 @@ def print_printProspetto(id):
             totale_azienda=totale_azienda
         )
     else:
+        # Reindirizza alla pagina di login se non autenticato
         return redirect(url_for('app_cucina.login'))
 
 
 
 @app_cucina.route('/ordina_pasto', methods=['GET', 'POST'])
 def ordina_pasto():
+    """
+    Gestisce le operazioni per ordinare pasti.
+
+    Questa funzione consente di:
+    - Visualizzare e gestire ordini di pasti per un giorno specifico.
+    - Creare un nuovo ordine se non esiste già per la data e il servizio corrente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Restituisce la pagina per ordinare pasti, recuperando i dettagli dell'ordine e i piatti disponibili.
+    - **POST**: (Non implementato nel codice fornito) Si prevede che gestisca l'invio di un ordine per i pasti.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Rende la pagina `ordina_pasto.html` con tutti i dati necessari per visualizzare e gestire l'ordine dei pasti.
+                - Status code 200 OK.
+                - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+
+    Args:
+        - year (int): L'anno per il quale ordinare il pasto. Predefinito è l'anno corrente.
+        - month (int): Il mese per il quale ordinare il pasto. Predefinito è il mese corrente.
+        - day (int): Il giorno per il quale ordinare il pasto. Predefinito è il giorno corrente.
+        - servizio (int): L'ID del servizio corrente. Predefinito è '1'.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione include la creazione di un nuovo ordine se non esiste già per la data specificata e il servizio corrente.
+        - Utilizza i servizi per recuperare informazioni sugli utenti, i piatti e i servizi disponibili.
+        - La funzione prevede di gestire gli ordini tramite la funzione `processa_ordine` per controllare l'ordine e recuperare informazioni pertinenti.
+
+    Flash Messages:
+        - La funzione non gestisce esplicitamente i messaggi flash, ma potrebbe essere implementata in caso di operazioni di ordine (POST).
+    """
     if 'authenticated' in session:
         # Imposta la data per domani
         tomorrow = datetime.now() + timedelta(days=1)
@@ -2591,13 +3646,42 @@ def ordina_pasto():
 
 
 
-@app_cucina.route('/ordini/delete/<int:ordine_id>', methods=['GET', 'DELETE'])
+@app_cucina.route('/ordini/delete/<int:ordine_id>', methods=['DELETE'])
 def elimina_ordine_schede_dipendente(ordine_id):
+    """
+    Gestisce l'eliminazione di un ordine specifico.
+
+    Questa funzione consente di:
+    - Eliminare un ordine e i relativi piatti associati in base all'ID dell'ordine fornito.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **DELETE**: Rimuove l'ordine specificato e i piatti associati da database.
+
+    Args:
+        ordine_id (int): L'ID dell'ordine da eliminare.
+
+    Returns:
+        Response:
+            - **DELETE**:
+                - Status code 200 OK se l'ordine è stato eliminato con successo.
+                - Status code 400 Bad Request se si verifica un errore durante l'eliminazione.
+                - Flash message di successo se l'eliminazione avviene correttamente.
+                - Flash message di errore in caso di problemi durante l'eliminazione.
+
+    Notes:
+        - La funzione verifica se l'utente è autenticato; in caso contrario, reindirizza alla pagina di login.
+        - La funzione include un sistema di logging per monitorare eventuali errori che possono verificarsi durante l'eliminazione dell'ordine.
+        - Utilizza i servizi per eliminare i piatti associati all'ordine e l'ordine stesso.
+
+    Flash Messages:
+        - "ordine eliminato con successo!" per indicare che l'ordine è stato rimosso correttamente.
+        - "Errore durante l'eliminazione del ordine." per segnalare un problema durante il processo di eliminazione.
+    """
     if 'authenticated' in session:    
            
         try:
             service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
-            service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())         
+            service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=session.get('username'))         
             flash('ordine eliminato con successo!', 'success')
             return '', 200  # Status code 200 
         except Exception as e:
@@ -2609,12 +3693,45 @@ def elimina_ordine_schede_dipendente(ordine_id):
 
 
 
-
-
-
 @app_cucina.route('/ordina_pasto/schede_dipendente/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
 @app_cucina.route('/ordina_pasto/schede_dipendente/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST', 'DELETE'])
 def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
+    """
+    Gestisce la visualizzazione e la creazione/modifica degli ordini di schede per i dipendenti.
+
+    Questa funzione consente di:
+    - Visualizzare i piatti disponibili per la scheda, il servizio e il reparto selezionati.
+    - Creare un nuovo ordine o modificare un ordine esistente per il dipendente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le informazioni sui piatti, le schede, e i dettagli dell'ordine selezionato.
+    - **POST**: Crea un nuovo ordine se non ne esiste già uno per la scheda selezionata, oppure aggiorna un ordine esistente.
+
+    Args:
+        id (int): L'ID dell'ordine principale.
+        servizio (int): L'ID del servizio (es. colazione, pranzo).
+        reparto (int): L'ID del reparto in cui viene effettuato l'ordine.
+        scheda (int): L'ID della scheda selezionata per l'ordine.
+        ordine_id (int, optional): L'ID dell'ordine da modificare (se presente).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'ordine_schede_dipendente.html' con i seguenti dati:
+                    - Elenco dei piatti disponibili suddivisi in piatti non dolci e dolci.
+                    - Dettagli sulla scheda selezionata, tipo di menu e piatti associati.
+                    - Informazioni sul servizio e reparto.
+                    - Form per inserire o modificare un ordine.
+            - **POST**:
+                - Se `ordine_id` è fornito e non è zero, modifica l'ordine esistente; altrimenti, crea un nuovo ordine.
+                - Reindirizza alla pagina degli ordini aggiornati.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come piatti, schede, e informazioni relative al servizio e reparto.
+        - La gestione degli errori del modulo è inclusa per garantire la validità dei dati prima della creazione o modifica dell'ordine.
+        - I piatti selezionati e le quantità vengono salvati nel database tramite i rispettivi servizi.
+    """
     if 'authenticated' in session:
 
         # Recupera i dati necessari
@@ -2678,7 +3795,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
                 # Handle existing order if ordine_id is provided
                 if ordine_id and ordine_id != 0:
                     service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
-                    service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=get_username())
+                    service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=session.get('username'))
 
                 # Create a new order
                 new_scheda_ordine = service_t_OrdiniSchede.create(
@@ -2690,7 +3807,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
                     cognome=cognome,
                     nome=nome,
                     letto=None,
-                    utenteInserimento=get_username()
+                    utenteInserimento=session.get('username')
                 )
 
                 # Save selected dishes
@@ -2735,16 +3852,48 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
     else:
         return redirect(url_for('app_cucina.login'))
 
-
-
-
-
-
-
-
     
 @app_cucina.route('/ordini', methods=['GET', 'POST'])
 def ordini():
+    """
+    Gestisce le operazioni relative agli ordini per il giorno successivo.
+
+    Questa funzione consente di:
+    - Recuperare e visualizzare gli ordini esistenti per una data specificata.
+    - Creare un nuovo ordine se non esiste già per la data e il servizio specificati.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera i dati necessari per visualizzare gli ordini per la data e il servizio specificati, inclusi i reparti, le schede, i tipi di menu e le informazioni sugli ordini.
+    - **POST**: Non implementato esplicitamente nel codice fornito, ma il metodo potrebbe essere utilizzato in futuro per inviare o aggiornare ordini.
+
+    Args:
+        None (I parametri di data e servizio sono forniti tramite query string).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Renderizza il template `ordini.html` con i dati recuperati, inclusi:
+                    - `year`, `month`, `day`: La data per la quale si visualizzano gli ordini.
+                    - `servizio_corrente`: Il servizio corrente selezionato.
+                    - `reparti`: I reparti accessibili dall'utente.
+                    - `servizio`: Elenco dei servizi disponibili.
+                    - `schede`: Elenco delle schede disponibili.
+                    - `tipi_menu`: Elenco dei tipi di menu disponibili.
+                    - `tipi_alimentazione`: Elenco dei tipi di alimentazione disponibili.
+                    - `ordiniSchede`: Ordini già esistenti per la data specificata.
+                    - `schede_attive`: Schede attive per i pazienti.
+                    - Variabili per il conteggio e i totali degli ordini.
+            - **POST**:
+                - Status code 302 Found per il redirect alla pagina degli ordini con i dati aggiornati se un nuovo ordine è stato creato con successo.
+
+    Notes:
+        - La funzione verifica se l'utente è autenticato; in caso contrario, reindirizza alla pagina di login.
+        - Utilizza i servizi per recuperare tutte le informazioni necessarie per il rendering della pagina.
+        - Se non esiste un ordine per la data specificata e il servizio, viene creato un nuovo ordine e l'utente viene reindirizzato alla pagina degli ordini.
+
+    Flash Messages:
+        - Non sono presenti flash messages nella logica fornita, ma potrebbero essere aggiunti per comunicare il successo della creazione dell'ordine.
+    """
     if 'authenticated' in session:
         tomorrow = datetime.now() + timedelta(days=1)
         year = request.args.get('year', tomorrow.year, type=int)
@@ -2767,7 +3916,12 @@ def ordini():
         schede_attive = service_t_Schede.get_all_attivi_pazienti()
 
         schede_count, reparti_totals, schede_totals, total_general = service_t_OrdiniSchede.get_ordini_data(
-            year, month, day, servizio_corrente, reparti, schede_attive
+            year, 
+            month, 
+            day, 
+            servizio_corrente, 
+            reparti, 
+            schede_attive
         )
 
         ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
@@ -2775,49 +3929,43 @@ def ordini():
         # Se non esiste, crea un nuovo ordine
         if not ordine_esistente:
             service_t_Ordini.create(data, servizio_corrente)
-            return redirect(url_for('app_cucina.ordini',servizio_corrente=servizio_corrente, year=year, month=month, day=day))
+            return redirect(url_for(
+                'app_cucina.ordini',
+                servizio_corrente=servizio_corrente, 
+                year=year, month=month, 
+                day=day
+                )
+            )
         
         
-
-
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
         tipi_alimentazione_map = {int(tipo_alimentazione['id']): tipo_alimentazione['descrizione'] for tipo_alimentazione in tipi_alimentazione}
         schede_map = {int(scheda['id']): tipi_menu_map[int(scheda['fkTipoMenu'])] for scheda in schede}
         reparti_map = {int(reparto['id']): reparto['descrizione'] for reparto in reparti}
 
 
-            
-
-
-        # controllo_ora = check_order_time_limit(data)
-        # if not controllo_ora:
-        #     flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
-        #     return redirect(url_for('app_cucina.ordini'))
-
-
-        return render_template('ordini.html',
-                               year=year,
-                               month=month,
-                               day=day,
-                               schede_count=schede_count,
-                               servizio_corrente=servizio_corrente,
-                               servizio=servizio,
-                               schede=schede,
-                               tipi_menu_map=tipi_menu_map,
-                               tipi_alimentazione_map=tipi_alimentazione_map,
-                               reparti=reparti,
-                               reparti_map=reparti_map,
-                               schede_map=schede_map,
-                               ordiniSchede=ordiniSchede,
-                               schede_count_totali=schede_count,
-                               reparti_totals=reparti_totals,
-                               schede_totals=schede_totals,
-                               total_general=total_general,
-                               schede_attive=schede_attive,
-                               ordine_esistente=ordine_esistente
-                               
-
-                               )
+        return render_template(
+            'ordini.html',
+            year=year, 
+            month=month,
+            day=day,
+            schede_count=schede_count,
+            servizio_corrente=servizio_corrente,
+            servizio=servizio,
+            schede=schede,
+            tipi_menu_map=tipi_menu_map,
+            tipi_alimentazione_map=tipi_alimentazione_map,
+            reparti=reparti,
+            reparti_map=reparti_map,
+            schede_map=schede_map,
+            ordiniSchede=ordiniSchede,
+            schede_count_totali=schede_count,
+            reparti_totals=reparti_totals,
+            schede_totals=schede_totals,
+            total_general=total_general,
+            schede_attive=schede_attive,
+            ordine_esistente=ordine_esistente
+        ) 
     else:
         return redirect(url_for('app_cucina.login'))
 
@@ -2825,6 +3973,44 @@ def ordini():
 
 @app_cucina.route('/ordini_dipendenti', methods=['GET', 'POST'])
 def ordini_dipendenti():
+    """
+    Gestisce la visualizzazione e la creazione di ordini per i dipendenti.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco degli ordini dei dipendenti esistenti per un determinato giorno e servizio.
+    - Creare un nuovo ordine per il giorno corrente o per un giorno futuro, se non esiste già.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza gli ordini per i dipendenti del giorno specificato.
+    - **POST**: Crea un nuovo ordine per il giorno e il servizio selezionati.
+
+    Args:
+        Nessuno. Le informazioni sul giorno, il servizio e gli ordini sono gestite attraverso le query string e i dati di sessione.
+
+    Query Parameters:
+        year (int, optional): L'anno da visualizzare o su cui creare un ordine (default è l'anno di domani).
+        month (int, optional): Il mese da visualizzare o su cui creare un ordine (default è il mese di domani).
+        day (int, optional): Il giorno da visualizzare o su cui creare un ordine (default è il giorno di domani).
+        servizio (int, optional): Il servizio (ad esempio colazione, pranzo) da visualizzare o su cui creare un ordine (default è '1').
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'ordini_dipendenti.html' con i seguenti dati:
+                    - Informazioni sugli ordini esistenti per la data e il servizio selezionati.
+                    - Mappa delle schede, tipi di menu, tipi di alimentazione e reparti.
+                    - Form per inserire un nuovo ordine.
+                    - Dati aggregati sugli ordini, come il conteggio delle schede, i totali per reparti e schede, e il totale generale.
+            - **POST**:
+                - Se un ordine non esiste già per il giorno e il servizio selezionati, ne viene creato uno nuovo.
+                - Reindirizza alla pagina aggiornata degli ordini.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come schede, tipi di menu, tipi di alimentazione e reparti.
+        - Se non esiste già un ordine per il giorno e il servizio selezionati, ne viene creato uno nuovo e si ricarica la pagina.
+        - Il form per gli ordini consente di selezionare e modificare le schede e le quantità di ordini per il servizio scelto.
+    """
     if 'authenticated' in session:
         tomorrow = datetime.now() + timedelta(days=1)
         year = request.args.get('year', tomorrow.year, type=int)
@@ -2847,7 +4033,12 @@ def ordini_dipendenti():
         schede_attive = service_t_Schede.get_all_personale()
 
         schede_count, reparti_totals, schede_totals, total_general = service_t_OrdiniSchede.get_ordini_data(
-            year, month, day, servizio_corrente, reparti, schede_attive
+            year, 
+            month, 
+            day, 
+            servizio_corrente, 
+            reparti, 
+            schede_attive
         )
 
         ordine_esistente = service_t_Ordini.existing_Ordine(data, servizio_corrente)
@@ -2866,37 +4057,74 @@ def ordini_dipendenti():
         form = ordineSchedaForm()
 
 
-        return render_template('ordini_dipendenti.html',
-                               year=year,
-                               month=month,
-                               day=day,
-                               schede_count=schede_count,
-                               servizio_corrente=servizio_corrente,
-                               servizio=servizio,
-                               schede=schede,
-                               tipi_menu_map=tipi_menu_map,
-                               tipi_alimentazione_map=tipi_alimentazione_map,
-                               reparti=reparti,
-                               reparti_map=reparti_map,
-                               schede_map=schede_map,
-                               ordiniSchede=ordiniSchede,
-                               schede_count_totali=schede_count,
-                               reparti_totals=reparti_totals,
-                               schede_totals=schede_totals,
-                               total_general=total_general,
-                               schede_attive=schede_attive,
-                               ordine_esistente=ordine_esistente,
-                               form=form
-
-                               )
+        return render_template(
+            'ordini_dipendenti.html',
+            year=year,
+            month=month,
+            day=day,
+            schede_count=schede_count,
+            servizio_corrente=servizio_corrente,
+            servizio=servizio,
+            schede=schede,
+            tipi_menu_map=tipi_menu_map,
+            tipi_alimentazione_map=tipi_alimentazione_map,
+            reparti=reparti,
+            reparti_map=reparti_map,
+            schede_map=schede_map,
+            ordiniSchede=ordiniSchede,
+            schede_count_totali=schede_count,
+            reparti_totals=reparti_totals,
+            schede_totals=schede_totals,
+            total_general=total_general,
+            schede_attive=schede_attive,
+            ordine_esistente=ordine_esistente,
+            form=form
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
 
-
 @app_cucina.route('/creazione_utenti', methods=['GET', 'POST'])
 def creazione_utenti():
+    """
+    Gestisce la visualizzazione e la creazione di nuovi utenti.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco di tutti gli utenti esistenti.
+    - Creare un nuovo utente tramite un form, specificando dati come il nome, cognome, email, tipologia utente, reparto e altre informazioni.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Mostra il modulo per la creazione di un nuovo utente e l'elenco degli utenti esistenti.
+    - **POST**: Consente di creare un nuovo utente utilizzando i dati inviati tramite il form.
+
+    Args:
+        Nessuno. Le informazioni sugli utenti, i reparti, le tipologie utente e le funzionalità sono gestite attraverso vari servizi.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'creazione_utenti.html' con i seguenti dati:
+                    - Elenco degli utenti esistenti.
+                    - Form per la creazione di un nuovo utente, con campi pre-popolati per le tipologie di utente, i reparti e le funzionalità.
+                    - Mappa delle tipologie utente e reparti, utilizzata per la visualizzazione nel form.
+            - **POST**:
+                - Se il form è valido e i dati sono corretti:
+                    - Crea un nuovo utente nel sistema.
+                    - Mostra un messaggio di successo e ricarica la pagina per visualizzare l'utente creato.
+                - Se c'è un errore durante la creazione:
+                    - Restituisce un messaggio di errore e mantiene il form con gli errori di validazione.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Il form di creazione di un utente include campi per:
+            - Username, nome, cognome, email, password.
+            - Selezione della tipologia di utente (ad esempio, amministratore o dipendente).
+            - Selezione di uno o più reparti.
+            - Selezione delle funzionalità personalizzate.
+            - Definizione delle date di inizio e fine della validità dell'utente.
+        - Se il form viene inviato correttamente, viene chiamato il servizio per creare un nuovo utente.
+    """
     if 'authenticated' in session:
         
         # Recupera tutti gli utenti
@@ -2952,21 +4180,61 @@ def creazione_utenti():
                 flash(f'Errore durante la creazione dell\'utente: {str(e)}', 'error')
             
 
-        return render_template('creazione_utenti.html',
-                                utenti=utenti,
-                                tipologieUtente=tipologieUtente,
-                                reparti=reparti,
-                                form=form,
-                                tipologieUtente_map=tipologieUtente_map,
-                                reparti_map=reparti_map)
+        return render_template(
+            'creazione_utenti.html',
+            utenti=utenti,
+            tipologieUtente=tipologieUtente,
+            reparti=reparti,
+            form=form,
+            tipologieUtente_map=tipologieUtente_map,
+            reparti_map=reparti_map
+        )
 
     else:
         return redirect(url_for('app_cucina.login'))
 
 
+
 @app_cucina.route('/creazione_utenti/impersonate/<string:public_id>', methods=['POST'])
 def impersonate_user(public_id):
-    app.logger.info(f'Tentativo di impersonare l\'utente con public_id: {public_id}')
+    """
+    Consente a un amministratore di impersonare un altro utente.
+
+    Questa funzione consente di:
+    - Impersonare un utente specifico, permettendo all'amministratore di accedere al sistema come se fosse quell'utente.
+    - Aggiorna la sessione con le credenziali dell'utente impersonato.
+
+    La funzione esegue le seguenti operazioni a seconda delle condizioni:
+    - Verifica che l'utente corrente sia autenticato e abbia i privilegi di amministratore.
+    - Recupera l'utente da impersonare utilizzando il suo `public_id`.
+    - Se l'utente viene trovato, la sessione viene svuotata e riempita con le informazioni dell'utente impersonato.
+    - Se l'utente non viene trovato, viene restituito un errore e l'utente rimane autenticato come amministratore.
+
+    Args:
+        public_id (str): L'ID pubblico dell'utente da impersonare.
+
+    Returns:
+        Response:
+            - **POST**:
+                - Se l'utente è autenticato come amministratore e l'utente da impersonare viene trovato:
+                    - La sessione viene aggiornata con le credenziali dell'utente impersonato.
+                    - L'utente viene reindirizzato alla homepage con i privilegi del nuovo utente.
+                - Se l'utente da impersonare non viene trovato:
+                    - Mostra un messaggio di errore e reindirizza l'amministratore alla homepage.
+                - Se l'utente corrente non è amministratore:
+                    - Mostra un messaggio di errore e reindirizza l'utente alla homepage.
+
+    Notes:
+        - Solo gli utenti con `fkTipoUtente` pari a 1 (amministratore) possono eseguire questa operazione.
+        - La sessione viene completamente cancellata e ricreata con le informazioni dell'utente impersonato.
+        - Se l'utente impersonato ha delle funzionalità personalizzate, queste vengono caricate nella sessione.
+
+    Example:
+        POST /creazione_utenti/impersonate/<public_id>
+
+    Security:
+        - Se l'utente non è autenticato o non ha i privilegi di amministratore, l'accesso a questa funzionalità viene negato.
+    """
     if 'authenticated' in session and session.get('fkTipoUtente') == 1:
         user = service_t_utenti.get_utente_by_public_id(public_id)
         print('user: ' , user)
@@ -2987,7 +4255,6 @@ def impersonate_user(public_id):
             
             return redirect(url_for('app_cucina.home'))
         else:
-            app.logger.error(f'Utente con public_id {public_id} non trovato.')
             flash('Utente non trovato per l\'impersonificazione.', 'error')
             return redirect(url_for('app_cucina.home'))
     
@@ -2998,6 +4265,57 @@ def impersonate_user(public_id):
 
 @app_cucina.route('/creazione_utenti/<string:public_id>', methods=['GET', 'PUT'])
 def modifica_utente(public_id):
+    """
+    Gestisce la visualizzazione e la modifica dei dati di un utente.
+
+    Questa funzione consente di:
+    - Recuperare i dati di un utente specifico in base al suo `public_id`.
+    - Aggiornare i dettagli di un utente, come il tipo di utente, i reparti e le date di inizio/fine.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera i dati di un utente specifico e restituisce le informazioni in formato JSON.
+    - **PUT**: Aggiorna i dati dell'utente con le informazioni fornite in formato JSON.
+
+    Args:
+        public_id (str): L'ID pubblico dell'utente da modificare.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Restituisce un oggetto JSON contenente i dettagli dell'utente, inclusi:
+                    - `username`: Il nome utente dell'utente.
+                    - `nome`: Il nome dell'utente.
+                    - `cognome`: Il cognome dell'utente.
+                    - `fkTipoUtente`: Il tipo di utente associato.
+                    - `fkFunzCustom`: Funzionalità personalizzate, se presenti.
+                    - `inizio`: La data di inizio associata all'utente.
+                    - `fine`: La data di fine associata all'utente.
+                    - `reparti`: Un elenco dei reparti assegnati all'utente.
+                    - `email`: L'indirizzo email dell'utente.
+                - Se l'utente non viene trovato, restituisce un codice di stato 404 (Not Found).
+            - **PUT**:
+                - Aggiorna i dettagli dell'utente in base ai dati forniti nel corpo della richiesta JSON.
+                - Se l'aggiornamento ha successo, restituisce un messaggio di conferma con stato 200 (OK).
+                - Se ci sono errori nella validazione o durante l'aggiornamento, restituisce un messaggio di errore con stato 400 (Bad Request) o 500 (Internal Server Error).
+
+    Notes:
+        - L'utente deve essere autenticato per accedere a questa funzione.
+        - Se l'utente non è autenticato, viene restituito un codice di stato 403 (Forbidden).
+        - La funzione utilizza il servizio `service_t_utenti` per recuperare e aggiornare i dati dell'utente.
+
+    Example:
+        - **GET**: Recupera i dati di un utente:
+            GET /creazione_utenti/<public_id>
+        - **PUT**: Aggiorna i dati dell'utente:
+            PUT /creazione_utenti/<public_id>
+
+    Logs:
+        - Registra un messaggio informativo se i dati dell'utente vengono trovati.
+        - Registra un avviso se l'utente non viene trovato o se si verifica un errore durante l'aggiornamento.
+
+    Security:
+        - L'accesso a questa funzione è limitato agli utenti autenticati.
+    """
     if 'authenticated' in session:
         if request.method == 'GET':
             utenti = service_t_utenti.get_utente_by_public_id(public_id)
@@ -3052,11 +4370,45 @@ def modifica_utente(public_id):
 
 
 
-
-
-
 @app_cucina.route('/creazione_tipologia_utenti', methods=['GET', 'POST'])
 def creazione_tipologia_utenti():
+    """
+    Gestisce la creazione di nuove tipologie di utente e l'associazione di permessi alle funzionalità.
+
+    Questa funzione consente di:
+    - Visualizzare le tipologie di utente esistenti.
+    - Visualizzare le funzionalità disponibili e assegnarle con permessi specifici a una nuova tipologia di utente.
+    - Creare una nuova tipologia di utente con le funzionalità selezionate e i permessi associati.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le tipologie di utente esistenti, le funzionalità disponibili e i permessi attuali.
+    - **POST**: Crea una nuova tipologia di utente e associa le funzionalità selezionate con i permessi specificati.
+
+    Args:
+        Nessuno. I dati necessari per la creazione della tipologia e dei permessi sono ottenuti attraverso i form.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'creazione_tipi_utenti.html' con le seguenti informazioni:
+                    - Elenco delle tipologie di utente esistenti.
+                    - Elenco delle funzionalità disponibili e la mappa delle funzionalità.
+                    - Form per la creazione di una nuova tipologia di utente.
+                    - Permessi già associati alle tipologie esistenti.
+            - **POST**:
+                - Crea una nuova tipologia di utente.
+                - Associa le funzionalità selezionate e i relativi permessi al nuovo tipo di utente.
+                - Reindirizza nuovamente alla pagina di creazione delle tipologie di utente.
+
+    Query Parameters:
+        Nessuno. Le informazioni sono ottenute tramite il form nel corpo della richiesta.
+
+    Notes:
+        - La funzione è accessibile solo agli utenti autenticati.
+        - I dati sui permessi delle funzionalità vengono recuperati e gestiti tramite i servizi `service_t_tipiUtenti`, 
+          `service_t_FunzionalitaUtente`, e `service_t_funzionalita`.
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+    """ 
     if 'authenticated' in session:
         tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
         funzionalita_per_tipologia = {}
@@ -3093,20 +4445,57 @@ def creazione_tipologia_utenti():
 
             return redirect(url_for('app_cucina.creazione_tipologia_utenti'))
 
-        return render_template('creazione_tipi_utenti.html',
-                               tipologieUtente=tipologieUtente,
-                               funzionalita_map=funzionalita_map,
-                               form=TipoUtenteForm(),
-                               funzionalita_per_tipologia=funzionalita_per_tipologia
-                               )
+        return render_template(
+            'creazione_tipi_utenti.html',
+            tipologieUtente=tipologieUtente,
+            funzionalita_map=funzionalita_map,
+            form=TipoUtenteForm(),
+            funzionalita_per_tipologia=funzionalita_per_tipologia
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
 
-
 @app_cucina.route('/creazione_tipologia_utenti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def modifica_tipo_utente(id):
+    """
+    Gestisce la visualizzazione, modifica e cancellazione di una tipologia di utente esistente.
+
+    Questa funzione consente di:
+    - Visualizzare le informazioni di un tipo di utente specifico e le funzionalità associate.
+    - Modificare le informazioni e le funzionalità associate a un tipo di utente.
+    - Gestire la cancellazione di una tipologia di utente (attualmente non implementata per motivi di sicurezza).
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le informazioni di un tipo di utente e delle funzionalità associate.
+    - **PUT**: Modifica il tipo di utente e aggiorna le funzionalità e i permessi associati.
+    - **DELETE**: Gestisce (simulativamente) la cancellazione del tipo di utente (attualmente non consentita).
+
+    Args:
+        id (int): L'ID del tipo di utente da modificare o eliminare.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Restituisce un JSON con i seguenti dati:
+                    - `tipo_utente`: Informazioni sul tipo di utente (nome, ID, ecc.).
+                    - `funzionalita`: Elenco di tutte le funzionalità disponibili nel sistema con i loro titoli.
+                    - `funzionalita_associate`: Funzionalità attualmente associate al tipo di utente.
+            - **PUT**:
+                - Aggiorna il nome del tipo di utente e le sue funzionalità associate.
+                - Restituisce un messaggio di conferma dell'aggiornamento se ha successo.
+                - Restituisce un messaggio di errore in caso di fallimento.
+            - **DELETE**:
+                - Simula la cancellazione del tipo di utente, ma restituisce un messaggio di conferma che l'azione non è consentita.
+                - Restituisce un codice di stato `204 No Content` in caso di successo o `400 Bad Request` in caso di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La cancellazione effettiva dei tipi di utenti non è consentita, ma un messaggio simula l'operazione.
+        - La funzione utilizza vari servizi per recuperare e aggiornare i dati dei tipi di utenti e delle funzionalità.
+        - Durante la modifica, le funzionalità esistenti vengono eliminate e le nuove selezioni vengono salvate con i relativi permessi.
+    """   
     if 'authenticated' in session:
         if request.method == 'GET':
             tipo_utente = service_t_tipiUtenti.get_by_id(id)
@@ -3121,8 +4510,6 @@ def modifica_tipo_utente(id):
                 'funzionalita': funzionalita_map,
                 'funzionalita_associate': funzionalita_associate
             })
-        
-         
         
         if request.method == 'PUT':
             tipo_utente = request.form.get('fkTipoUtente')
@@ -3159,16 +4546,13 @@ def modifica_tipo_utente(id):
                 print(f"Errore durante l'aggiornamento: {e}")
                 return jsonify({'Error': 'Errore durante l\'aggiornamento'}), 500
 
-
-
-
         if request.method == 'DELETE':
             # Gestione della richiesta DELETE, se necessario
             print(f"Request to delete scheda with ID: {id}")  # Aggiungi questo log
             try:
-                service_t_FunzionalitaUtente.delete_by_tipo_utente(tipo_utente_id=id)
-                service_t_tipiUtenti.delete_tipoUtente(id=id)
-                flash('tipo utente eliminato con successo!', 'success')
+                # service_t_FunzionalitaUtente.delete_by_tipo_utente(tipo_utente_id=id)
+                # service_t_tipiUtenti.delete_tipoUtente(id=id)
+                flash('ti piacerebbe! non si possono elimeinare i tipi utenti!', 'success')
                 return '', 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
             except Exception as e:
                 print(f"Error deleting scheda: {e}")  # Log per l'errore
@@ -3180,18 +4564,12 @@ def modifica_tipo_utente(id):
 
 
 
-
-
-
-
 @app_cucina.route('/qualifiche', methods=['GET', 'POST'])
 def qualifiche():
     if 'authenticated' in session:
 
  
-
-
-        return render_template('qualifiche.html',
+        return render_template('qualifiche.html'
                               
                                )
     else:
@@ -3199,13 +4577,39 @@ def qualifiche():
 
 
 
-
-
-
-
-
 @app_cucina.route('/impostazioni', methods=['GET', 'POST'])
 def impostazioni():
+    """
+    Gestisce la visualizzazione e la modifica delle impostazioni dell'utente.
+
+    Questa funzione consente di:
+    - Visualizzare le impostazioni attuali dell'utente loggato.
+    - Cambiare la password dell'utente, se la vecchia password è corretta e la nuova password viene confermata correttamente.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le impostazioni dell'utente loggato, incluso il tipo di utente associato.
+    - **POST**: Verifica la vecchia password, controlla la corrispondenza tra la nuova password e la sua conferma, e aggiorna la password se tutti i controlli sono validi.
+
+    Args:
+        Nessuno. I dati dell'utente sono recuperati dalla sessione attiva.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'impostazioni.html' con i seguenti dati:
+                    - Informazioni dell'utente loggato, come il nome utente e il tipo utente.
+                    - Mappa dei tipi di utente disponibili.
+                    - Form per il cambio password.
+            - **POST**:
+                - Se la vecchia password è corretta e la nuova password viene confermata, la password viene aggiornata e un messaggio di successo viene mostrato.
+                - In caso di errori, vengono mostrati messaggi di errore specifici (es. vecchia password errata, nuova password non confermata correttamente).
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Il form per il cambio password include i seguenti campi: username (non modificabile), vecchia password, nuova password e conferma della nuova password.
+        - Il controllo sulla validità della vecchia password viene effettuato tramite il servizio `service_t_utenti`.
+        - La nuova password viene aggiornata solo se tutti i controlli sono superati con successo.
+    """
     if 'authenticated' in session:
         user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         tipi_utenti = service_t_tipiUtenti.get_tipiUtenti_all()
@@ -3235,18 +4639,48 @@ def impostazioni():
             else:
                 flash('La vecchia password è errata.', 'error')
 
-        return render_template('impostazioni.html',
-                               user=user,
-                               tipi_utenti_map=tipi_utenti_map,
-                               form=form
-                               )
+        return render_template(
+            'impostazioni.html',
+            user=user,
+            tipi_utenti_map=tipi_utenti_map,
+            form=form
+        )
     else:
         return redirect(url_for('app_cucina.login'))
 
 
-
 @app_cucina.route('/contatti', methods=['GET', 'POST'])
 def contatti():
+    """
+    Gestisce l'invio di segnalazioni e messaggi di contatto da parte degli utenti.
+
+    Questa funzione consente di:
+    - Visualizzare un modulo di contatto per inviare segnalazioni o richieste di assistenza.
+    - Inviare un messaggio di contatto all'amministratore del sistema.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza il modulo di contatto precompilato con le informazioni dell'utente loggato.
+    - **POST**: Valida i dati del modulo e invia un messaggio di contatto all'indirizzo email specificato, utilizzando i dati forniti dall'utente.
+
+    Args:
+        Nessuno. Le informazioni dell'utente sono recuperate dalla sessione attiva.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'contatti.html' con i seguenti dati:
+                    - Informazioni dell'utente loggato, come nome, cognome e email.
+                    - Form per l'invio di segnalazioni.
+            - **POST**:
+                - Se il modulo è validato con successo, invia un messaggio all'amministratore e mostra un messaggio di conferma all'utente.
+                - In caso di errore durante l'invio, mostra un messaggio di errore.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - Il form di contatto include i seguenti campi: oggetto e messaggio.
+        - Il messaggio inviato include il nome, l'email e il contenuto del messaggio dell'utente.
+        - Eventuali errori nell'invio del messaggio vengono registrati per facilitare il debug.
+    """ 
     if 'authenticated' in session:
         user = service_t_utenti.get_utente_by_public_id(session['user_id'])
         nome = user['nome']  # Accesso ai valori del dizionario
@@ -3278,87 +4712,33 @@ def contatti():
         return redirect(url_for('app_cucina.login'))
 
 
-@app_cucina.route('/home', methods=['GET', 'POST'])
-def home():
-    if 'authenticated' in session:
-        
-        today = datetime.now()
-        year = request.args.get('year', today.year, type=int)
-        month = request.args.get('month', today.month, type=int)
-        day = request.args.get('day', today.day, type=int)
-        servizi = service_t_Servizi.get_all_servizi()
-       
-        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
-        
-        data = f'{year}-{month}-{day}'
-        nome = user['nome']
-        cognome = user['cognome']
- 
-        # Dizionario per accumulare i risultati
-        ordini_totali_per_servizio = {}
-
-        # Utilizza il metodo del service per calcolare i totali
-        ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
-            service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
-
-        piatti = service_t_Piatti.get_all()
-        # Ottieni i reparti accessibili dall'utente
-        menu_personale = service_t_Schede.get_all_personale()
-        tipi_menu = service_t_TipiMenu.get_all()
-        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
-        servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
-
-        dizionario_servizi = {}
-
-        for servizio in servizi:
-            controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(data, nome, cognome, servizio['id'], piatti, menu_personale)
-            
-            if controllo_ordine is None:
-                # Gestisci il caso in cui controllo_ordine è None
-                dizionario_servizi[servizio['id']] = {
-                    'inf_scheda': inf_scheda,
-                    'piatti_ordine_map': piatti_ordine_map,
-                    'controllo_ordine': 'Null'
-                }
-            else:
-                dizionario_servizi[servizio['id']] = {
-                    'inf_scheda': inf_scheda,
-                    'piatti_ordine_map': piatti_ordine_map,
-                    'controllo_ordine': controllo_ordine
-                }
-                    
- 
-            
-        
-            
-
-        return render_template('home.html',
-                               year=year,
-                               month=month,
-                               day=day,
-                               servizi=servizi,
-                               ordini_totali_per_servizio=ordini_totali_per_servizio,
-                               totale_pazienti=totale_pazienti,
-                               totale_personale=totale_personale,
-                               totale_completo=totale_completo,
-                               controllo_ordine=controllo_ordine, 
-                               inf_scheda=inf_scheda,                                                     
-                               piatti_ordine_map=piatti_ordine_map, 
-                               utente=user['username'],
-                               nome=nome,
-                               cognome=cognome,
-                               servizi_map=servizi_map,
-                               dizionario_servizi=dizionario_servizi,
-                               tipi_menu_map=tipi_menu_map
-                               )
-    else:
-        return redirect(url_for('app_cucina.login'))
-
-
-
-
 @app_cucina.route('/do_logout', methods=['POST'])
 def do_logout():
+    """
+    Gestisce il processo di logout dell'utente.
+
+    Questa funzione consente di:
+    - Disconnettere l'utente dalla sessione attiva.
+    - Pulire i dati della sessione per garantire la sicurezza.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **POST**: Valida la richiesta di logout e, se valida, esegue la disconnessione dell'utente.
+
+    Args:
+        Nessuno. L'autenticazione dell'utente è gestita attraverso la sessione.
+
+    Returns:
+        Response:
+            - **POST**:
+                - Se la richiesta è valida e l'utente è autenticato, l'utente viene disconnesso e viene effettuato un reindirizzamento alla pagina di login.
+                - In caso contrario, l'utente viene comunque reindirizzato alla pagina di login.
+
+    Notes:
+        - Se l'utente non è autenticato, viene comunque reindirizzato alla pagina di login.
+        - La funzione utilizza un modulo di logout per gestire la richiesta, anche se non utilizza il CSRF.
+        - La sessione viene pulita completamente per garantire la sicurezza dopo il logout.
+    """
+    
     if 'authenticated' in session:
 
         form = LogoutFormNoCSRF()
@@ -3371,23 +4751,18 @@ def do_logout():
     return redirect(url_for('app_cucina.login'))
 
 
+#pagina che riporta gli errori
 @app_cucina.route('/report_error', methods=['POST'])
 def report_error():
-
     return redirect(url_for('app_cucina.index'))  # Redirect dopo aver inviato il feedback
 
 
-
-
+#chiamata per la pagina degli errori con il tipo di errore
 @app_cucina.errorhandler(Exception)
 def handle_exception(error):
     # Puoi anche loggare l'errore qui se necessario
     return render_template('error.html', error=str(error))
 
-
-@app_cucina.route('/')
-def pagina_iniziale():
-    return redirect(url_for('login'))
 
 # Register the blueprint
 app.register_blueprint(app_cucina, url_prefix='/app_cucina')

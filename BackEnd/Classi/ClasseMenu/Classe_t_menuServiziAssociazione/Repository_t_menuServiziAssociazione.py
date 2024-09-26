@@ -91,10 +91,7 @@ class RepositoryMenuServiziAssociazion:
                     'utenteCancellazione': result.utenteCancellazione
                 }
                 for result in results
-            ]
-            
-            # Aggiungi print per il debug
-            print("Dati restituiti da get_info_by_fk_menu_servizio:", data)
+            ]           
             
             return data
         except Exception as e:
