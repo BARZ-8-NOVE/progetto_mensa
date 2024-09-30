@@ -6,9 +6,13 @@ Errore
 
 {% block content %}
 <h1>Si è verificato un errore</h1>
-<h3>{{ error}} </h3>
+<h3>{{ error }} </h3>
 <p>Ci scusiamo per l'inconveniente. Puoi aiutarci a migliorare inviando un feedback.</p>
 
-<a href="{{ url_for('app_cucina.contatti') }}">invia un feedback</a>
+<!-- Bottone per inviare feedback -->
+<a href="{{ url_for('app_cucina.contatti') }}" class="styled-button" role="button">Invia un feedback</a>
+
+<!-- Bottone per tornare alla home -->
+<a href="{{ url_for('app_cucina.home') }}" class="styled-button" role="button">Torna alla Home</a>
 
 {% endblock %}

@@ -47,8 +47,6 @@ class Repository_t_utenti:
         return results
     
 
-
-
     def get_all(self):
         try:
             results = self.session.query(TUtenti).all()
@@ -74,9 +72,6 @@ class Repository_t_utenti:
             # Assicurati che la sessione venga chiusa per evitare perdite di risorse
             if self.session:
                 self.session.close()
-
-
-
 
 
     def get_utenti_all(self):
@@ -120,10 +115,6 @@ class Repository_t_utenti:
             # Gestisci eccezioni generali e chiudi la sessione
             self.session.close()
             raise RuntimeError(f"An error occurred while retrieving the user's reparti: {str(e)}")
-
-
-
-
 
 
     def create_utente(self, username: str, nome: str, cognome: str, fkTipoUtente: int,
@@ -175,133 +166,190 @@ class Repository_t_utenti:
             self.session.rollback()
             print(f"Exception occurred: {str(e)}")  # Log dell'errore
             raise RuntimeError(f"An error occurred while creating the user: {str(e)}")
-        
-        finally:
-            # Assicurati che la sessione venga chiusa
-            if self.session:
-                self.session.close()
-
-
-
-
 
 
 
     def update_utente_username(self, id: int, username: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            result_exists_utente_by_username_with_different_id = self.exists_utente_by_username_with_different_id(username, id)
-            if result_exists_utente_by_username_with_different_id:
-                self.session.close()    
-                raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'username', username))
-            utente.username = username
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                result_exists_utente_by_username_with_different_id = self.exists_utente_by_username_with_different_id(username, id)
+                if result_exists_utente_by_username_with_different_id:
+                    raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'username', username))
+                
+                utente.username = username
+                self.session.commit()
+                return {'success': True, 'message': 'Username aggiornato con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the username: {str(e)}")
+
+
         
+
     def update_utente_email(self, id: int, email: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, id)
-            if result_exists_utente_by_email_with_different_id:
-                self.session.close()
-                raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
-            utente.email = email
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, id)
+                if result_exists_utente_by_email_with_different_id:
+                    raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
+                
+                utente.email = email
+                self.session.commit()
+                return {'success': True, 'message': 'Email aggiornata con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the email: {str(e)}")
+            
+
         
+
     def update_utente_fkTipoUtente(self, id: int, fkTipoUtente: int):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            tipoUtente = Repository_t_tipiUtente()
-            result = tipoUtente.exists_tipoUtente_by_id(fkTipoUtente)
-            if not result:
-                self.session.close()
-                raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
-            utente.fkTipoUtente = fkTipoUtente
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                tipoUtente = Repository_t_tipiUtente()
+                result = tipoUtente.exists_tipoUtente_by_id(fkTipoUtente)
+                if not result:
+                    raise NotFound(UtilityMessages.notFoundErrorMessage('TipoUtente', 'fkTipoUtente', fkTipoUtente))
+
+                utente.fkTipoUtente = fkTipoUtente
+                self.session.commit()
+                return {'success': True, 'message': 'TipoUtente aggiornato con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the fkTipoUtente: {str(e)}")
+            
+
+
         
+
     def update_utente_nome(self, id: int, nome: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.nome = nome
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                utente.nome = nome
+                self.session.commit()
+                return {'success': True}, 200  # Restituisce un messaggio di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+        except Exception as e:
+            # Se si verifica un'eccezione, esegui il rollback della sessione
+            self.session.rollback()
+            return {'Error': str(e)}, 500  # Restituisce l'errore
+
+
+
         
     def update_utente_cognome(self, id: int, cognome: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.cognome = cognome
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                utente.cognome = cognome
+                self.session.commit()
+                return {'success': True, 'message': 'Cognome aggiornato con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the cognome: {str(e)}")
+
+
+
         
     def update_utente_fkFunzCustom(self, id: int, fkFunzCustom: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.fkFunzCustom = fkFunzCustom
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-        
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                utente.fkFunzCustom = fkFunzCustom
+                self.session.commit()
+                return {'success': True, 'message': 'fkFunzCustom aggiornato con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating fkFunzCustom: {str(e)}")
+
+
+
     def update_utente_reparti(self, id: int, reparti: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.reparti = reparti
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-        
-    def update_utente_password(self, id: int, password: str):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.password = password
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-        
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                utente.reparti = reparti
+                self.session.commit()
+                return {'success': True, 'message': 'Reparti aggiornati con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
 
-    def update_utente_password_by_username(self, username: str, password: str):
-        utente: TUtenti = self.exists_utente_by_username(username)
-        if utente:
-            utente.password = password
-            self.session.commit()
-            return
-        else:
-             raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'username', username))
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating reparti: {str(e)}")
 
-    def update_utente_attivo(self, id: int, attivo):
-        utente: TUtenti = self.exists_utente_by_id(id)
-        if utente:
-            utente.attivo = attivo
-            self.session.commit()
-            return
-        else:
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
-        
-        
-    def delete_utente(self, id: int):
-        result = self.exists_utente_by_id(id)
-        if result:
-            self.session.delete(result)
-            self.session.commit()
-            self.session.close()
-            return {'utente': UtilityMessages.deleteMessage('Utente', 'id', id)}
-        else:
-            self.session.close()
-            raise NotFound(UtilityMessages.notFoundErrorMessage('Utente', 'id', id))
+
+
+
+    def update_utente_password(self, puiblic_id: str, hashed_password: str):
+        try:
+            utente: TUtenti = self.exists_utente_by_public_id(puiblic_id)
+            if utente:
+                utente.password = hashed_password
+                self.session.commit()
+                return {'success': True, 'message': 'Password aggiornata con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the password: {str(e)}")
+            
+
+
+
+
+    def update_utente_attivo(self, id: int, attivo: int):
+        try:
+            utente: TUtenti = self.exists_utente_by_id(id)
+            if utente:
+                utente.attivo = attivo
+                self.session.commit()
+                return {'success': True, 'message': 'Stato attivo aggiornato con successo'}, 200  # Risposta di successo
+            else:
+                return {'Error': 'Utente non trovato'}, 404  # Utente non trovato
+
+        except SQLAlchemyError as e:
+            # Rollback in caso di errore durante la transazione
+            self.session.rollback()
+            print(f"Exception occurred: {str(e)}")  # Log dell'errore
+            raise RuntimeError(f"An error occurred while updating the active status: {str(e)}")
+            
+
 
 
     def do_login(self, username: str, password: str, token_expires=timedelta(minutes=30)):
@@ -396,9 +444,6 @@ class Repository_t_utenti:
 
         
 
-
-
-
     def check_password(self, username: str, password: str):
         # Recupera l'utente dal database usando il nome utente
         user = self.exists_utente_by_username(username)
@@ -416,14 +461,7 @@ class Repository_t_utenti:
         
         # Chiudi la sessione dopo la verifica
         self.session.close()
-        return True
-
-        
-        
-        
-
-
-        
+        return True 
 
 
     def do_logout_nuovo(self, id: int):
@@ -506,6 +544,21 @@ class Repository_t_utenti:
             self.session.close()  # Assicura che la sessione venga sempre chiusa
 
         
+    def get_utente_by_token_valid(self, token):
+        # Recupera l'utente dal database usando il suo token
+        user = self.session.query(TUtenti).filter_by(token=token).first()
+        
+        if not user:
+            raise ValueError("Token non valido")
+
+        current_time = datetime.now()
+        
+        if current_time > user.expires:
+            raise ValueError("Il token è scaduto")
+
+        # Se il token è valido e non è scaduto, restituisci l'utente
+        return user  
+
 
     def is_token_valid(self, id, token):
         # Recupera l'utente dal database usando il suo public_id
@@ -542,10 +595,6 @@ class Repository_t_utenti:
         finally:
             if self.session:
                 self.session.close()
-
-
-
-
 
 
     def manage_token(self, id, token, token_expires=timedelta(minutes=30)):
@@ -586,3 +635,25 @@ class Repository_t_utenti:
 
         # Se il token non è vicino alla scadenza, restituisce un messaggio di successo senza rinnovo
         return jsonify(message="Token is valid and not near expiration")
+
+
+    # Funzione per creare il token di reset della password
+    def generate_reset_password_token(self, email: str, token_expires=timedelta(minutes=30)):
+        # Verifica se l'utente esiste nel database tramite l'email
+        result = self.exists_utente_by_email(email)
+        
+        if not result:
+            self.session.close()
+            raise NotFound(f"Utente con email {email} non trovato.")
+
+        # Genera il token con una scadenza
+        token = create_access_token(identity=result.public_id, expires_delta=token_expires)
+
+        # Aggiorna il token e la data di scadenza nel database
+        result.token = token
+        result.expires = datetime.now() + token_expires
+        
+        self.session.commit()
+
+        # Restituisci il token generato da inviare via email
+        return token

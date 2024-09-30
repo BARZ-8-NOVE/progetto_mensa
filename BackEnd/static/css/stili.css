@@ -249,6 +249,7 @@ nav ul li a {
 
 
 .styled-button {
+    text-decoration: none;  /* Rimuove la sottolineatura */
     padding: 10px 20px;
     background-color: #07437e;
     color: white;

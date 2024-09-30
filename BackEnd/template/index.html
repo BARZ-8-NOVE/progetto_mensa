@@ -14,7 +14,6 @@
             <span>Utente: <span id="username">{{ username }}</span></span>
             <a href="/app_cucina/impostazioni">Impostazioni</a>
             <form method="POST" action="{{ url_for('app_cucina.do_logout') }}" style="display: inline;">
-                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}" />
                 <button type="submit" id="logout">Logout</button>
             </form>
         </div>

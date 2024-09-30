@@ -7,7 +7,7 @@ from functools import wraps
 import pprint
 import logging
 import traceback
-
+from itsdangerous import URLSafeTimedSerializer
 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
 from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtente import Service_t_FunzionalitaUtente
@@ -65,13 +65,16 @@ from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseDB.config import EmailConfig
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, 
-                                    LoginFormNoCSRF, LogoutFormNoCSRF, schedaForm, ordineSchedaForm, 
-                                    schedaPiattiForm, UtenteForm, CloneMenuForm, TipoUtenteForm , 
-                                    TipologiaPiattiForm, TipologiaMenuForm, RepartiForm, ServiziForm, 
-                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm, BrodoForm)
+                                    LoginFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, 
+                                    UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, 
+                                    TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, 
+                                    ordinedipendenteForm, ContattiForm, PasswordResetRequestForm,
+                                    PasswordResetForm,)
 
 # Initialize the app and configuration
 import Reletionships
+
+
 
 app = Flask(__name__)
 
@@ -81,7 +84,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 app.config['WTF_CSRF_ENABLED'] = True
-
+s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # Carica configurazioni dell'email
 app.config['MAIL_SERVER'] = EmailConfig.MAIL_SERVER
@@ -456,7 +459,13 @@ def check_token_and_permissions():
     """
 
     # Definisce le rotte esenti dal controllo di autenticazione e permessi
-    exempt_routes = ['app_cucina.login', 'app_cucina.index', 'app_cucina.do_logout', 'app_cucina.contatti']
+    exempt_routes = ['app_cucina.login', 
+                     'app_cucina.index',
+                     'app_cucina.reset_password', 
+                     'app_cucina.richiesta_recupero_password', 
+                     'app_cucina.do_logout', 
+                     'app_cucina.contatti'
+                     ]
 
     # Controlla se la rotta attuale è esente dal controllo
     if request.endpoint in exempt_routes:
@@ -525,7 +534,12 @@ def check_csrf():
     - Applicare la protezione CSRF a tutte le rotte, eccetto quelle specificate come esenti.
 
     """
-    exempt_routes = ['app_cucina.login', 'app_cucina.index','app_cucina.do_logout','app_cucina.contatti' ]
+    exempt_routes = ['app_cucina.login',
+                     'app_cucina.index',
+                     'app_cucina.do_logout',
+                     'app_cucina.reset_password',
+                     'app_cucina.richiesta_recupero_password',
+                     'app_cucina.contatti' ]
     if request.endpoint not in exempt_routes:
         csrf.protect()
 
@@ -634,7 +648,10 @@ def login():
                     - Mostra un messaggio di errore e riporta l'utente alla pagina di login.
 
     Notes:
-        - Se si verifica un errore durante il processo di login, viene visualizzato un messaggio di errore e l'utente rimane sulla pagina di login.
+        - Se si verifica un errore durante il processo di login, vengono visualizati messaggi specifici a seconda dell'errore:
+            -Gestione dell'eccezione se l'utente non esiste.
+            -Gestione dell'eccezione se la password è sbagliata o l'utente è scaduto.
+            -Gestione generica per eventuali altri errori.
         - Le credenziali sono validate utilizzando il servizio `service_t_utenti` che gestisce l'autenticazione.
         - Il sistema mantiene la struttura del menu dell'utente autenticato per l'accesso rapido alle funzionalità.
         - È previsto l'uso di un modulo senza protezione CSRF per consentire la gestione delle richieste di login.
@@ -647,29 +664,42 @@ def login():
         password = form.password.data
 
         try:
-            user = service_t_utenti.do_login(username, password)  # Call do_login first
-            
+            # Chiama il servizio per eseguire il login
+            user = service_t_utenti.do_login(username, password)  
 
             if user:
+                # Setta i dati della sessione
                 session['authenticated'] = True
                 session['user_id'] = user['public_id']
                 session['token'] = user['token']
                 session['fkTipoUtente'] = user['fkTipoUtente']
                 session['username'] = user['username']
 
+                # Costruisci il menu di navigazione
                 menu_structure = service_t_FunzionalitaUtente.build_menu_structure(user['public_id'])
                 session['menu_structure'] = menu_structure
-                
+
                 return redirect(url_for('app_cucina.home'))
             else:
                 flash('Invalid username or password', 'error')
                 return render_template('loginx.html', form=form)
-        
+
+        except NotFound as e:
+            # Gestione dell'eccezione se l'utente non esiste
+            flash(str(e), 'error')
+            return render_template('loginx.html', form=form)
+
+        except Forbidden as e:
+            # Gestione dell'eccezione se la password è sbagliata o l'utente è scaduto
+            flash(str(e), 'error')
+            return render_template('loginx.html', form=form)
+
         except Exception as e:
+            # Gestione generica per eventuali altri errori
             print(f"Error during login: {e}")
             flash('An error occurred during login. Please try again.', 'error')
             return render_template('loginx.html', form=form)
-    
+
     return render_template('loginx.html', form=form)  # GET request
 
 
@@ -743,7 +773,6 @@ def inject_user_data():
         username=session.get('username'),
         token=token,
         user_type=user_type,
-        form=LogoutFormNoCSRF(),
         current_page_link=request.path,
         page_permissions=page_permissions  # Aggiungi i permessi delle pagine
     )
@@ -4741,8 +4770,7 @@ def do_logout():
     
     if 'authenticated' in session:
 
-        form = LogoutFormNoCSRF()
-        if form.validate_on_submit():
+        if request.method == 'POST':
             service_t_utenti.do_logout_nuovo(session['user_id'])
             session.clear()
 
@@ -4750,6 +4778,89 @@ def do_logout():
         
     return redirect(url_for('app_cucina.login'))
 
+
+
+
+@app_cucina.route('/richiesta_recupero_password', methods=['POST'])
+@csrf.exempt  
+def richiesta_recupero_password():
+    if request.method == 'POST':
+        # Ottieni l'email direttamente dalla richiesta
+        email = request.form.get('email')  # Usa 'get' per evitare errori se 'email' non esiste
+        print("Email submitted: ", email)  # Stampa l'email inviata
+
+        # Verifica se l'utente esiste tramite email
+        utente = service_t_utenti.exists_utente_by_email(email)
+
+        if utente:
+            # Genera il token per il reset della password
+            token = service_t_utenti.generate_reset_password_token(email)
+            print("Generated token: ", token)  # Stampa il token generato
+
+            # Crea il messaggio di reset della password
+            msg = Message(
+                subject="Richiesta di reimpostazione della password",
+                sender='ptest2420@gmail.com',  # Usa il sender configurato
+                recipients=[email],  # Invia all'email dell'utente
+                
+            )
+
+            # Crea il link di reset password
+            reset_url = url_for('app_cucina.reset_password', token=token, _external=True)
+            print("Reset URL: ", reset_url)  # Stampa l'URL di reset
+
+            # Corpo del messaggio email
+            msg.body = f"Ciao {utente.nome},\n\n" \
+                       f"Hai richiesto di reimpostare la tua password. Clicca sul seguente link per procedere:\n" \
+                       f"{reset_url}\n\n" \
+                       "Se non hai richiesto questa azione, ignora questa email.\n\n" \
+                       "Grazie,\nIl Team"
+
+            try:
+                # Invia l'email
+                mail.send(msg)
+                flash('Un\'email con le istruzioni per il reset della password è stata inviata!', 'success')
+            except Exception as e:
+                flash('C\'è stato un errore durante l\'invio dell\'email. Riprova più tardi.', 'danger')
+                print("Error sending email: ", e)  # Stampa il messaggio di errore
+
+        else:
+            # Anche se l'utente non esiste, mostriamo comunque un messaggio di conferma
+            flash('Controlla la tua email per le istruzioni di reimpostazione della password.', 'info')
+
+        print("Redirecting to login page...")
+        return redirect(url_for('app_cucina.login'))  # Assicurati di indirizzare all'endpoint corretto
+
+    # Se non viene fatto un POST, gestisci il fallback (opzionale)
+    flash('Si è verificato un errore nel recupero della password. Riprova.', 'danger')
+    print("Form validation failed, redirecting to login page...")
+    
+    # Reindirizza l'utente alla pagina di login
+    return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    form = PasswordResetForm()
+
+    try:
+        # Verifica la validità del token
+        utente = service_t_utenti.get_utente_by_token_valid(token)
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('app_cucina.login'))
+    
+    if form.validate_on_submit():
+        # Processa la nuova password
+        new_password = form.nuova_password.data
+        service_t_utenti.update_utente_password(utente.public_id, new_password)
+
+        flash('La tua password è stata reimpostata con successo!', 'success')
+        return redirect(url_for('app_cucina.login'))
+
+    return render_template('reset_password.html', form=form, token=token)
+
+  
 
 #pagina che riporta gli errori
 @app_cucina.route('/report_error', methods=['POST'])

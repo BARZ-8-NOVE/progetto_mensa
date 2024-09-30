@@ -31,7 +31,17 @@ class LoginFormNoCSRF(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
+class PasswordResetRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Invia Richiesta')
 
+class PasswordResetForm(FlaskForm):
+    nuova_password = PasswordField('Nuova Password', validators=[
+        DataRequired(), 
+        EqualTo('ripeti_nuova_password', message='Le password devono corrispondere')
+    ])
+    ripeti_nuova_password = PasswordField('Ripeti Nuova Password', validators=[DataRequired()])
+    submit = SubmitField('Reimposta Password')
 
 class AlimentiForm(FlaskForm):
     alimento = StringField('Nome', validators=[DataRequired()])

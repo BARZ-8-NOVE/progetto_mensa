@@ -139,19 +139,19 @@ def update_utente():
     except Exception as e:
         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
 
-@t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
-@jwt_required()
-def delete_utente():
-    try:
-        id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
-        result = service_t_utenti.delete_utente(id)
-        return jsonify(result), httpCodes.OK
-    except NotFound as e:
-        return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
-    except ValueError as e:
-        return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
-    except Exception as e:
-        return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
+# @t_utenti_controller.route('/delete_utente/<int:id>', methods=['DELETE'])
+# @jwt_required()
+# def delete_utente():
+#     try:
+#         id = UtilityGeneral.safe_int_convertion(request.args.get('id'), 'id')
+#         result = service_t_utenti.delete_utente(id)
+#         return jsonify(result), httpCodes.OK
+#     except NotFound as e:
+#         return jsonify({'Error': str(e)}), httpCodes.NOT_FOUND
+#     except ValueError as e:
+#         return jsonify({'Error': str(e)}), httpCodes.UNPROCESSABLE_ENTITY
+#     except Exception as e:
+#         return jsonify({'Error': str(e)}), httpCodes.INTERNAL_SERVER_ERROR
     
 
 @t_utenti_controller.route('/do_login1', methods=['POST'])
