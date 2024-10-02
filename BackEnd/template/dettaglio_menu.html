@@ -71,57 +71,12 @@ Modifica Menu - Gestione Cucina
     </form>
 
     <script>
-        // Funzione per mostrare una sezione specifica
-        function showSection(sectionId) {
-            // Nascondi tutte le sezioni
-            document.querySelectorAll('.menu-section').forEach(section => {
-                section.style.display = 'none';
-            });
-
-            // Mostra la sezione selezionata
-            document.getElementById(sectionId).style.display = 'block';
-        }
-
-        // Chiama showSection per mostrare la sezione iniziale
         showSection('{{ tipologia_piatti[0].id }}');
-
-        // Stampa i dati per il debug
-        console.log('piattiToPreparazioni:', {{ piatti_to_preparazioni | tojson }});
-        console.log('prep_associate_a_piatto:', {{ prep_per_piatto | tojson }});
-        
         const piattiToPreparazioni = {{ piatti_to_preparazioni | tojson }};
         const prep_associate_a_piatto = {{ prep_per_piatto | tojson }};
-
-        function updatePreparazioni() {
-            console.log('Updating preparazioni visibility...');
-            
-            // Trova tutti i piatti selezionati
-            const selectedPiatti = Array.from(document.querySelectorAll('input[name="piatti"]:checked')).map(cb => parseInt(cb.value));
-            console.log('Selected Piatti:', selectedPiatti);
-
-            // Mostra i contenitori per i piatti selezionati e nascondi quelli non selezionati
-            document.querySelectorAll('div[id^="preparazioni-container-"]').forEach(container => {
-                const piattoId = container.id.split('-')[2];
-                if (selectedPiatti.includes(parseInt(piattoId))) {
-                    container.style.display = 'block'; // Mostra il contenitore per i piatti selezionati
-                } else {
-                    container.style.display = 'none'; // Nascondi i contenitori per i piatti non selezionati
-                }
-            });
-        }
-
-        // Associa l'evento change ai checkbox
-        document.querySelectorAll('input[name="piatti"]').forEach(checkbox => {
-            checkbox.addEventListener('change', updatePreparazioni);
-        });
-
-        // Chiama updatePreparazioni al caricamento della pagina per visualizzare i contenitori appropriati
-        updatePreparazioni();
-
-
-
         function redirectToMenu() {
             window.location.href = "{{ url_for('app_cucina.menu') }}";
         }
     </script>
+    <script src="{{ url_for('static', filename='js/dettaglio_menu.js') }}"></script>
 {% endblock %}
