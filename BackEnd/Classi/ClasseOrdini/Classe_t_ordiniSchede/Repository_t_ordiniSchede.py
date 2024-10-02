@@ -2,6 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClasseOrdini.Classe_t_ordiniSchede.Domain_t_ordiniSchede import TOrdiniSchede
 from Classi.ClasseSchede.Classe_t_schede.Domani_t_schede import TSchede
+from Classi.ClasseMenu.Classe_t_menu.Repository_t_menu import TMenu
 from sqlalchemy.sql import func
 from datetime import datetime
 
@@ -318,6 +319,59 @@ class RepositoryOrdiniSchede:
 
 
 
+    def count_totali_tipo_menu(self, anno: int, mese=None, giorno=None):
+        """Conta il totale degli ordini per un mese specifico e restituisce il totale per tipo di menu, 
+        inclusi i brodi (fkScheda=18) come una categoria separata."""
+        try:
+            # Conteggio generale degli ordini raggruppati per tipo di menu (escludendo fkScheda=18)
+            conteggi_menu = (
+                self.session.query(
+                    TSchede.fkTipoMenu,
+                    func.count(TOrdiniSchede.id).label('conteggio')
+                )
+                .join(TOrdiniSchede, TOrdiniSchede.fkScheda == TSchede.id)
+                .filter(
+                    TOrdiniSchede.dataCancellazione.is_(None),
+                    TOrdiniSchede.fkScheda != 18,
+                    (func.extract('year', TOrdiniSchede.data) == anno) | (anno is None),
+                    (func.extract('month', TOrdiniSchede.data) == mese) | (mese is None),
+                    (func.extract('day', TOrdiniSchede.data) == giorno) | (giorno is None)
+                )
+                .group_by(TSchede.fkTipoMenu)
+                
+                .all()
+            )
+
+            # Conteggio separato per la scheda fkScheda=18 (brodi)
+            conteggio_brodi = (
+                self.session.query(func.count(TOrdiniSchede.id))
+                .filter(
+                    TOrdiniSchede.fkScheda == 18,
+                    TOrdiniSchede.dataCancellazione.is_(None),
+                    (func.extract('year', TOrdiniSchede.data) == anno) | (anno is None),
+                    (func.extract('month', TOrdiniSchede.data) == mese) | (mese is None),
+                    (func.extract('day', TOrdiniSchede.data) == giorno) | (giorno is None)
+                )
+                .scalar()
+            )
+
+            # Creazione di un dizionario per i risultati
+            risultati = {menu.fkTipoMenu: menu.conteggio for menu in conteggi_menu}
+
+            # Aggiungi il conteggio della scheda 18 come 'brodi'
+            risultati['brodi'] = conteggio_brodi
+
+            return {
+                'conteggi_menu': risultati
+            }
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
+
+
 
     def count_totali_per_giorno(self, data, servizio: int):
         """Conta il totale degli ordini per pazienti e personale in una data specifica, e restituisce i totali complessivi."""
@@ -364,6 +418,57 @@ class RepositoryOrdiniSchede:
 
 
 
+
+
+    def count_totali_per_mese(self, mese: int, anno: int, servizio: int):
+        """Conta il totale degli ordini per un mese specifico e restituisce il totale complessivo per servizio."""
+        try:
+            # Query per il totale degli ordini (senza distinzione tra pazienti e personale)
+            totale_completo = self.session.query(func.count()).select_from(
+                TOrdiniSchede
+            ).join(
+                TSchede, TOrdiniSchede.fkScheda == TSchede.id
+            ).filter(
+                func.extract('month', TOrdiniSchede.data) == mese,
+                func.extract('year', TOrdiniSchede.data) == anno,
+                TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).scalar()  # Usa scalar() per ottenere il valore del conteggio direttamente
+
+            return {
+                'totale_completo': totale_completo
+            }
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
+
+
+    def count_totali_per_anno(self, anno: int, servizio: int):
+        """Conta il totale degli ordini per un anno specifico e restituisce il totale complessivo per servizio."""
+        try:
+            # Query per il totale degli ordini (senza distinzione tra pazienti e personale)
+            totale_completo = self.session.query(func.count()).select_from(
+                TOrdiniSchede
+            ).join(
+                TSchede, TOrdiniSchede.fkScheda == TSchede.id
+            ).filter(
+                func.extract('year', TOrdiniSchede.data) == anno,
+                TOrdiniSchede.fkServizio == servizio,
+                TOrdiniSchede.dataCancellazione.is_(None)
+            ).scalar()  # Usa scalar() per ottenere il valore del conteggio direttamente
+
+            return {
+                'totale_completo': totale_completo
+            }
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            if self.session:
+                self.session.close()
 
         
     def get_by_id(self, id):

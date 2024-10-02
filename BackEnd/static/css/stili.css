@@ -666,6 +666,39 @@ li {
     margin: 0; /* Rimuove margini predefiniti */
 }
 
+
+.controls-home-menu-sx {
+    display: flex;
+    gap: 10px; /* Spazio tra gli elementi */
+    align-items: center; /* Allinea verticalmente al centro */
+    margin-bottom: 20px;
+    margin-top: 0px;
+    margin-right: 51%;
+    margin-left: 20px; /* Spazio sotto il contenitore */
+}
+
+.controls-home-menu-custom-dx {
+    display: flex;
+    gap: 10px; /* Spazio tra gli elementi */
+    align-items: center;
+    margin-top: -411px; 
+    margin-bottom: 20px;
+    margin-left: 51%;
+    margin-right: 20px; /* Spazio sotto il contenitore */
+    position: relative
+}
+
+.controls-home-menu-dx {
+    display: flex;
+    gap: 10px; /* Spazio tra gli elementi */
+    align-items: center;
+    margin-top: -215px; 
+    margin-bottom: 5px;
+    margin-left: 51%;
+    margin-right: 20px; /* Spazio sotto il contenitore */
+    position: relative
+}
+
 .stampa {
     
     margin: 0;
@@ -1710,4 +1743,21 @@ select {
     align-items: center;
     justify-content: center;
     z-index: 9999;
+}
+
+#totaleCalorie {
+    margin-left: 550px;
+    margin-top: -59px;
+     /* Margine sinistro per distanziare dagli altri elementi */
+    font-weight: bold; /* Grassetto per il testo */
+    font-size: 1.2em; /* Dimensione del font leggermente più grande */
+    color: #333; /* Colore del testo (puoi cambiarlo come preferisci) */
+    padding: 10px; /* Padding per spaziatura interna */
+    border: 1px solid #ccc; /* Bordo grigio chiaro */
+    border-radius: 5px; /* Angoli arrotondati */
+    background-color: #f9f9f9; /* Colore di sfondo chiaro */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggero ombreggiatura */
+    display: flex; /* Utilizza flexbox per allineare il testo */
+    align-items: center; /* Allinea verticalmente gli elementi */
+    position: absolute;
 }

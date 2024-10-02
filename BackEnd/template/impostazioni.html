@@ -21,12 +21,14 @@ Impostazioni - Gestione Cucina e Mensa Ospedaliera
     <!-- Button to open the password change form -->
     <button type="button" class="styled-button" onclick="showForm()">Modifica Password</button>
 
+    <button type="button" class="styled-button" onclick="showFormEmail()">Modifica e-mail</button>
+
     <!-- The Modal -->
     <div id="passwordModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeForm()">&times;</span>
             <h2>Cambia Password</h2>
-            <form method="post" action="{{ url_for('app_cucina.impostazioni') }}">
+            <form method="post" action="{{ url_for('app_cucina.impostazioni') }}" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
                     {{ form.username.label }}
@@ -49,6 +51,36 @@ Impostazioni - Gestione Cucina e Mensa Ospedaliera
         </div>
     </div>
 </div>
+
+<!-- The Modal -->
+<div id="emailModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeFormEmail()">&times;</span>
+        <h2>Cambia e-mail</h2>
+        <form method="post" action="{{ url_for('app_cucina.impostazioni') }}" onsubmit="disableAllSubmitButtons()">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form_email.email.label }}
+                {{ form_email.email(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form_email.email_conferma.label }}
+                {{ form_email.email_conferma(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form_email.password.label }}
+                {{ form_email.password(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Cambia email</button>
+        </form>
+    </div>
+</div>
+
+</div>
+
+
+
+
 <script>
     function showForm() {
         document.getElementById('passwordModal').style.display = 'block';
@@ -64,6 +96,23 @@ Impostazioni - Gestione Cucina e Mensa Ospedaliera
             closeForm();
         }
     }
+
+    function showFormEmail() {
+        document.getElementById('emailModal').style.display = 'block';
+    }
+    
+    function closeFormEmail() {
+        document.getElementById('emailModal').style.display = 'none';
+    }
+    
+    // Chiudi il popup se l'utente clicca al di fuori del contenuto del popup
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('emailModal')) {
+            closeFormEmail();
+        }
+    }
+
+
     </script>
     
 {% endblock %}

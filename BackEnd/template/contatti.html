@@ -9,7 +9,7 @@ Contatti - Gestione Cucina
     <h2>Contattaci</h2>
     <p>Se hai riscontrato un problema o hai una richiesta, inviaci un messaggio.</p>
 
-    <form method="POST" action="{{ url_for('app_cucina.contatti') }}">
+    <form method="POST" action="{{ url_for('app_cucina.contatti') }}" onsubmit="disableAllSubmitButtons()">
         {{ form.hidden_tag() }}
 
         <div class="form-group">

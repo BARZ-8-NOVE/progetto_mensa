@@ -30,8 +30,8 @@ class Repository_t_utenti:
         result = self.session.query(TUtenti).filter_by(email=email).first()
         return result
     
-    def exists_utente_by_email_with_different_id(self, email: str, id: int):
-        result = self.session.query(TUtenti).filter(TUtenti.email == email, TUtenti.id != id).first()
+    def exists_utente_by_email_with_different_id(self, email: str, public_id: str):
+        result = self.session.query(TUtenti).filter(TUtenti.email == email, TUtenti.public_id != public_id).first()
         return result
     
     def exists_utente_by_username_with_different_id(self, username: str, id: int):
@@ -192,11 +192,11 @@ class Repository_t_utenti:
 
         
 
-    def update_utente_email(self, id: int, email: str):
+    def update_utente_email(self, public_id: str, email: str):
         try:
-            utente: TUtenti = self.exists_utente_by_id(id)
+            utente: TUtenti = self.exists_utente_by_public_id(public_id)
             if utente:
-                result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, id)
+                result_exists_utente_by_email_with_different_id = self.exists_utente_by_email_with_different_id(email, public_id)
                 if result_exists_utente_by_email_with_different_id:
                     raise Conflict(UtilityMessages.existsErrorMessage('Utente', 'email', email))
                 

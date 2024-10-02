@@ -10,9 +10,10 @@ from Classi.ClasseServizi.Domani_t_servizi import TServizi
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
 from sqlalchemy.exc import SQLAlchemyError
 
+
         
 from datetime import datetime, date, timedelta
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 class RepositoryMenu:
 
     def __init__(self) -> None:
@@ -344,4 +345,41 @@ class RepositoryMenu:
 
 
 
-   
+    def get_latest_by_fkTipoMenu(self):
+        try:
+            # Subquery per ottenere la data massima per ogni fkTipoMenu con dataCancellazione NULL
+            subquery = self.session.query(
+                TMenu.fkTipoMenu,
+                func.max(TMenu.data).label('max_data')
+            ).group_by(TMenu.fkTipoMenu).filter(TMenu.dataCancellazione.is_(None)).subquery()
+
+            # Query principale per ottenere i dettagli del record più recente per ogni fkTipoMenu,
+            # assicurandosi che anche la dataCancellazione sia NULL
+            results = self.session.query(
+                TMenu.id,
+                TMenu.data,
+                TMenu.fkTipoMenu,
+                TMenu.dataInserimento,
+                TMenu.utenteInserimento,
+                TMenu.dataCancellazione,
+                TMenu.utenteCancellazione
+            ).join(
+                subquery,
+                (TMenu.fkTipoMenu == subquery.c.fkTipoMenu) & (TMenu.data == subquery.c.max_data)
+            ).filter(TMenu.dataCancellazione.is_(None)).all()
+
+            # Restituzione dei risultati come lista di dizionari
+            return [{'id': result.id,
+                    'data': result.data,
+                    'fkTipoMenu': result.fkTipoMenu,
+                    'dataInserimento': result.dataInserimento,
+                    'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione,
+                    'utenteCancellazione': result.utenteCancellazione} for result in results]
+
+        except Exception as e:
+            self.session.rollback()  # Esegui il rollback in caso di errore
+            return {'Error': str(e)}, 500
+
+        finally:
+            self.session.close()  # Assicurati che la sessione venga chiusa

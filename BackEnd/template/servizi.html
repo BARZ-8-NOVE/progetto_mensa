@@ -54,7 +54,7 @@ Servizi - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeForm()">&times;</span>
-            <form id="serviziForm" method="POST" enctype="multipart/form-data">
+            <form id="serviziForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
                 <input type="hidden" id="serviziId" name="serviziId">
                 <div class="modal-header">

@@ -55,3 +55,13 @@ document.getElementById('logout').addEventListener('click', function() {
     });
 });
 
+function disableAllSubmitButtons() {
+    // Trova tutti i pulsanti di invio e quelli con la classe "action-button" o di tipo "button"
+    const submitButtons = document.querySelectorAll('button[type="submit"], input[type="submit"], button.action-button, input[type="button"]');
+    
+    submitButtons.forEach(button => {
+        button.disabled = true; // Disabilita tutti i pulsanti identificati
+    });
+}
+
+

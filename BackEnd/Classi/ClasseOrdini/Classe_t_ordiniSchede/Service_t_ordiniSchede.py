@@ -86,3 +86,52 @@ class Service_t_OrdiniSchede:
             totale_completo += ordini_totali['totale_completo']
 
         return ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo
+    
+
+    def count_totali_per_mese(self, mese: int, anno: int, servizio: int):
+        """Conta i totali degli ordini per un mese specifico e un servizio."""
+        return self.repository.count_totali_per_mese(mese, anno, servizio)
+
+    def calcola_totali_per_mese(self, mese, anno, servizi):
+        """Calcola i totali degli ordini per mese, divisi per servizio, e il totale complessivo."""
+        ordini_totali_mese_per_servizio = {}
+        totale_mese_completo = 0
+
+        for servizio in servizi:
+            # Ottieni il totale degli ordini per il servizio specifico
+            ordini_totali = self.count_totali_per_mese(mese, anno, servizio['id'])
+            servizio_nome = servizio['descrizione']
+
+            # Aggiungi il totale per questo servizio al dizionario
+            ordini_totali_mese_per_servizio[servizio_nome] = ordini_totali['totale_completo']
+            
+            # Somma il totale complessivo
+            totale_mese_completo += ordini_totali['totale_completo']
+
+        return ordini_totali_mese_per_servizio, totale_mese_completo
+
+
+    def count_totali_per_anno(self, anno: int, servizio: int):
+        """Conta i totali degli ordini per un anno specifico e un servizio."""
+        return self.repository.count_totali_per_anno(anno, servizio)
+
+    def calcola_totali_per_anno(self, anno, servizi):
+        """Calcola i totali degli ordini per anno, divisi per servizio, e il totale complessivo."""
+        ordini_totali_anno_per_servizio = {}
+        totale_anno_completo = 0
+
+        for servizio in servizi:
+            # Ottieni il totale degli ordini per il servizio specifico
+            ordini_totali = self.count_totali_per_anno(anno, servizio['id'])
+            servizio_nome = servizio['descrizione']
+
+            # Aggiungi il totale per questo servizio al dizionario
+            ordini_totali_anno_per_servizio[servizio_nome] = ordini_totali['totale_completo']
+            
+            # Somma il totale complessivo
+            totale_anno_completo += ordini_totali['totale_completo']
+
+        return ordini_totali_anno_per_servizio, totale_anno_completo
+    
+    def count_totali_tipo_menu(self, anno: int, mese=None, giorno=None):
+        return self.repository.count_totali_tipo_menu(anno, mese, giorno)

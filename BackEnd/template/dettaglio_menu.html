@@ -6,7 +6,7 @@ Modifica Menu - Gestione Cucina
 
 {% block content %}
     <h1>Menu {{servizi_map[menu_servizio.fkServizio]}} per il girono {{menu_giorno.data}}</h1>
-    <form method="POST">
+    <form method="POST" onsubmit="disableAllSubmitButtons()">
         {{ form.hidden_tag() }}
 
             <!-- Bottoni di navigazione -->

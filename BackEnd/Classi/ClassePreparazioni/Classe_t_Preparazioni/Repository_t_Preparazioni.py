@@ -1,7 +1,10 @@
 from sqlalchemy.orm import sessionmaker
 from Classi.ClasseDB.db_connection import engine
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Domain_t_preparazioni import TPreparazioni
+from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Repository_t_preparazioniContenuti import TPreparazioniContenuti
+from Classi.ClasseAlimenti.Classe_t_alimenti.Repository_t_alimenti import TAlimenti
 from datetime import datetime
+from sqlalchemy import func, case
 
 
 class Repository_t_preparazioni:
@@ -175,6 +178,46 @@ class Repository_t_preparazioni:
             finally:
                 # Chiudi sempre la sessione
                 self.session.close()
+
+
+    def calcola_calorie_per_nome(self, titolo_piatto):
+        try:
+            results = (
+                self.session.query(
+                    TPreparazioni.descrizione,
+                    func.sum(TAlimenti.energia_Kcal * TPreparazioniContenuti.quantita / 100).label('calorie_totali'),
+                    func.count(TPreparazioniContenuti.fkAlimento.distinct()).label('numero_ingredienti'),
+                    func.group_concat(
+                        func.distinct(case(
+                            (TAlimenti.fkAllergene != 15, TAlimenti.fkAllergene)
+                        ))
+                    ).label('allergeni')  # Usa DISTINCT per evitare duplicati
+                )
+                .join(TPreparazioniContenuti, TPreparazioniContenuti.fkPreparazione == TPreparazioni.id)
+                .join(TAlimenti, TPreparazioniContenuti.fkAlimento == TAlimenti.id)
+                .filter(TPreparazioni.descrizione == titolo_piatto)  # Filtra per nome del piatto
+                .group_by(TPreparazioniContenuti.fkPreparazione)
+                .first()  # Prendi il primo risultato
+            )
+
+            if results:
+                # Crea e restituisci un dizionario con i risultati
+                return {
+                    'descrizione': results.descrizione,
+                    'calorie_totali': results.calorie_totali,
+                    'allergeni': results.allergeni
+                }
+
+            return None
+
+        except Exception as e:
+            print(f"Si è verificato un errore: {e}")
+            return None
+
+        finally:
+            self.session.close()
+
+
 
 
     def delete(self, id, utenteCancellazione):

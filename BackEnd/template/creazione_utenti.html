@@ -65,7 +65,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-content">
         <span class="close" onclick="closeAddUtenteForm()">&times;</span>
         <h2>Aggiungi Utente</h2>
-        <form method="POST" action="{{ url_for('app_cucina.creazione_utenti') }}">
+        <form method="POST" action="{{ url_for('app_cucina.creazione_utenti') }}" onsubmit="disableAllSubmitButtons()">
             {{ form.hidden_tag() }}
             <div class="form-group">
                 {{ form.username.label(class="form-label") }}
@@ -152,7 +152,7 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-content">
         <span class="close" onclick="closeEditUtenteForm()">&times;</span>
         <h2>Modifica Utente</h2>
-        <form id="editUtenteForm" method="POST">
+        <form id="editUtenteForm" method="POST" onsubmit="disableAllSubmitButtons()">
             {{ form.hidden_tag() }}
             <input type="hidden" id="editUtenteId" name="utenteId">
             

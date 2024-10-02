@@ -11,7 +11,7 @@ class TFunzionalitaRepository:
     def get_all(self):
         session = self.Session()
         try:
-            results = session.query(TFunzionalita).all()
+            results = session.query(TFunzionalita).order_by(TFunzionalita.ordinatore).all()
             return [{'id': result.id, 'fkPadre': result.fkPadre, 'titolo': result.titolo, 'label': result.label, 'icon': result.icon, 'link': result.link, 'ordinatore': result.ordinatore, 'target': result.target, 'dataCancellazione': result.dataCancellazione} for result in results]
         except Exception as e:
             session.rollback()  # Esegui il rollback in caso di errore

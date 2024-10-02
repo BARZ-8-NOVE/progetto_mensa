@@ -14,7 +14,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
         </h2>
     </div>
-    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" >
+    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" onsubmit="disableAllSubmitButtons()" >
         {{ form.hidden_tag() }}
 
         <div class="form-row-ordiniPiatti">

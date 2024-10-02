@@ -60,7 +60,7 @@ Creazione Schede - Gestione Cucina
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <form id="schedaForm" method="POST" enctype="multipart/form-data">
+            <form id="schedaForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
 
                 <div class="modal-header">
@@ -157,8 +157,9 @@ Creazione Schede - Gestione Cucina
                         {% endfor %}
                     </div>
 
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
                     <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                    
                 </div>
             </form>
         </div>

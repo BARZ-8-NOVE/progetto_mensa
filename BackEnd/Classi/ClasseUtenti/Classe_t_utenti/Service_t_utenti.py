@@ -88,8 +88,8 @@ class Service_t_utenti:
         hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
         return self.repository.update_utente_password(public_id, hashed_password,)
     
-    def update_utente_email(self, id:int, email:str):
-        return self.repository.update_utente_email(id, email)
+    def update_utente_email(self, public_id:str, email:str):
+        return self.repository.update_utente_email(public_id, email)
     
     def do_login(self, username:str, password:str):
         return self.repository.do_login(username, password)

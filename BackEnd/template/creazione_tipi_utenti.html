@@ -51,7 +51,7 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
     <div class="modal-content">
         <span class="close" onclick="closeAddUtenteForm()">&times;</span>
         <h2 id="modalTitle">Aggiungi Tipo Utente</h2>
-        <form id="userTypeForm" method="POST" enctype="multipart/form-data">
+        <form id="userTypeForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
             {{ form.hidden_tag() }}
             <input type="hidden" name="tipoUtenteId" id="tipoUtenteId">
             <div>

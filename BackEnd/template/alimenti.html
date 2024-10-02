@@ -70,7 +70,7 @@
     <div class="modal-content">
         <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
         <h2>Aggiungi Alimento</h2>
-        <form method="POST" action="{{ url_for('app_cucina.alimenti') }}">
+        <form method="POST" action="{{ url_for('app_cucina.alimenti') }}" onsubmit="disableAllSubmitButtons()">
             {{ form.hidden_tag() }}
             <div>
                 {{ form.alimento.label }} {{ form.alimento(size=32) }}

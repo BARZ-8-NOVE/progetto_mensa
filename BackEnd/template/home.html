@@ -99,13 +99,13 @@ Home - Gestione Cucina
     </form>
 </div>
 {% if page_permissions['/app_cucina/home']['can_write'] %}
-<div class="controls-container">
+<div class="controls-home-menu-sx">
     <table>
         <thead>
             <tr>
                 <th>Servizio</th>
-                <th>Totale Pazienti</th>
-                <th>Totale Personale</th>
+                <th>Totale Ordini Pazienti</th>
+                <th>Totale Ordini Personale</th>
                 <th>Totale Completo</th>
             </tr>
         </thead>
@@ -128,8 +128,154 @@ Home - Gestione Cucina
             </tr>
         </tfoot>
     </table>
-    </div>
+</div>
 {% endif %}
+
+
+{% if page_permissions['/app_cucina/home']['can_write'] %}
+<div class="controls-home-menu-dx">
+    <table>
+        <thead>
+            <tr>
+                <th>Servizio</th>
+                <th>Totale mese scorso</th>
+                <th>Totale mese corrente</th>
+                <th>Totale anno corrente</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            {% for servizio in servizi %}
+                <tr>
+                    <td>{{ servizio.descrizione }}</td>
+                    <td>
+                        {% if ordini_totali_mese_scorso_per_servizio[servizio.descrizione ] is defined %}
+                            {{ ordini_totali_mese_scorso_per_servizio[servizio.descrizione ] }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ordini_totali_mese_corrente_per_servizio[servizio.descrizione ] is defined %}
+                            {{ ordini_totali_mese_corrente_per_servizio[servizio.descrizione ] }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ordini_totali_anno_per_servizio[servizio.descrizione ] is defined %}
+                            {{ ordini_totali_anno_per_servizio[servizio.descrizione ] }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><strong>Totali</strong></td>
+                <td><strong>{{ totale_mese_scorso_completo }}</strong></td>
+                <td><strong>{{ totale_mese_corrente_completo }}</strong></td>
+                <td><strong>{{ totale_anno_completo }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% endif %}
+
+
+
+
+
+
+{% if page_permissions['/app_cucina/home']['can_write'] %}
+<div class="controls-home-menu-sx">
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo Menu</th>
+                <th>Menu Creati Fino Alla Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for menu in ultimi_menu %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center;">
+                            <div style="width: 20px; height: 20px; background-color: {{ tipi_menu_colore[menu.fkTipoMenu] }}; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                            {{ tipi_menu_map[menu.fkTipoMenu] }}
+                        </div>
+                    </td>
+                    <td class="{% if (menu.data - tomorrow).days < 7 and (menu.data - tomorrow).days >= 0 %}warning{% endif %}">
+                        {{ menu.data.strftime('%d/%m/%Y') }} 
+                    </td>
+                </tr>
+            {% endfor %}
+             <!-- Aggiungere una riga per il Brodo -->
+             <tr>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 20px; height: 20px; background-color: #FFD700; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                        Brodo
+                    </div>
+                </td>
+                <td> Sempre Presente </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if page_permissions['/app_cucina/home']['can_write'] %}
+<div class="controls-home-menu-custom-dx">
+    <table>
+        <thead>
+            <tr>
+                <th>Totali Menu Ordinati</th>
+                <th>Giorno</th>
+                <th>Mese</th>
+                <th>Anno</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tipo_menu, conteggio_anno in ordini_per_menu_anno['conteggi_menu'].items() %}
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center;">
+                            {% if tipo_menu == 'brodi' %}
+                                <!-- Colore e testo personalizzato per "brodi" -->
+                                <div style="width: 20px; height: 20px; background-color: #FFD700; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                Brodo
+                            {% else %}
+                                <!-- Per tutti gli altri tipi di menu -->
+                                <div style="width: 20px; height: 20px; background-color: {{ tipi_menu_colore[tipo_menu] }}; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                {{ tipi_menu_map[tipo_menu] }}
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <!-- Conteggio per il giorno, se esiste -->
+                        {{ ordini_per_menu_giorno['conteggi_menu'].get(tipo_menu, 0) }}
+                    </td>
+                    <td>
+                        <!-- Conteggio per il mese, se esiste -->
+                        {{ ordini_per_menu_mese['conteggi_menu'].get(tipo_menu, 0) }}
+                    </td>
+                    <td>
+                        <!-- Conteggio per l'anno -->
+                        {{ conteggio_anno }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+
+
+
 
 
 <div class="order-container">
@@ -138,8 +284,8 @@ Home - Gestione Cucina
             <div class="service-card">
                 {% if servizio_info['controllo_ordine'] == 'Null' %}
                     <div class="order-reminder">
-                        <a href="{{ url_for('app_cucina.ordina_pasto', servizio_id=servizio_id) }}" class="order-button"  onclick="showLoadingSpinner()">
-                            <span class="order-icon">🍽️</span> Effettua l'ordine
+                        <a href="{{ url_for('app_cucina.ordina_pasto', servizio=servizio_id) }}" class="order-button"  onclick="showLoadingSpinner()">
+                            <span class="order-icon">🍽️</span> Effettua l'ordine per {{servizi_map[servizio_id]}}
                         </a>
                     </div>
                 {% else %}

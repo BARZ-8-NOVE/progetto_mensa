@@ -18,7 +18,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         
         {% endif %}
     </div>
-    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
+    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}" onsubmit="disableAllSubmitButtons()">
         {{ form.hidden_tag() }}
 
         <div class="form-row-ordiniPiatti">
@@ -46,51 +46,65 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         <div class="popup-content">
             <div class="popup-grid">
                 {% for scheda_piatto in schedePiatti %}
-                {% if scheda_piatto.fkPiatto in piatti_map %}
-                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
-                    <span class="item-id">{{ piatto.codice }}</span>
-                    <div class="item-name">{{ piatto.titolo }}</div>
-                </div>       
-                {% else %}
-                <div class="popup-item unknown"></div>
-                {% endif %}
+                    {% if scheda_piatto.fkPiatto in piatti_map %}
+                        {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                        {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
+                        {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
+                        {% set allergeni = calorie_info.get('allergeni', 'Non disponibili') %}
+                        
+                        <div class="popup-item" data-id="{{ piatto.id }}" 
+                            data-calorie="{{ calorie }}"  
+                            onclick="toggleSelection(this, {{ piatto.id }}, {{ calorie }})"
+                            title="Calorie: {{ calorie }} Kcal | Allergeni: {{ allergeni_map[allergeni] }}">
+                            <span class="item-id">{{ piatto.codice }}</span>
+                            <div class="item-name">{{ piatto.titolo }}</div>
+                        </div>       
+                    {% else %}
+                        <div class="popup-item unknown"></div>
+                    {% endif %}
                 {% endfor %}
             </div>
-
+        
             <div class="popup-custom-column">
                 {% for scheda_piatto in schedeDolci %}
-                {% if scheda_piatto.fkPiatto in piatti_map %}
-                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
-                <div class="popup-custom-column-item" data-id="{{ piatto.id }}" onclick="toggleSelection(this, {{ piatto.id }})">
-                    <span class="item-id">{{ piatto.codice }}</span>
-                    <div class="item-name">{{ piatto.titolo }}</div>
-                </div>       
-                {% else %}
-                <div class="popup-custom-column-item unknown"></div>
-                {% endif %}
+                    {% if scheda_piatto.fkPiatto in piatti_map %}
+                        {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                        {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
+                        {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
+                        {% set allergeni = calorie_info.get('allergeni', 'Non disponibili') %}
+                        
+                        <div class="popup-custom-column-item" data-id="{{ piatto.id }}" 
+                            data-calorie="{{ calorie }}" 
+                            onclick="toggleSelection(this, {{ piatto.id }})"
+                            title="Calorie: {{ calorie }} | Allergeni: {{ allergeni }}">
+                            <span class="item-id">{{ piatto.codice }}</span>
+                            <div class="item-name">{{ piatto.titolo }}</div>
+                        </div>       
+                    {% else %}
+                        <div class="popup-custom-column-item unknown"></div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
         
         
-                        <!-- Bottone Precedente -->
-                        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
-                        class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
-                        id="prev-button">
-                         <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
-                     </a>
-                     
-                     <!-- Info Scheda -->
-                     <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
-                     
-                     <!-- Bottone Successivo -->
-                     <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
-                        class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
-                        id="next-button">
-                         <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
-                     </a>
-        
+            <!-- Bottone Precedente -->
+        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
+            class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
+            id="prev-button">
+             <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
+         </a>
+         
+         <!-- Info Scheda -->
+         <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
+         
+         <!-- Bottone Successivo -->
+         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
+            class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
+            id="next-button">
+             <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
+         </a>
+    
         
         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
             <button type="button" class="styled-button" onclick="showLoadingSpinner()">Nuova Scheda</button>
@@ -102,6 +116,11 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 
         {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
         
+       <!-- Totale Calorie -->
+        <div id="totaleCalorie" style="totaleCalorie">
+            Totale Kcal: <span id="calorieTotali">0</span>
+        </div>
+        
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
     </form>
@@ -109,99 +128,128 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 
 <script>
     const selectedItems = [];
+    let totalCalories = 0; // Variabile per tenere traccia delle calorie totali
 
-    {% for piatto in info_piatti %}
-        selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
-    {% endfor %}
-    
-    function toggleSelection(element, piattoId) {
-        const piattoType = element.getAttribute('data-type'); // Assicurati che il tuo elemento abbia questo attributo
-        
-        // Rimuovi la selezione degli altri piatti dello stesso tipo
-        const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
-        itemsToDeselect.forEach(item => {
-            if (item.classList.contains('selezionato')) {
-                item.classList.remove('selezionato');
-                const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === parseInt(item.getAttribute('data-id')));
-                if (index > -1) {
-                    selectedItems.splice(index, 1);
-                }
+{% for piatto in info_piatti %}
+    {% set calorie_info = prep_calorie_data.get(piatto.fkPiatto, {}) %}
+    {% set calorie = calorie_info.calorie_totali if calorie_info.calorie_totali is not none and calorie_info.calorie_totali != 'Non disponibili' else 0 %}
+    selectedItems.push({
+        fkPiatto: {{ piatto.fkPiatto }},
+        quantita: {{ piatto.quantita }},
+        note: "{{ piatto.note }}",
+        calorie: {{ calorie }}
+    });
+    totalCalories += {{ calorie }}; // Aggiungi le calorie alla somma totale
+{% endfor %}
+
+function updateTotalCaloriesDisplay() {
+    // Aggiorna il contenuto del div con il totale delle calorie
+    document.getElementById('calorieTotali').textContent = Math.round(totalCalories);
+}
+
+function toggleSelection(element, piattoId) {
+    const calorie = parseInt(element.getAttribute('data-calorie')); // Ottieni le calorie dal data attribute
+
+    // Rimuovi la selezione degli altri piatti dello stesso tipo
+    const piattoType = element.getAttribute('data-type');
+    const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
+    itemsToDeselect.forEach(item => {
+        if (item.classList.contains('selezionato')) {
+            item.classList.remove('selezionato');
+            const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === parseInt(item.getAttribute('data-id')));
+            if (index > -1) {
+                totalCalories -= selectedItems[index].calorie; // Sottrai le calorie quando un piatto viene deselezionato
+                selectedItems.splice(index, 1);
             }
-        });
-        
-        // Aggiungi o rimuovi la selezione per il piatto corrente
-        element.classList.toggle('selezionato');
-        const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
-        
-        if (index > -1) {
-            selectedItems.splice(index, 1);
-        } else {
-            selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" });
-        }
-        
-        updateHiddenField();
-        toggleSubmitButton();
-    }
-    
-    // Funzione per aggiornare il campo nascosto
-    function updateHiddenField() {
-        document.getElementById('piattiList').value = JSON.stringify(selectedItems);
-    }
-
-    // Funzione per attivare/disattivare il bottone di invio
-    function toggleSubmitButton() {
-        const submitButton = document.getElementById('submitButton');
-        submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
-    }
-    
-    // Inizializza la selezione all'apertura del popup
-    document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
-        const piattoId = parseInt(item.getAttribute('data-id'));
-        if (selectedItems.find(item => item.fkPiatto === piattoId)) {
-            item.classList.add('selezionato');
         }
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const prevButton = document.getElementById('prev-button');
-        const nextButton = document.getElementById('next-button');
-        
-        // Disabilita i bottoni se non ci sono ordini precedenti o successivi
-        if (!{{ prev_order_id|default('') }}) {
-            prevButton.classList.add('disabled');
-        }
-        if (!{{ next_order_id|default('') }}) {
-            nextButton.classList.add('disabled');
-        }
-    });
+    // Aggiungi o rimuovi la selezione per il piatto corrente
+    element.classList.toggle('selezionato');
+    const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
+    
+    if (index > -1) {
+        // Se il piatto è già selezionato, rimuovilo e sottrai le calorie
+        totalCalories -= selectedItems[index].calorie;
+        selectedItems.splice(index, 1);
+    } else {
+        // Se il piatto non è selezionato, aggiungilo e somma le calorie
+        totalCalories += calorie;
+        selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "", calorie: calorie }); // Aggiungi calorie all'oggetto
+    }
+    
+    console.log(selectedItems);
+    console.log(`Calorie totali: ${totalCalories}`); // Stampa il totale calorico
+    updateHiddenField();
+    toggleSubmitButton();
+    updateTotalCaloriesDisplay(); // Aggiorna il totale delle calorie nel DOM
+}
 
+// Funzione per aggiornare il campo nascosto
+function updateHiddenField() {
+    document.getElementById('piattiList').value = JSON.stringify(selectedItems);
+}
 
-    function elimina(ordine_id) {
-        if (confirm('Sei sicuro di voler eliminare questo record?')) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRFToken': csrfToken 
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Notifica di successo
-                    alert('Record eliminato con successo.');
-                    // Ricarica la pagina per aggiornare i dati
-                    location.reload();
-                } else {
-                    // Notifica di errore
-                    alert('Errore durante l\'eliminazione del record.');
-                }
-            })
-            .catch(error => {
-                console.error('Error during delete:', error);
+// Funzione per attivare/disattivare il bottone di invio
+function toggleSubmitButton() {
+    const submitButton = document.getElementById('submitButton');
+    submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
+}
+
+// Inizializza la selezione all'apertura del popup
+document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
+    const piattoId = parseInt(item.getAttribute('data-id'));
+    if (selectedItems.find(item => item.fkPiatto === piattoId)) {
+        item.classList.add('selezionato');
+    }
+});
+
+// Inizializza il display delle calorie totali
+updateTotalCaloriesDisplay();
+
+    
+    
+
+document.addEventListener('DOMContentLoaded', function() {
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+
+    // Disabilita i bottoni se non ci sono ordini precedenti o successivi
+    if (!{{ prev_order_id|default('') }}) {
+        prevButton.classList.add('disabled');
+    }
+    if (!{{ next_order_id|default('') }}) {
+        nextButton.classList.add('disabled');
+    }
+});
+
+function elimina(ordine_id) {
+    if (confirm('Sei sicuro di voler eliminare questo record?')) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        fetch(`/app_cucina/ordini/delete/${ordine_id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken 
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Notifica di successo
+                alert('Record eliminato con successo.');
+                // Ricarica la pagina per aggiornare i dati
+                location.reload();
+            } else {
+                // Notifica di errore
                 alert('Errore durante l\'eliminazione del record.');
-            });
-        }
+            }
+        })
+        .catch(error => {
+            console.error('Error during delete:', error);
+            alert('Errore durante l\'eliminazione del record.');
+        });
     }
+}
 </script>
+
 {% endblock %}

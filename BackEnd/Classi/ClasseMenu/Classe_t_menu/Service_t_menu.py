@@ -53,4 +53,6 @@ class Service_t_Menu:
         return self.repository.get_menu_details( year, month, tipo_menu, id_menu)
 
 
-   
+    def get_latest_by_fkTipoMenu(self):
+        return self.repository.get_latest_by_fkTipoMenu()
+

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
+
+
         /* Style per la pagina login */
         body {
             font-family: Arial, sans-serif;
@@ -99,6 +101,7 @@
             border-radius: 10px;
             text-align: center;
         }
+
         .close {
             color: #aaa;
             float: right;
@@ -110,7 +113,8 @@
             color: black;
             text-decoration: none;
             cursor: pointer;
-        }
+
+    }
     </style>
 </head>
 <body>
@@ -128,7 +132,7 @@
             {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('app_cucina.login') }}">
+        <form method="POST" action="{{ url_for('app_cucina.login') }}" onsubmit="disableAllSubmitButtons()">
             {{ form.hidden_tag() }}
             <div>
                 <label for="username">Username</label>
@@ -150,15 +154,20 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Recupero Password</h2>
-            <form method="POST" action="{{ url_for('app_cucina.richiesta_recupero_password') }}">
+            <form method="POST" action="{{ url_for('app_cucina.richiesta_recupero_password') }}" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
                 <label for="email">Inserisci la tua email</label>
-                <input type="email" id="email" name="email" required>
-                <button type="submit">Invia</button>
+                <div>
+                    <input class="form-control" type="email" id="email" name="email" required style="width: calc(100% - 22px); padding: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; border: none; border-radius: 5px; background-color: #07437e; color: white; font-size: 16px; cursor: pointer;">Invia</button>
+                </div>
             </form>
         </div>
     </div>
-
+    
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <script>
         // Script per la gestione del popup
         var modal = document.getElementById("forgotPasswordModal");

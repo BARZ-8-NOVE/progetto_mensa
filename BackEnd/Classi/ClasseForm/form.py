@@ -35,6 +35,12 @@ class PasswordResetRequestForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Invia Richiesta')
 
+class CambioEmailForm(FlaskForm):
+    email = StringField('Nuova Email', validators=[DataRequired(), Email()])
+    email_conferma = StringField('Ripeti Nuova Email', validators=[DataRequired(), Email(), EqualTo('email', message='Le email devono corrispondere.')])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Reimposta e-mail')
+
 class PasswordResetForm(FlaskForm):
     nuova_password = PasswordField('Nuova Password', validators=[
         DataRequired(), 
@@ -136,6 +142,12 @@ class ordineSchedaForm(FlaskForm):
     nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
     cognome = StringField('Cognome', validators=[DataRequired(), Length(max=50)])
     letto = StringField('Letto', validators=[DataRequired(), Length(max=5)])
+    note = TextAreaField('Note', validators=[Optional()])
+    submit = SubmitField('Salva e conferma')
+
+class ordineSchedaDipendentiForm(FlaskForm):
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
+    cognome = StringField('Cognome', validators=[DataRequired(), Length(max=50)])
     note = TextAreaField('Note', validators=[Optional()])
     submit = SubmitField('Salva e conferma')
 

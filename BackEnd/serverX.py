@@ -7,6 +7,7 @@ from functools import wraps
 import pprint
 import logging
 import traceback
+from dateutil.relativedelta import relativedelta
 from itsdangerous import URLSafeTimedSerializer
 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
@@ -67,9 +68,10 @@ from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, 
                                     LoginFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, 
                                     UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, 
-                                    TipologiaMenuForm, RepartiForm, ServiziForm, CambioPasswordForm, 
-                                    ordinedipendenteForm, ContattiForm, PasswordResetRequestForm,
-                                    PasswordResetForm,)
+                                    TipologiaMenuForm, RepartiForm, ServiziForm, LogoutFormNoCSRF, 
+                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm, 
+                                    PasswordResetRequestForm, ordineSchedaDipendentiForm,
+                                    PasswordResetForm, CambioEmailForm)
 
 # Initialize the app and configuration
 import Reletionships
@@ -334,6 +336,8 @@ def get_preparazioni_map(ordine_data, scheda_tipo_menu, servizio):
             if fk_associazione and isinstance(fk_associazione, dict) and 'Error' not in fk_associazione:
                 fk_piatto = fk_associazione['fkPiatto']  # Ottiene l'ID del piatto
                 fk_preparazione = fk_associazione.get('fkPreparazione')  # Ottiene l'ID della preparazione
+                
+                
                 # Usa la descrizione dalla mappa preparazioni se esiste, altrimenti recupera la descrizione dal servizio
                 descrizione_preparazione = preparazioni_map.get(fk_piatto, service_t_preparazioni.get_descrizione_by_id(fk_preparazione))
                 preparazioni_map[fk_piatto] = descrizione_preparazione  # Aggiorna la mappa con la descrizione del piatto
@@ -772,6 +776,7 @@ def inject_user_data():
         menu_structure=menu_structure,
         username=session.get('username'),
         token=token,
+        form=LogoutFormNoCSRF(),
         user_type=user_type,
         current_page_link=request.path,
         page_permissions=page_permissions  # Aggiungi i permessi delle pagine
@@ -827,74 +832,125 @@ def home():
         - La funzione gestisce anche il caso in cui non siano presenti ordini per il giorno e il servizio specificati, restituendo un valore di controllo appropriato.
     """ 
     if 'authenticated' in session:
-        
-        today = datetime.now()
-        year = request.args.get('year', today.year, type=int)
-        month = request.args.get('month', today.month, type=int)
-        day = request.args.get('day', today.day, type=int)
-        servizi = service_t_Servizi.get_all_servizi()
-       
-        user = service_t_utenti.get_utente_by_public_id(session['user_id'])
-        
-        data = f'{year}-{month}-{day}'
-        nome = user['nome']
-        cognome = user['cognome']
- 
-        # Dizionario per accumulare i risultati
-        ordini_totali_per_servizio = {}
-
-        # Utilizza il metodo del service per calcolare i totali
-        ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
-            service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
-
-        piatti = service_t_Piatti.get_all()
-        # Ottieni i reparti accessibili dall'utente
-        menu_personale = service_t_Schede.get_all_personale()
-        tipi_menu = service_t_TipiMenu.get_all()
-        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
-        servizi_map = {int(servizo['id']): servizo['descrizione'] for servizo in servizi}
-
-        dizionario_servizi = {}
-
-        for servizio in servizi:
-            controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(data, nome, cognome, servizio['id'], piatti, menu_personale)
+        try:
+             # Ottieni la data di domani
+            tomorrow = datetime.now().date() + timedelta(days=1)  
+            year = request.args.get('year', tomorrow.year, type=int)
+            month = request.args.get('month', tomorrow.month, type=int)
+            day = request.args.get('day', tomorrow.day, type=int)
+            servizi = service_t_Servizi.get_all_servizi()
+            ultimi_menu = service_t_Menu.get_latest_by_fkTipoMenu()
+            user = service_t_utenti.get_utente_by_public_id(session['user_id'])
             
-            if controllo_ordine is None:
-                # Gestisci il caso in cui controllo_ordine è None
+            # Calcola il mese e l'anno precedente
+            mese_scorso_data = tomorrow - relativedelta(months=1)
+            mese_scorso = mese_scorso_data.month
+            anno_mese_scorso = mese_scorso_data.year
+
+            # Definisci i dati utente
+            data = f'{year}-{month}-{day}'
+            nome = user['nome']
+            cognome = user['cognome']
+
+            # Dizionario per accumulare i risultati
+            ordini_totali_per_servizio = {}
+            
+            ordini_totali_mese_corrente_per_servizio = {}
+            
+            ordini_totali_mese_scorso_per_servizio = {}
+            ordini_totali_anno_per_servizio = {}
+
+            # Utilizza il metodo del service per calcolare i totali
+            ordini_totali_per_servizio, totale_pazienti, totale_personale, totale_completo = \
+                service_t_OrdiniSchede.calcola_totali_per_giorno(data, servizi)
+
+            ordini_totali_mese_corrente_per_servizio, totale_mese_corrente_completo = \
+                service_t_OrdiniSchede.calcola_totali_per_mese(mese=month, anno=year, servizi=servizi)
+
+            ordini_totali_mese_scorso_per_servizio, totale_mese_scorso_completo = \
+                service_t_OrdiniSchede.calcola_totali_per_mese(mese=mese_scorso, anno=anno_mese_scorso, servizi=servizi)
+
+            ordini_totali_anno_per_servizio, totale_anno_completo = \
+                service_t_OrdiniSchede.calcola_totali_per_anno(anno=year, servizi=servizi)
+
+            ordini_per_menu_anno = service_t_OrdiniSchede.count_totali_tipo_menu(anno=year)
+
+            ordini_per_menu_mese = service_t_OrdiniSchede.count_totali_tipo_menu(anno=year, mese=month)
+
+            ordini_per_menu_giorno = service_t_OrdiniSchede.count_totali_tipo_menu(anno=year, mese=month, giorno=day)
+
+
+
+
+            piatti = service_t_Piatti.get_all()
+            menu_personale = service_t_Schede.get_all_personale()
+            tipi_menu = service_t_TipiMenu.get_all()
+            
+            # Crea mappe per descrizioni e colori dei tipi di menu
+            tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+            tipi_menu_colore = {int(tipo_menu['id']): tipo_menu['backgroundColor'] for tipo_menu in tipi_menu}
+            servizi_map = {int(servizio['id']): servizio['descrizione'] for servizio in servizi}
+
+            dizionario_servizi = {}
+
+            for servizio in servizi:
+                controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(
+                    data, nome, cognome, servizio['id'], piatti, menu_personale
+                )
+                
+                # Gestione del caso in cui controllo_ordine è None
                 dizionario_servizi[servizio['id']] = {
                     'inf_scheda': inf_scheda,
                     'piatti_ordine_map': piatti_ordine_map,
-                    'controllo_ordine': 'Null'
+                    'controllo_ordine': controllo_ordine if controllo_ordine else 'Null'
                 }
-            else:
-                dizionario_servizi[servizio['id']] = {
-                    'inf_scheda': inf_scheda,
-                    'piatti_ordine_map': piatti_ordine_map,
-                    'controllo_ordine': controllo_ordine
-                }
-                     
-        return render_template(
-            'home.html',
-            year=year,
-            month=month,
-            day=day,
-            servizi=servizi,
-            ordini_totali_per_servizio=ordini_totali_per_servizio,
-            totale_pazienti=totale_pazienti,
-            totale_personale=totale_personale,
-            totale_completo=totale_completo,
-            controllo_ordine=controllo_ordine, 
-            inf_scheda=inf_scheda,                                                     
-            piatti_ordine_map=piatti_ordine_map, 
-            utente=user['username'],
-            nome=nome,
-            cognome=cognome,
-            servizi_map=servizi_map,
-            dizionario_servizi=dizionario_servizi,
-            tipi_menu_map=tipi_menu_map
+
+            # Rendering della template con i dati calcolati
+            return render_template(
+                'home.html',
+                year=year,
+                month=month,
+                day=day,
+                ultimi_menu=ultimi_menu,
+                servizi=servizi,
+                controllo_ordine=controllo_ordine, 
+                inf_scheda=inf_scheda,                                                     
+                piatti_ordine_map=piatti_ordine_map, 
+                utente=user['username'],
+                nome=nome,
+                cognome=cognome,
+                servizi_map=servizi_map,
+                dizionario_servizi=dizionario_servizi,
+                tipi_menu_map=tipi_menu_map,
+                tipi_menu_colore=tipi_menu_colore,
+                ordini_per_menu_anno=ordini_per_menu_anno,
+                ordini_per_menu_mese=ordini_per_menu_mese,
+                ordini_per_menu_giorno=ordini_per_menu_giorno,
+                tomorrow=tomorrow,
+
+                ordini_totali_per_servizio=ordini_totali_per_servizio,
+                totale_pazienti=totale_pazienti or 0,
+                totale_personale=totale_personale or 0,
+                totale_completo=totale_completo or 0,
+                
+                ordini_totali_mese_corrente_per_servizio=ordini_totali_mese_corrente_per_servizio,
+                totale_mese_corrente_completo=totale_mese_corrente_completo or 0,
+
+                ordini_totali_mese_scorso_per_servizio=ordini_totali_mese_scorso_per_servizio,
+                totale_mese_scorso_completo=totale_mese_scorso_completo or 0,
+
+                ordini_totali_anno_per_servizio=ordini_totali_anno_per_servizio,
+                totale_anno_completo=totale_anno_completo or 0
             )
+
+        except Exception as e:
+            # Gestione degli errori imprevisti
+            print(f"Errore: {e}")
+            return redirect(url_for('app_cucina.login'))
+
     else:
         return redirect(url_for('app_cucina.login'))
+
 
 
 
@@ -3179,6 +3235,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
                     - Informazioni su piatti non dolci e dolci, schede, tipi di menu e reparti.
                     - Form per inserire un nuovo ordine di piatti.
                     - Dati aggregati sugli ordini, come i dettagli degli utenti e dei piatti.
+                    - aggiunto calcolo delle calorie dei piatti e dell'intero menu (bisogna però inserire gli ingredienti in tutte le preparazioni)
+                    - aggiunto lista degli allergeni presenti nei piatti
             - **POST**:
                 - Se un ordine non esiste già per il giorno e il servizio selezionati, ne viene creato uno nuovo.
                 - Reindirizza alla pagina aggiornata degli ordini con un messaggio di successo.
@@ -3202,10 +3260,12 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         info_reparto = service_t_Reparti.get_by_id(reparto)
         tipi_piatti = service_t_TipiPiatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
+        allergeni = service_t_Allergeni.get_all()
 
         # Costruisci una mappa delle preparazioni
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        allergeni_map = {str(allergene['id']): allergene['nome'] for allergene in allergeni}
 
         ordine_data = get_data['data']
         year = ordine_data.year
@@ -3213,6 +3273,33 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         day = ordine_data.day
 
         preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
+        
+        def calculate_preparations_calories(preparations_map):
+            calories_data = {}
+            for p_id, p_name in preparations_map.items():
+                # Ottieni i dati delle calorie usando l'ID o il nome del piatto
+                prep_calorie = service_t_preparazioni.calcola_calorie_per_nome(p_name)  # O usa p_id se necessario
+                # Stampa di debug per verificare il risultato
+                print(f"Calorie info per {p_name} (ID: {p_id}): {prep_calorie}")
+                
+                # Assicurati che prep_calorie contenga i dati necessari
+                if prep_calorie:  # Se ci sono dati disponibili
+                    calories_data[p_id] = {  # Usa l'ID come chiave
+                        'calorie_totali': prep_calorie.get('calorie_totali', 'Non disponibili'),
+                        'allergeni': prep_calorie.get('allergeni', 'Non disponibili')
+                    }
+                else:
+                    calories_data[p_id] = {
+                        'calorie_totali': 'Non disponibili',
+                        'allergeni': 'Non disponibili'
+                    }
+            return calories_data
+
+
+        
+        prep_calorie_data = calculate_preparations_calories(preparazioni_map)
+
+        
 
         form = ordineSchedaForm()
         
@@ -3347,11 +3434,211 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             ordine_id=ordine_id,
             year=year,
             month=month,
+            allergeni_map=allergeni_map,
+            prep_calorie_data=prep_calorie_data,
             day=day
         )
     else:
         return redirect(url_for('app_cucina.login'))
-   
+    
+
+
+@app_cucina.route('/ordini/schede_dipendenti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])
+@app_cucina.route('/ordini/schede_dipendenti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>/<int:ordine_id>', methods=['GET', 'POST'])
+def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
+    """
+    Gestisce la visualizzazione e la creazione di ordini di piatti per una scheda specifica.
+
+    Questa funzione consente di:
+    - Visualizzare i dettagli degli ordini di piatti per un determinato giorno, servizio e scheda.
+    - Creare un nuovo ordine di piatti, se non esiste già un ordine per il giorno e il servizio specificati.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza i dettagli degli ordini di piatti per il giorno, servizio, reparto e scheda selezionati.
+    - **POST**: Crea un nuovo ordine di piatti se non ne esiste già uno per il giorno e il servizio selezionati.
+
+    Args:
+        id (int): L'ID dell'ordine principale.
+        servizio (int): L'ID del servizio (ad esempio colazione, pranzo).
+        reparto (int): L'ID del reparto per cui si sta creando l'ordine.
+        scheda (int): L'ID della scheda per cui si stanno ordinando i piatti.
+        ordine_id (int, optional): L'ID dell'ordine di scheda specifico (default è None).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'ordini_schede_dipendenti_totali.html' con i seguenti dati:
+                    - Dettagli sull'ordine principale per la data e il servizio specificati.
+                    - Informazioni su piatti non dolci e dolci, schede, tipi di menu e reparti.
+                    - Form per inserire un nuovo ordine di piatti.
+                    - Dati aggregati sugli ordini, come i dettagli degli utenti e dei piatti.
+            - **POST**:
+                - Se un ordine non esiste già per il giorno e il servizio selezionati, ne viene creato uno nuovo.
+                - Reindirizza alla pagina aggiornata degli ordini con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come piatti, schede, tipi di menu, e informazioni sul servizio e reparto.
+        - È previsto un controllo sui tempi di ordine per evitare ordini effettuati dopo le 10 del mattino per il giorno successivo.
+        - Il form per l'ordine consente di selezionare i piatti e di specificare la quantità e eventuali note aggiuntive.
+    """
+    if 'authenticated' in session:
+        
+        # Recupera i dati necessari
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
+        get_data = service_t_Ordini.get_by_id(id)
+        scheda = service_t_Schede.get_by_id(scheda)
+        piatti = service_t_Piatti.get_all()
+        tipi_menu = service_t_TipiMenu.get_all()
+        info_servizio = service_t_Servizi.get_servizio_by_id(servizio)
+        info_reparto = service_t_Reparti.get_by_id(reparto)
+        tipi_piatti = service_t_TipiPiatti.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
+        allergeni = service_t_Allergeni.get_all()
+
+        # Costruisci una mappa delle preparazioni
+        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
+        tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+        allergeni_map = {str(allergene['id']): allergene['nome'] for allergene in allergeni}
+
+        ordine_data = get_data['data']
+        year = ordine_data.year
+        month = ordine_data.month
+        day = ordine_data.day
+
+        preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
+            
+
+        form = ordineSchedaDipendentiForm()
+        
+        piatti_map = {}
+        for piatto in piatti:
+            piatto_id = int(piatto['id'])
+            tipo_piatto = piatto['fkTipoPiatto']
+            
+            # Filtra solo i piatti (preparazioni) che fanno parte del menu
+            # Escludi i tipi di piatti 4 e 5 dal filtraggio
+            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
+                piatti_map[piatto_id] = {
+                    'id': piatto['id'],
+                    'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione
+                    'codice': piatto['codice'],
+                    'fkTipoPiatto': piatto['fkTipoPiatto']
+                }
+
+        # Assegna piatti_map alla scheda corrente
+        scheda['piatti'] = piatti_map
+
+        # Recupera i dettagli dell'ordine per il giorno e il reparto specifico
+        dettagli_ordine = service_t_OrdiniSchede.get_all_by_day_and_reparto(ordine_data, reparto, servizio, scheda['id'])
+
+        # Lista di tutti gli ID disponibili, escludendo la scheda vuota (0)
+        lista_id_disponibili = [ordine['id'] for ordine in dettagli_ordine if ordine['id'] != 0]
+
+        # Aggiungi sempre l'ordine con ID 0 come ultimo elemento se c'è un nuovo ordine
+        lista_id_disponibili.append(0)
+
+        # Gestione dell'ordine_id e current_scheda_index
+        if ordine_id is None or ordine_id == 0:
+            # Nuovo ordine, quindi è il nuovo elemento nella lista
+            ordine_id = 0
+            current_scheda_index = len(lista_id_disponibili) - 1
+            info_utente = {'nome': '', 'cognome': '', 'note': ''}
+            info_piatti = []
+            # Precedente ordine è l'ultimo dell'elenco, escludendo ID 0
+            prev_order_id = lista_id_disponibili[-2] if len(lista_id_disponibili) > 1 else None
+            next_order_id = None
+        else:
+            if ordine_id not in lista_id_disponibili:
+                ordine_id = lista_id_disponibili[-1]  # Imposta ordine_id come l'ultimo valido
+
+            current_index = lista_id_disponibili.index(ordine_id)
+            prev_order_id = lista_id_disponibili[current_index - 1] if current_index > 0 else None
+            # Il next_order_id non deve includere 0 se l'utente sta visualizzando un ordine esistente
+            next_order_id = lista_id_disponibili[current_index + 1] if current_index < len(lista_id_disponibili) - 2 else None  # Ignora l'ultimo 0
+            current_scheda_index = current_index
+
+            info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
+            info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+
+        if form.validate_on_submit():
+
+                     # Time limit check
+            if not check_order_time_limit(get_data['data']):
+                flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
+                return redirect(url_for('app_cucina.ordini_dipendenti'))
+
+            data = get_data['data']
+            fkScheda = scheda['id']
+            ordine_id = request.form.get('ordine_id', default=None, type=int)
+
+                
+                        
+            if ordine_id and ordine_id != 0:
+                service_t_OrdiniPiatti.delete_by_fkOrdine(ordine_id)
+                service_t_OrdiniSchede.delete(ordine_id, utenteCancellazione=session.get('username'))
+
+            # Creazione di un nuovo ordine
+            new_scheda_ordine = service_t_OrdiniSchede.create(
+                fkOrdine=id,
+                fkReparto=reparto,
+                data=data,
+                fkServizio=servizio,
+                fkScheda=fkScheda,
+                cognome=form.cognome.data,
+                nome=form.nome.data,
+                letto=None,
+                utenteInserimento=session.get('username')
+            )
+
+            piatti_list = json.loads(request.form['piattiList'])
+            for piatto in piatti_list:
+                try:
+                    service_t_OrdiniPiatti.create(
+                        fkOrdineScheda=new_scheda_ordine,
+                        fkPiatto=int(piatto['fkPiatto']),
+                        quantita=int(piatto['quantita']),
+                        note=str(piatto['note']),
+                    )
+                    print(f"ordine piatti saved: {piatto}")
+                except (ValueError, KeyError) as e:
+                    print(f"Error processing ordine piatti: {piatto}, error: {e}")
+
+            flash('Preparazione aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.ordini_dipendenti', year=year, month=month, day=day, servizio=servizio))
+
+
+        return render_template(
+            'ordini_schede_dipendenti_totali.html',
+            id=id,
+            scheda=scheda,
+            piatti=piatti,
+            schedePiatti=schedePiatti,
+            tipi_piatti=tipi_piatti,
+            piatti_map=piatti_map,
+            tipi_menu_map=tipi_menu_map,
+            schedeDolci=schedeDolci,
+            info_reparto=info_reparto,
+            info_servizio=info_servizio,
+            form=form,
+            servizio=servizio,
+            prev_order_id=prev_order_id,
+            next_order_id=next_order_id,
+            total_schede=len(lista_id_disponibili) -1 ,
+            current_scheda_index=current_scheda_index +1,
+            reparto=reparto,
+            dettagli_ordine=dettagli_ordine,
+            info_utente=info_utente,
+            info_piatti=info_piatti,
+            ordine_id=ordine_id,
+            year=year,
+            month=month,
+            allergeni_map=allergeni_map,
+            day=day
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/ordini/print/<int:id>', methods=['GET', 'POST'])
@@ -4447,8 +4734,9 @@ def creazione_tipologia_utenti():
             funzionalita_per_tipologia[tipo_utente['id']] = funzionalita_utente
 
         funzionalita = service_t_funzionalita.get_all_menus()
+        print(funzionalita)
         funzionalita_map = {int(funz['id']): funz['titolo'] for funz in funzionalita}
-
+        print(funzionalita_map)
         if request.method == 'POST':
             tipo_utente = request.form.get('fkTipoUtente')
             funzionalita_selezionate = request.form.getlist('funzionalita')
@@ -4646,6 +4934,30 @@ def impostazioni():
         tipi_utenti_map = {int(tipo_utente['id']): tipo_utente['nomeTipoUtente'] for tipo_utente in tipi_utenti}
 
         form = CambioPasswordForm()
+        form_email = CambioEmailForm()
+
+        if form_email.validate_on_submit():
+            # Verifica la vecchia password
+            password_ok = service_t_utenti.check_password(
+                username=session['username'],  # Usa l'username dell'utente loggato
+                password=form_email.password.data
+            )
+
+            if password_ok:
+                email = form_email.email.data
+                email_conferma = form_email.email_conferma.data  # Campo di conferma dell'email
+
+                # Controlla se la nuova email e la conferma corrispondono
+                if email == email_conferma:
+                    # Aggiorna l'email nel database
+                    service_t_utenti.update_utente_email(session['user_id'], email)
+                    flash('E-mail cambiata con successo!', 'success')
+                    return redirect(url_for('app_cucina.impostazioni'))  # Reindirizza alla pagina delle impostazioni
+                else:
+                    flash('La nuova e-mail e la conferma non corrispondono.', 'error')
+            else:
+                flash('Password errata. Riprova.', 'error')
+                    
 
         if form.validate_on_submit():
             # Verifica la vecchia password
@@ -4672,7 +4984,8 @@ def impostazioni():
             'impostazioni.html',
             user=user,
             tipi_utenti_map=tipi_utenti_map,
-            form=form
+            form=form,
+            form_email=form_email
         )
     else:
         return redirect(url_for('app_cucina.login'))
@@ -4768,9 +5081,11 @@ def do_logout():
         - La sessione viene pulita completamente per garantire la sicurezza dopo il logout.
     """
     
+
     if 'authenticated' in session:
 
-        if request.method == 'POST':
+        form = LogoutFormNoCSRF()
+        if form.validate_on_submit():
             service_t_utenti.do_logout_nuovo(session['user_id'])
             session.clear()
 
@@ -4826,7 +5141,7 @@ def richiesta_recupero_password():
 
         else:
             # Anche se l'utente non esiste, mostriamo comunque un messaggio di conferma
-            flash('Controlla la tua email per le istruzioni di reimpostazione della password.', 'info')
+            flash('l\'email inserita non è corretta .', 'info')
 
         print("Redirecting to login page...")
         return redirect(url_for('app_cucina.login'))  # Assicurati di indirizzare all'endpoint corretto

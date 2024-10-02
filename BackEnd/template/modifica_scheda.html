@@ -6,7 +6,7 @@ Modifica Scheda - Gestione Cucina
 
 {% block content %}
 <div class="container">
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
         {{ form.hidden_tag() }}
 
         <div class="form-group">

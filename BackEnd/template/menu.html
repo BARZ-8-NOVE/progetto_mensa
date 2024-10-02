@@ -153,7 +153,7 @@ Calendario Menu - Gestione Cucina
         <div class="modal-content">
             <span class="close" onclick="closeClonaForm()">×</span>
             <h2>Clona</h2>
-            <form method="POST" action="{{ url_for('app_cucina.menu') }}">
+            <form method="POST" action="{{ url_for('app_cucina.menu') }}" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}  <!-- Includi CSRF token e altri campi nascosti -->
                 <input type="hidden" name="menu_id" id="menu_id_to_clone" value="">  <!-- Campo per l'ID del menu da clonare -->
                 <input type="hidden" name="next_url" id="next_url" value="{{ request.args.to_dict() | urlencode }}"/>  <!-- Campo per l'URL di ritorno con parametri -->
@@ -173,7 +173,7 @@ Calendario Menu - Gestione Cucina
         <div class="modal-content">
             <span class="close" onclick="closeClonaMeseModal()">×</span>
             <h2>Clona Mese</h2>
-            <form method="POST" action="{{ url_for('app_cucina.menu') }}">
+            <form method="POST" action="{{ url_for('app_cucina.menu') }}" onsubmit="disableAllSubmitButtons()">
                 {{ clona_mese.hidden_tag() }}  <!-- Includi CSRF token e altri campi nascosti -->
                 <input type="hidden" name="menu_ids" value="{{ menu_ids|join(',') }}">
                 <input type="hidden" name="next_url" id="clona_mese_next_url" value="{{ request.args.to_dict() | urlencode }}"/>

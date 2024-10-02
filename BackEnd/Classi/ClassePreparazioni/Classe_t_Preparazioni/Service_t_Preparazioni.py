@@ -32,3 +32,6 @@ class Service_t_preparazioni:
 
     def delete_preparazione(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)
+    
+    def calcola_calorie_per_nome(self, titolo_piatto):
+        return self.repository.calcola_calorie_per_nome(titolo_piatto)
