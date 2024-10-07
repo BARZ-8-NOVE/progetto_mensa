@@ -134,10 +134,7 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
-    const searchTypeMap = {};
-    {% for tipoPiatto in tipologia_piatti %}
-        searchTypeMap["{{ tipoPiatto.id }}"] = "{{ tipoPiatto.descrizione }}";
-    {% endfor %}
+    const tipologia_piatti = {{ tipologia_piatti | tojson }};
 </script>
 
 <script src="{{ url_for('static', filename='js/piatti.js') }}"></script>

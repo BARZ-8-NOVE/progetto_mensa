@@ -42,7 +42,6 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {{ form.note(class="form-control-ordiniPiatti", value=info_utente.note if info_utente else '') }}
             </div>
         </div>
-
         <div class="popup-content">
             <div class="popup-grid">
                 {% for scheda_piatto in schedePiatti %}
@@ -50,14 +49,26 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                         {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
                         {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
                         {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
-                        {% set allergeni = calorie_info.get('allergeni', 'Non disponibili') %}
+                        {% set allergeni = calorie_info.get('allergeni', None) %}
                         
                         <div class="popup-item" data-id="{{ piatto.id }}" 
                             data-calorie="{{ calorie }}"  
-                            onclick="toggleSelection(this, {{ piatto.id }}, {{ calorie }})"
-                            title="Calorie: {{ calorie }} Kcal | Allergeni: {{ allergeni_map[allergeni] }}">
+                            onclick="toggleSelection(this, {{ piatto.id }}, {{ calorie }})">
+                            
                             <span class="item-id">{{ piatto.codice }}</span>
                             <div class="item-name">{{ piatto.titolo }}</div>
+                            
+                            <div class="tooltip">
+                                Calorie: {{ calorie }} Kcal | Allergeni: 
+                                {% if allergeni is not none %}
+                                    {% set allergene_ids = allergeni.split(',') %}
+                                    {% for id in allergene_ids %}
+                                        {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    Nessun allergene
+                                {% endif %}
+                            </div>
                         </div>       
                     {% else %}
                         <div class="popup-item unknown"></div>
@@ -71,14 +82,26 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                         {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
                         {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
                         {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
-                        {% set allergeni = calorie_info.get('allergeni', 'Non disponibili') %}
+                        {% set allergeni = calorie_info.get('allergeni', None) %}
                         
                         <div class="popup-custom-column-item" data-id="{{ piatto.id }}" 
                             data-calorie="{{ calorie }}" 
-                            onclick="toggleSelection(this, {{ piatto.id }})"
-                            title="Calorie: {{ calorie }} | Allergeni: {{ allergeni }}">
+                            onclick="toggleSelection(this, {{ piatto.id }})">
+                            
                             <span class="item-id">{{ piatto.codice }}</span>
                             <div class="item-name">{{ piatto.titolo }}</div>
+                            
+                            <div class="tooltip">
+                                Calorie: {{ calorie }} | Allergeni: 
+                                {% if allergeni is not none %}
+                                    {% set allergene_ids = allergeni.split(',') %}
+                                    {% for id in allergene_ids %}
+                                        {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    Nessun allergene
+                                {% endif %}
+                            </div>
                         </div>       
                     {% else %}
                         <div class="popup-custom-column-item unknown"></div>
@@ -86,6 +109,10 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                 {% endfor %}
             </div>
         </div>
+        
+        
+        
+        
         
         
             <!-- Bottone Precedente -->

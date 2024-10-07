@@ -185,25 +185,11 @@ Ordini - Gestione Cucina
 <div id="calendar"></div>
 
 <script>
-
-    function handlePrintOption() {
-        var select = document.getElementById("printOptions");
-        var selectedValue = select.value;
-        var ordineId = {{ ordine_esistente.id }};
-    
-        if (selectedValue === "schede") {
-            printPage(ordineId);
-        } else if (selectedValue === "prospetto") {
-            printProspetto(ordineId);
-        } else if (selectedValue === "pagina") {
-            priint();
-        }
-    }
-    
-
-    
+    // Serializza l'ID dell'ordine esistente
+    const ordineId = {{ ordine_esistente.id }};
 </script>
 
 <script src="{{ url_for('static', filename='js/ordini.js') }}"></script>
+
 
 {% endblock %}

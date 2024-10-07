@@ -127,3 +127,15 @@ function elimina(id) {
         });
     }
 }
+// Funzione che costruisce la mappa `searchTypeMap`
+function buildSearchTypeMap(tipologiaPiatti) {
+    const searchTypeMap = {};
+    tipologiaPiatti.forEach(function(tipoPiatto) {
+        searchTypeMap[tipoPiatto.id] = tipoPiatto.descrizione;
+    });
+    return searchTypeMap;
+}
+
+// Chiama la funzione passando i dati
+const searchTypeMap = buildSearchTypeMap(tipologia_piatti);
+console.log(searchTypeMap);  // Stampa per vedere il risultato

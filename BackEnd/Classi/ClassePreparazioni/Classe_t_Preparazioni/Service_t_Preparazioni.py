@@ -35,3 +35,10 @@ class Service_t_preparazioni:
     
     def calcola_calorie_per_nome(self, titolo_piatto):
         return self.repository.calcola_calorie_per_nome(titolo_piatto)
+    
+    def recupero_totale_ingredienti_base(self, descrizione):
+        return self.repository.recupero_totale_ingredienti_base(descrizione)
+    
+    def recupero_totale_peso_ingredienti(self, descrizione):
+        return self.repository.recupero_totale_peso_ingredienti(descrizione)
+

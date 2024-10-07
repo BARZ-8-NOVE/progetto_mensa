@@ -24,7 +24,7 @@
         {% endif %}
     <table>
         <thead>
-            <tr>
+            <tr><th></th>
                 <th>Nome</th>
                 <th>Energia (Kcal)</th>
                 <th>Energia (KJ)</th>
@@ -42,6 +42,9 @@
         <tbody id="alimentiTableBody">
             {% for alimento in alimenti %}
             <tr>
+                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                <td> <div class="icon-pencil" onclick="showModificaAlimentoForm({{ alimento.id }})"title="visualizza Alimento"></div></td>
+                {% endif %}
                 <td>{{ alimento.alimento }}</td>
                 <td>{{ alimento.energia_Kcal }}</td>
                 <td>{{ alimento.energia_KJ }}</td>
@@ -57,7 +60,7 @@
                 </td>
                 <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
                 {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
-                <td><div class="icon-cancella" onclick="eliminaAlimento({{ alimento.id }})" title='Elimina alimento'></div></td>
+                <td><div class="icon-cancella" onclick="eliminaAlimento({{ alimento.id }})" title='Elimina Alimento'></div></td>
                 {% endif %}
             </tr>
             {% endfor %}
@@ -65,54 +68,60 @@
     </table>
 </div>
 
-<!-- Modal for Adding Alimento -->
-<div id="addAlimentoModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
-        <h2>Aggiungi Alimento</h2>
-        <form method="POST" action="{{ url_for('app_cucina.alimenti') }}" onsubmit="disableAllSubmitButtons()">
-            {{ form.hidden_tag() }}
-            <div>
-                {{ form.alimento.label }} {{ form.alimento(size=32) }}
-            </div>
-            <div>
-                {{ form.energia_Kcal.label }} {{ form.energia_Kcal() }}
-            </div>
-            <div>
-                {{ form.energia_KJ.label }} {{ form.energia_KJ() }}
-            </div>
-            <div>
-                {{ form.prot_tot_gr.label }} {{ form.prot_tot_gr() }}
-            </div>
-            <div>
-                {{ form.glucidi_tot.label }} {{ form.glucidi_tot() }}
-            </div>
-            <div>
-                {{ form.lipidi_tot.label }} {{ form.lipidi_tot() }}
-            </div>
-            <div>
-                {{ form.saturi_tot.label }} {{ form.saturi_tot() }}
-            </div>
-            <div>
-                {{ form.fkAllergene.label }} {{ form.fkAllergene() }}
-            </div>
-            <div>
-                {{ form.fkTipologiaAlimento.label }} {{ form.fkTipologiaAlimento() }}
-            </div>
-            <div>
-                {{ form.submit(class="styled-button") }}
-            </div>
-        </form>
 
+<!-- Modal for Adding/Editing Alimento -->
+<div id="addAlimentoModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
+            <h2 id="modalTitle">Aggiungi alimento</h2>
+            <form id="alimentoForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Campo nascosto per l'ID dell'alimento (usato per modifiche) -->
+                <input type="hidden" id="alimentoId" name="alimentoId">
+
+                <div>
+                    {{ form.alimento.label }} {{ form.alimento(size=32) }}
+                </div>
+                <div>
+                    {{ form.energia_Kcal.label }} {{ form.energia_Kcal() }}
+                </div>
+                <div>
+                    {{ form.energia_KJ.label }} {{ form.energia_KJ() }}
+                </div>
+                <div>
+                    {{ form.prot_tot_gr.label }} {{ form.prot_tot_gr() }}
+                </div>
+                <div>
+                    {{ form.glucidi_tot.label }} {{ form.glucidi_tot() }}
+                </div>
+                <div>
+                    {{ form.lipidi_tot.label }} {{ form.lipidi_tot() }}
+                </div>
+                <div>
+                    {{ form.saturi_tot.label }} {{ form.saturi_tot() }}
+                </div>
+                <div>
+                    {{ form.fkAllergene.label }} {{ form.fkAllergene() }}
+                </div>
+                <div>
+                    {{ form.fkTipologiaAlimento.label }} {{ form.fkTipologiaAlimento() }}
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi Alimento</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddAlimentoForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<script>   // Crea una mappa per le tipologie
-    const searchTypeMap = {};
-    {% for tipologia in tipologie %}
-        searchTypeMap["{{ tipologia.id }}"] = "{{ tipologia.nome }}";
-    {% endfor %}
-    /* eslint-enable */
+
+<script>
+    // Serializza i dati da Jinja in un oggetto JavaScript
+    const tipologie = {{ tipologie | tojson }};
 </script>
 
 <script src="{{ url_for('static', filename='js/alimenti.js') }}"></script>

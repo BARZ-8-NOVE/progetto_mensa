@@ -5,7 +5,7 @@ from Classi.ClassePreparazioni.Classe_t_preparazioniContenuti.Repository_t_prepa
 from Classi.ClasseAlimenti.Classe_t_alimenti.Repository_t_alimenti import TAlimenti
 from datetime import datetime
 from sqlalchemy import func, case
-
+from collections import defaultdict
 
 class Repository_t_preparazioni:
 
@@ -180,6 +180,167 @@ class Repository_t_preparazioni:
                 self.session.close()
 
 
+    def recupera_ingredienti_base(self, id, quantita_richesta):
+        try:
+            base_id = id - 100000  # Rimuoviamo l'offset per ottenere l'ID della preparazione base
+            # Recupera gli ingredienti della preparazione base
+            preparazione_base_ingredienti = (
+                self.session.query(
+                    TPreparazioniContenuti.fkAlimento,
+                    TPreparazioniContenuti.quantita
+                )
+                .filter(
+                    TPreparazioniContenuti.dataCancellazione == None,
+                    TPreparazioniContenuti.fkPreparazione == base_id,
+                )
+                .all()
+            )
+
+            ingredienti = {}  # Dizionario per contenere id alimento come chiave e (quantità, allergeni) come valore
+
+            # Calcola la quantità totale della preparazione base
+            quantita_totale_preparazione_base = sum(ingredient.quantita for ingredient in preparazione_base_ingredienti)
+
+            for ingredient in preparazione_base_ingredienti:
+                # Calcola la quantità in base alla quantità richiesta
+                quantita_calcolata = (ingredient.quantita / quantita_totale_preparazione_base) * quantita_richesta
+                
+                # Aggiungi l'ingrediente al dizionario
+                ingredienti[ingredient.fkAlimento] = {'quantita': quantita_calcolata, 'allergeni': []}
+
+            return ingredienti  # Restituisci il dizionario degli ingredienti
+
+        except Exception as e:
+            print(f"Si è verificato un errore: {e}")
+            return {}  # In caso di errore, restituisci un dizionario vuoto
+
+        finally:
+            self.session.close()
+
+    def processa_ingredienti(self, fk_alimento, quantita_richesta, risultati):
+        """Processa ingredienti composti e semplici."""
+        # Creiamo una lista per gestire ingredienti composti da elaborare
+        stack = [(fk_alimento, quantita_richesta)]
+
+        while stack:
+            current_fk_alimento, current_quantita = stack.pop()
+
+            # Controlla se current_fk_alimento è None
+            if current_fk_alimento is None:
+                print(f"Attenzione: fk_alimento è None per quantità richiesta: {current_quantita}")
+                continue
+
+            if current_fk_alimento > 100000:  # Ingredienti composti
+                sottoingredienti = self.recupera_ingredienti_base(current_fk_alimento, current_quantita)
+                for key, value in sottoingredienti.items():
+                    # Aggiungi alla lista di ingredienti da processare
+                    stack.append((key, value['quantita']))
+            else:  # Ingredienti semplici
+                risultati[current_fk_alimento]['quantita'] += current_quantita
+
+
+    def recupero_totale_peso_ingredienti(self, descrizione):
+        try:
+            # Recupera la preparazione in base alla descrizione fornita
+            preparazione = self.session.query(TPreparazioni).filter_by(descrizione=descrizione).first()
+            if not preparazione:
+                return {'Error': 'Nessuna preparazione trovata con questa descrizione.'}, 404
+
+            # Recupera gli ingredienti di base associati alla preparazione
+            ingredienti_base = self.session.query(TPreparazioniContenuti).filter_by(
+                fkPreparazione=preparazione.id, 
+                dataCancellazione=None).all()
+            
+            # Inizializza il dizionario per i risultati
+            risultati = defaultdict(lambda: {'quantita': 0})
+
+            # Itera su ogni ingrediente di base
+            for ingrediente in ingredienti_base:
+                self.processa_ingredienti(ingrediente.fkAlimento, ingrediente.quantita, risultati)
+
+            # Restituisce i risultati con i pesi totali per ogni ingrediente
+            return {fk_alimento: data['quantita'] for fk_alimento, data in risultati.items()}
+
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+
+
+    def recupero_totale_ingredienti_base(self, descrizione):
+        try:
+            # Recupera la preparazione in base alla descrizione fornita
+            preparazione = self.session.query(TPreparazioni).filter_by(descrizione=descrizione).first()
+            if not preparazione:
+                return {'Error': 'Nessuna preparazione trovata con questa descrizione.'}, 404
+
+            # Recupera gli ingredienti di base associati alla preparazione
+            ingredienti_base = self.session.query(TPreparazioniContenuti).filter_by(
+                fkPreparazione=preparazione.id, 
+                dataCancellazione=None).all()
+            
+            # Inizializza il dizionario per i risultati
+            risultati = defaultdict(lambda: {'quantita': 0})
+
+            # Itera su ogni ingrediente di base
+            for ingrediente in ingredienti_base:
+                self.processa_ingredienti(ingrediente.fkAlimento, ingrediente.quantita, risultati)
+
+            # Inizializza un dizionario per i risultati finali
+            ingredienti_finali = {}
+            calorie_totali = 0
+            allergeni_set = set()
+
+            # Somma gli ingredienti con le stesse chiavi
+            for key, value in risultati.items():
+                ingredienti_finali[key] = value  # Aggiungi ingredienti semplici e composti già processati
+
+            # Calcola le calorie totali e gli allergeni
+            for key in ingredienti_finali.keys():
+                
+                result = (
+                    self.session.query(
+                        TAlimenti.energia_Kcal,
+                        TAlimenti.fkAllergene
+                    )
+                    .filter(TAlimenti.id == key)  # Filtra per l'id dell'alimento
+                    .first()
+                )
+
+                if result:
+                    energia_kcal, fk_allergene = result
+                    quantita = ingredienti_finali[key]['quantita']
+                    calorie_totali += energia_kcal * quantita / 100  # Calcola calorie in base alla quantità
+
+                    
+
+                    if fk_allergene:
+                        # Dividi fk_allergene in una lista
+                        allergeni_list = [allergene.strip() for allergene in fk_allergene.split(',')]
+                        
+                        # Aggiungi allergeni al set se non sono '15'
+                        for allergene in allergeni_list:
+                            if allergene != '15':
+                                allergeni_set.add(allergene)
+
+            # Verifica se ci sono allergeni
+            if not allergeni_set:
+                # Se non ci sono allergeni, assegna '15'
+                allergeni_set.add('15')
+
+            # Crea e restituisci un dizionario con i risultati
+            return {
+                'descrizione': descrizione,
+                'calorie_totali': calorie_totali if calorie_totali else 0,
+                'allergeni': ','.join(sorted(allergeni_set)) if allergeni_set else None  # Ordina e unisci in stringa
+            }
+        except Exception as e:
+            print(f"Errore nel recupero degli ingredienti e calorie: {e}")
+            return {'Error': str(e)}, 400
+
+        finally:
+            self.session.close()
+
+
     def calcola_calorie_per_nome(self, titolo_piatto):
         try:
             results = (
@@ -193,7 +354,9 @@ class Repository_t_preparazioni:
                         ))
                     ).label('allergeni')  # Usa DISTINCT per evitare duplicati
                 )
-                .join(TPreparazioniContenuti, TPreparazioniContenuti.fkPreparazione == TPreparazioni.id)
+                .join(TPreparazioniContenuti, 
+                    (TPreparazioniContenuti.fkPreparazione == TPreparazioni.id) & 
+                    (TPreparazioniContenuti.dataCancellazione == None))  # Aggiungi il filtro per data_cancellazione
                 .join(TAlimenti, TPreparazioniContenuti.fkAlimento == TAlimenti.id)
                 .filter(TPreparazioni.descrizione == titolo_piatto)  # Filtra per nome del piatto
                 .group_by(TPreparazioniContenuti.fkPreparazione)
@@ -201,14 +364,20 @@ class Repository_t_preparazioni:
             )
 
             if results:
+                calorie_totali = results.calorie_totali if results.calorie_totali is not None else 0  # Imposta a 0 se None
                 # Crea e restituisci un dizionario con i risultati
                 return {
                     'descrizione': results.descrizione,
-                    'calorie_totali': results.calorie_totali,
+                    'calorie_totali': calorie_totali,
                     'allergeni': results.allergeni
                 }
 
-            return None
+            # Se non ci sono risultati, ritorna 0 calorie
+            return {
+                'descrizione': titolo_piatto,
+                'calorie_totali': 0,
+                'allergeni': None
+            }
 
         except Exception as e:
             print(f"Si è verificato un errore: {e}")
@@ -216,7 +385,6 @@ class Repository_t_preparazioni:
 
         finally:
             self.session.close()
-
 
 
 

@@ -74,13 +74,11 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
-    const selectedItems = [];
-
-    {% for piatto in info_piatti %}
-        selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
-    {% endfor %}
-    
+    // Serializza i dati da Jinja in un oggetto JavaScript
+    const info_piatti = {{ info_piatti | tojson }};
 </script>
+
 <script src="{{ url_for('static', filename='js/ordine_schede_dipendente.js') }}"></script>
+
 
 {% endblock %}

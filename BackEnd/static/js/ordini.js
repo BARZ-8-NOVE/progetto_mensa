@@ -1,3 +1,22 @@
+// Funzione che gestisce le opzioni di stampa
+function handlePrintOption() {
+    const select = document.getElementById("printOptions");
+    const selectedValue = select.value;
+
+    if (selectedValue === "schede") {
+        printPage(ordineId);
+    } else if (selectedValue === "prospetto") {
+        printProspetto(ordineId);
+    } else if (selectedValue === "pagina") {
+        priint();  // Supponendo che ci sia un errore di battitura in 'priint', correggilo se necessario.
+    }
+}
+
+// Chiama la funzione su qualche evento, ad esempio quando cambia la selezione
+document.getElementById("printOptions").addEventListener("change", handlePrintOption);
+
+
+
 
 function printProspetto(ordineId) {
     // Costruisci l'URL per la pagina di stampa

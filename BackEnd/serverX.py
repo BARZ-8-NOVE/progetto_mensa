@@ -1039,45 +1039,82 @@ def alimenti():
 
 
 
-@app_cucina.route('/alimenti/<int:id>', methods=['DELETE'])
-def elimina_alimento(id):
-    """
-    Gestisce l'eliminazione di un alimento specifico dal sistema.
-
-    Questa funzione consente di:
-    - Eliminare un alimento esistente identificato dal suo ID.
-
-    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
-    - **DELETE**: Rimuove l'alimento specificato dall'archivio dati.
-
-    Args:
-        id (int): L'ID dell'alimento da eliminare.
-
-    Returns:
-        Response:
-            - **DELETE**:
-                - Se l'eliminazione ha successo, restituisce un messaggio di conferma con codice di stato 204 (No Content).
-                - Se si verifica un errore durante l'eliminazione, restituisce un messaggio di errore con codice di stato 400 (Bad Request).
-
-    Notes:
-        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
-        - La funzione esegue un log della richiesta di eliminazione e gestisce eventuali eccezioni durante il processo di eliminazione.
-        - Un messaggio di successo o errore viene mostrato all'utente tramite il sistema di flash messages.
-    """  
+@app_cucina.route('/alimenti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_alimento(id):
+    
     if 'authenticated' in session:
 
-        print(f"Request to delete Alimento with ID: {id}")  # Aggiungi questo log
-        try:
-            service_t_Alimenti.delete(id=id)
-            flash('Alimento eliminata con successo!', 'success')
-            return jsonify({'message': 'alimento {id} eliminato con successo!'}), 204  # Status code 204 No Content per operazioni riuscite senza contenuto da restituire
-        except Exception as e:
-            print(f"Error deleting scheda: {e}")  # Log per l'errore
-            flash('Errore durante l\'eliminazione dell\'Alimento', 'danger')
-            return jsonify({'message': f'Errore nell\'eliminazione dell\'alimento {id}!'}), 400 # Status code 400 Bad Request per errori
-       
+        if request.method == 'GET':
+            alimento = service_t_Alimenti.get_by_id(id)
+            tipologie = service_t_tipologiaalimenti.get_all_tipologiaalimenti()
+            allergeni = service_t_Allergeni.get_all()
+
+            form = AlimentiForm(obj=alimento)
+            form.fkAllergene.choices = [(allergene['id'], allergene['nome']) for allergene in allergeni]
+            form.fkTipologiaAlimento.choices = [(tipologia['id'], tipologia['nome']) for tipologia in tipologie]
+            
+            if alimento:
+                alim_json = jsonify({
+                    'alimento': alimento.get('alimento'),
+                    'energia_Kcal': alimento.get('energia_Kcal'),
+                    'energia_KJ': alimento.get('energia_KJ'),
+                    'prot_tot_gr': alimento.get('prot_tot_gr'),
+                    'glucidi_tot': alimento.get('glucidi_tot'),
+                    'lipidi_tot': alimento.get('lipidi_tot'),
+                    'saturi_tot': alimento.get('saturi_tot'),
+                    'fkAllergene': alimento.get('fkAllergene'),
+                    'fkTipologiaAlimento': alimento.get('fkTipologiaAlimento'),
+                })
+                return alim_json
+            else:
+                return jsonify({'error': 'Alimento non trovato.'}), 404
+
+        if request.method == 'PUT':
+            print("Richiesta PUT ricevuta")
+            alimento = service_t_Alimenti.get_by_id(id)
+            if not alimento:
+                return jsonify({'error': 'Alimento non trovato.'}), 404
+
+            form = AlimentiForm(request.form)
+
+            try:
+                # Crea la stringa fkAllergene
+                fkAllergene = ",".join(str(allergene_id) for allergene_id in form.fkAllergene.data)
+
+                # Esegui l'aggiornamento
+                service_t_Alimenti.update(
+                    id=id,    
+                    alimento=form.alimento.data,
+                    energia_Kcal=form.energia_Kcal.data,
+                    energia_KJ=form.energia_KJ.data,
+                    prot_tot_gr=form.prot_tot_gr.data,
+                    glucidi_tot=form.glucidi_tot.data,
+                    lipidi_tot=form.lipidi_tot.data,
+                    saturi_tot=form.saturi_tot.data,
+                    fkAllergene=fkAllergene,
+                    fkTipologiaAlimento=form.fkTipologiaAlimento.data
+                )
+
+                return jsonify({'message': 'Piatto aggiornato con successo!'}), 200
+
+            except Exception as e:
+                print(f"Errore durante l'aggiornamento: {e}")
+                return jsonify({'error': 'Errore durante l\'aggiornamento del Servizio'}), 500
+            
+
+        if request.method == 'DELETE':
+            alimento = service_t_Alimenti.get_by_id(id)
+            if not alimento:
+                return jsonify({'error': 'Alimento non trovato.'}), 404
+            try:
+                service_t_Alimenti.delete(id=id)
+                return jsonify({'message': f'Alimento {id} eliminato con successo!'}), 204
+            except Exception as e:
+                print(f"Errore durante l'eliminazione: {e}")
+                return jsonify({'error': 'Errore durante l\'eliminazione del Servizio'}), 400
     else:
         return redirect(url_for('app_cucina.login'))
+
 
 
 
@@ -3274,23 +3311,25 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
         preparazioni_map = get_preparazioni_map(get_data['data'], scheda['fkTipoMenu'], servizio)
         
+
         def calculate_preparations_calories(preparations_map):
             calories_data = {}
             for p_id, p_name in preparations_map.items():
+                print(p_id, p_name)
                 # Ottieni i dati delle calorie usando l'ID o il nome del piatto
-                prep_calorie = service_t_preparazioni.calcola_calorie_per_nome(p_name)  # O usa p_id se necessario
+                prep_calorie = service_t_preparazioni.recupero_totale_ingredienti_base(p_name)  # O usa p_id se necessario
                 # Stampa di debug per verificare il risultato
                 print(f"Calorie info per {p_name} (ID: {p_id}): {prep_calorie}")
                 
                 # Assicurati che prep_calorie contenga i dati necessari
                 if prep_calorie:  # Se ci sono dati disponibili
                     calories_data[p_id] = {  # Usa l'ID come chiave
-                        'calorie_totali': prep_calorie.get('calorie_totali', 'Non disponibili'),
+                        'calorie_totali': round(prep_calorie.get('calorie_totali', 0)), 
                         'allergeni': prep_calorie.get('allergeni', 'Non disponibili')
                     }
                 else:
                     calories_data[p_id] = {
-                        'calorie_totali': 'Non disponibili',
+                        'calorie_totali': 0,
                         'allergeni': 'Non disponibili'
                     }
             return calories_data

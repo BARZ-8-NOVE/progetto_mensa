@@ -1,5 +1,21 @@
+    // Funzione che costruisce l'array `selectedItems`
+    function buildSelectedItems(infoPiatti) {
+        const selectedItems = [];
+        infoPiatti.forEach(function(piatto) {
+            selectedItems.push({
+                fkPiatto: piatto.fkPiatto,
+                quantita: piatto.quantita,
+                note: piatto.note
+            });
+        });
+        return selectedItems;
+    }
 
-    
+    // Chiama la funzione passando i dati
+    const selectedItems = buildSelectedItems(info_piatti);
+    console.log(selectedItems);  // Stampa l'array per verificarne il contenuto
+
+
 
     function printProspetto(ordineId) {
         // Costruisci l'URL per la pagina di stampa

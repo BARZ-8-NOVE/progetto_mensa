@@ -12,7 +12,7 @@ class RepositoryAlimenti:
 
     def get_all(self):
         try:
-            results = self.session.query(TAlimenti).all()
+            results = self.session.query(TAlimenti).order_by(TAlimenti.alimento).all()
             return [{'id': result.id, 'alimento': result.alimento, 'energia_Kcal': result.energia_Kcal, 
                      'energia_KJ': result.energia_KJ, 'prot_tot_gr': result.prot_tot_gr, 
                      'glucidi_tot': result.glucidi_tot, 'lipidi_tot': result.lipidi_tot, 
@@ -99,26 +99,30 @@ class RepositoryAlimenti:
             if self.session:
                 self.session.close()
 
-    def update(self, id, Alimento, Energia_Kcal, Energia_KJ, Prot_Tot_Gr, Glucidi_Tot, Lipidi_Tot, Saturi_Tot, fkAllergene, fkTipologiaAlimento):
+    def update(self, id, alimento, energia_Kcal, energia_KJ, prot_tot_gr, glucidi_tot, lipidi_tot, saturi_tot, fkAllergene, fkTipologiaAlimento):
         try:
-            alimento = self.session.query(TAlimenti).filter_by(id=id).first()
+            alim = self.session.query(TAlimenti).filter_by(id=id).first()
             if alimento:
-                alimento.alimento = Alimento
-                alimento.energia_Kcal = Energia_Kcal
-                alimento.energia_KJ = Energia_KJ
-                alimento.prot_tot_gr = Prot_Tot_Gr
-                alimento.glucidi_tot = Glucidi_Tot
-                alimento.lipidi_tot = Lipidi_Tot
-                alimento.saturi_tot = Saturi_Tot
-                alimento.fkAllergene = fkAllergene
-                alimento.fkTipologiaAlimento = fkTipologiaAlimento
+  
+                alim.alimento = alimento
+                alim.energia_Kcal = energia_Kcal
+                alim.energia_KJ = energia_KJ
+                alim.prot_tot_gr = prot_tot_gr
+                alim.glucidi_tot = glucidi_tot
+                alim.lipidi_tot = lipidi_tot
+                alim.saturi_tot = saturi_tot
+                alim.fkAllergene = fkAllergene
+                alim.fkTipologiaAlimento = fkTipologiaAlimento
+                
                 self.session.commit()
-                return {'alimento': 'updated!'}, 200
+                print(f"Aggiornamento avvenuto con successo per ID {id}.")  # Stampa di successo
+                return {'alimento': 'updated!', 'id': id}, 200
             else:
                 return {'Error': f'No match found for this ID: {id}'}, 404
         except Exception as e:
-            self.session.rollback()  # Aggiunta del rollback
+            self.session.rollback()
             logging.error(f"Error updating alimento with ID {id}: {e}")
+            print(f"Errore durante l'aggiornamento: {e}")  # Stampa dell'errore
             return {'Error': str(e)}, 500
         finally:
             if self.session:

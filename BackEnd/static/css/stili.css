@@ -558,7 +558,7 @@ li {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    
+    cursor: pointer;
     width: 120px; /* Larghezza fissa per gli elementi della colonna personalizzata */
     height: 59px; /* Altezza fissa per gli elementi della colonna personalizzata */
     border: 1px solid #ccc;
@@ -1760,4 +1760,35 @@ select {
     display: flex; /* Utilizza flexbox per allineare il testo */
     align-items: center; /* Allinea verticalmente gli elementi */
     position: absolute;
+}
+.popup-item {
+    position: relative; /* Necessario per il posizionamento assoluto del tooltip */
+}
+
+.tooltip {
+    display: none; /* Nascondi il tooltip per impostazione predefinita */
+    position: absolute;
+    background-color: #ffffff; /* Colore di sfondo del tooltip */
+    color: #000000; /* Colore del testo del tooltip */
+    padding: 5px; /* Spaziatura interna */
+    border-radius: 5px; /* Angoli arrotondati */
+    border: 2px solid #07437e; /* Colore blu del bordo */
+    z-index: 100; /* Assicurati che il tooltip sia sopra altri elementi */
+    top: 100%; /* Posiziona il tooltip sotto l'elemento */
+    left: 50%;
+    transform: translateX(-50%); /* Centra il tooltip orizzontalmente */
+    white-space: nowrap; /* Impedisce la rottura delle righe */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Ombra per dare profondità */
+}
+
+.popup-item:hover .tooltip {
+    display: block; /* Mostra il tooltip al passaggio del mouse */
+}
+
+.popup-custom-column-item:hover .tooltip {
+    display: block; /* Mostra il tooltip al passaggio del mouse */
+}
+
+.icon-cancella:hover .tooltip {
+    display: block; /* Mostra il tooltip al passaggio del mouse */
 }
