@@ -26,8 +26,10 @@ from Classi.ClasseMenu.Classe_t_menu.Service_t_menu import Service_t_Menu
 from Classi.ClasseMenu.Classe_t_menuServizi.Service_t_menuServizi import Service_t_MenuServizi
 from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Service_t_menuServiziAssociazione import Service_t_MenuServiziAssociazione
 
+
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import Service_t_TipiPiatti
 from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import Service_t_Piatti
+# from Classi.ClassePiatti.Classe_t_associazioneTipiPiattiTipiPreparazioni.Service_t_associazioneTipiPiattiTipiPreparazioni import Service_t_AssociazioneTipiPiattiTipiPreparazionie
 from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import Service_t_AssociazionePiattiPreparazionie
 
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
@@ -115,6 +117,7 @@ service_t_Servizi = Service_t_Servizi()
 service_t_Alimenti = Service_t_Alimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 service_t_Allergeni = Service_t_Allergeni()
+# service_t_AssociazioneTipiPiattiTipiPreparazionie = Service_t_AssociazioneTipiPiattiTipiPreparazionie()
 service_t_TipiPiatti= Service_t_TipiPiatti()
 service_t_Piatti = Service_t_Piatti()
 service_t_AssociazionePiattiPreparazionie = Service_t_AssociazionePiattiPreparazionie()
@@ -1453,6 +1456,7 @@ def get_by_fkTipoPreparazione(fkTipoPreparazione):
     - Se non ci sono piatti associati, restituisce l'elenco completo di tutti i piatti.
     """
     piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
+
     tutti_i_piatti = service_t_Piatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
 
@@ -3348,8 +3352,8 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             tipo_piatto = piatto['fkTipoPiatto']
             
             # Filtra solo i piatti (preparazioni) che fanno parte del menu
-            # Escludi i tipi di piatti 4 e 5 dal filtraggio
-            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
+            
+            if piatto_id in preparazioni_map:
                 piatti_map[piatto_id] = {
                     'id': piatto['id'],
                     'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione
@@ -3557,8 +3561,8 @@ def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
             tipo_piatto = piatto['fkTipoPiatto']
             
             # Filtra solo i piatti (preparazioni) che fanno parte del menu
-            # Escludi i tipi di piatti 4 e 5 dal filtraggio
-            if tipo_piatto in [4, 5] or piatto_id in preparazioni_map:
+            
+            if  piatto_id in preparazioni_map:
                 piatti_map[piatto_id] = {
                     'id': piatto['id'],
                     'titolo': preparazioni_map.get(piatto_id, piatto['titolo']), # Usa solo la descrizione della preparazione

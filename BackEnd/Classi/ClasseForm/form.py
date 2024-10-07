@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
+from wtforms import StringField, IntegerField, SelectField,DecimalField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, Optional, Length,  Email, EqualTo
 from wtforms.validators import StopValidation
 from datetime import datetime
@@ -51,12 +51,12 @@ class PasswordResetForm(FlaskForm):
 
 class AlimentiForm(FlaskForm):
     alimento = StringField('Nome', validators=[DataRequired()])
-    energia_Kcal = IntegerField('Energia (Kcal)', validators=[DataRequired()])
-    energia_KJ = IntegerField('Energia (KJ)', validators=[DataRequired()])
-    prot_tot_gr = IntegerField('Proteine (g)', validators=[DataRequired()])
-    glucidi_tot = IntegerField('Carboidrati (g)', validators=[DataRequired()])
-    lipidi_tot = IntegerField('Grassi (g)', validators=[DataRequired()])
-    saturi_tot = IntegerField('Grassi Saturi (g)', validators=[DataRequired()])
+    energia_Kcal = DecimalField('Energia (Kcal)', validators=[DataRequired()])
+    energia_KJ = DecimalField('Energia (KJ)', validators=[DataRequired()])
+    prot_tot_gr = DecimalField('Proteine (g)', validators=[DataRequired()])
+    glucidi_tot = DecimalField('Carboidrati (g)', validators=[DataRequired()])
+    lipidi_tot = DecimalField('Grassi (g)', validators=[DataRequired()])
+    saturi_tot = DecimalField('Grassi Saturi (g)', validators=[DataRequired()])
     fkAllergene = MultiCheckboxField('Allergene', validators=[MultiCheckboxAtLeastOne()], coerce=int)
     fkTipologiaAlimento = SelectField('Tipologia', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Aggiungi')

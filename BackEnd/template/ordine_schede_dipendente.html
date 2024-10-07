@@ -14,7 +14,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             {{ tipi_menu_map[scheda.fkTipoMenu] }}
         </h2>
     </div>
-    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" onsubmit="disableAllSubmitButtons()" >
+    <form method="POST" action="{{ url_for('app_cucina.ordine_schede_dipendente', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=ordine_id) }}" >
         {{ form.hidden_tag() }}
 
         <div class="form-row-ordiniPiatti">
@@ -65,7 +65,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 
 
             <button type="button" class="styled-button" onclick="showLoadingSpinner(),window.location.href='{{ url_for('app_cucina.ordina_pasto') }}'" >Annulla</button>
-            {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
+            {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
 
 
         <input type="hidden" id="piattiList" name="piattiList">
@@ -74,11 +74,62 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
-    // Serializza i dati da Jinja in un oggetto JavaScript
-    const info_piatti = {{ info_piatti | tojson }};
+    const selectedItems = [];
+
+    {% for piatto in info_piatti %}
+        selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
+    {% endfor %}
+    
+    function toggleSelection(element, piattoId) {
+        const piattoType = element.getAttribute('data-type'); // Ottieni il tipo del piatto
+    
+        // Se l'elemento cliccato è già selezionato, deselezionalo e rimuovilo dalla lista
+        if (element.classList.contains('selezionato')) {
+            element.classList.remove('selezionato');
+            const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === piattoId);
+            if (index > -1) {
+                selectedItems.splice(index, 1); // Rimuovi dalla lista dei selezionati
+            }
+        } else {
+            // Deseleziona automaticamente tutti i piatti dello stesso tipo
+            const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
+            itemsToDeselect.forEach(item => {
+                item.classList.remove('selezionato');
+                const idToRemove = parseInt(item.getAttribute('data-id'));
+                const indexToRemove = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === idToRemove);
+                if (indexToRemove > -1) {
+                    selectedItems.splice(indexToRemove, 1); // Rimuovi tutti gli altri piatti dello stesso tipo
+                }
+            });
+    
+            // Seleziona il nuovo piatto
+            element.classList.add('selezionato');
+            selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" }); // Aggiungi il piatto corrente alla lista
+        }
+    
+        // Aggiorna il campo nascosto e il pulsante di invio
+        updateHiddenField();
+        toggleSubmitButton();
+    }
+    
+    
+    // Funzione per aggiornare il campo nascosto
+    function updateHiddenField() {
+        document.getElementById('piattiList').value = JSON.stringify(selectedItems);
+    }
+
+    // Funzione per attivare/disattivare il bottone di invio
+    function toggleSubmitButton() {
+        const submitButton = document.getElementById('submitButton');
+        submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
+    }
+    
+    // Inizializza la selezione all'apertura del popup
+    document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
+        const piattoId = parseInt(item.getAttribute('data-id'));
+        if (selectedItems.find(item => item.fkPiatto === piattoId)) {
+            item.classList.add('selezionato');
+        }
+    });
 </script>
-
-<script src="{{ url_for('static', filename='js/ordine_schede_dipendente.js') }}"></script>
-
-
 {% endblock %}

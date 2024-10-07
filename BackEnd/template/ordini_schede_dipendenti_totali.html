@@ -94,7 +94,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
         </a>
 
-        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
+        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
         
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">

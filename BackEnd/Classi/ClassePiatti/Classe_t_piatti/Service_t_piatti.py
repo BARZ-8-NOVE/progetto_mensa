@@ -25,6 +25,8 @@ class Service_t_Piatti:
             id_modificato = 3
         elif id == 5:
             id_modificato = 4
+        elif id == 7:
+            id_modificato = 5
         
         if id_modificato is not None:
             return self.repository.get_by_fkTipoPiatto(id_modificato)

@@ -48,7 +48,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                     {% if scheda_piatto.fkPiatto in piatti_map %}
                         {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
                         {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
-                        {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
+                        {% set calorie = calorie_info.get('calorie_totali', 0) %}
                         {% set allergeni = calorie_info.get('allergeni', None) %}
                         
                         <div class="popup-item" data-id="{{ piatto.id }}" 
@@ -81,12 +81,12 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                     {% if scheda_piatto.fkPiatto in piatti_map %}
                         {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
                         {% set calorie_info = prep_calorie_data.get(piatto.id, {}) %}
-                        {% set calorie = calorie_info.get('calorie_totali', 'Non disponibili') %}
+                        {% set calorie = calorie_info.get('calorie_totali', 0) %}
                         {% set allergeni = calorie_info.get('allergeni', None) %}
                         
                         <div class="popup-custom-column-item" data-id="{{ piatto.id }}" 
                             data-calorie="{{ calorie }}" 
-                            onclick="toggleSelection(this, {{ piatto.id }})">
+                            onclick="toggleSelection(this, {{ piatto.id }}, {{ calorie }})">
                             
                             <span class="item-id">{{ piatto.codice }}</span>
                             <div class="item-name">{{ piatto.titolo }}</div>
@@ -141,7 +141,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
         </a>
 
-        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled") }}
+        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
         
        <!-- Totale Calorie -->
         <div id="totaleCalorie" style="totaleCalorie">
