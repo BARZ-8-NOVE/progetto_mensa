@@ -14,6 +14,7 @@ class Service_t_Piatti:
     def get_by_fkTipoPiatto(self, fkTipoPiatto):
         return self.repository.get_by_fkTipoPiatto(fkTipoPiatto)
     
+    #obsoleta non la usiamo piu sostituita 
     def get_tipipiatti_da_tipoPreparazione(self, id):
         id_modificato = None
         

@@ -29,9 +29,9 @@ from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Service_t_menuServiziAss
 
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import Service_t_TipiPiatti
 from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import Service_t_Piatti
-# from Classi.ClassePiatti.Classe_t_associazioneTipiPiattiTipiPreparazioni.Service_t_associazioneTipiPiattiTipiPreparazioni import Service_t_AssociazioneTipiPiattiTipiPreparazionie
+ 
 from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import Service_t_AssociazionePiattiPreparazionie
-
+from Classi.ClassePiatti.Classe_t_associazioneTipiPiattiTipiPreparazioni.Service_t_associazioneTipiPiattiTipiPreparazioni import Service_t_AssociazioneTipiPiattiTipiPreparazioni
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
@@ -117,7 +117,7 @@ service_t_Servizi = Service_t_Servizi()
 service_t_Alimenti = Service_t_Alimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 service_t_Allergeni = Service_t_Allergeni()
-# service_t_AssociazioneTipiPiattiTipiPreparazionie = Service_t_AssociazioneTipiPiattiTipiPreparazionie()
+service_t_AssociazioneTipiPiattiTipiPreparazioni = Service_t_AssociazioneTipiPiattiTipiPreparazioni()
 service_t_TipiPiatti= Service_t_TipiPiatti()
 service_t_Piatti = Service_t_Piatti()
 service_t_AssociazionePiattiPreparazionie = Service_t_AssociazionePiattiPreparazionie()
@@ -1455,8 +1455,9 @@ def get_by_fkTipoPreparazione(fkTipoPreparazione):
     - Ottenere la lista dei piatti disponibili per un determinato tipo di preparazione.
     - Se non ci sono piatti associati, restituisce l'elenco completo di tutti i piatti.
     """
-    piatti = service_t_Piatti.get_tipipiatti_da_tipoPreparazione(fkTipoPreparazione)
-
+    id_modificato= service_t_AssociazioneTipiPiattiTipiPreparazioni.get_fkTipoPatto_by_fkTipoPeparazione(fkTipoPreparazione)
+    piatti = service_t_Piatti.get_by_fkTipoPiatto(id_modificato)
+    print(piatti)
     tutti_i_piatti = service_t_Piatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
 

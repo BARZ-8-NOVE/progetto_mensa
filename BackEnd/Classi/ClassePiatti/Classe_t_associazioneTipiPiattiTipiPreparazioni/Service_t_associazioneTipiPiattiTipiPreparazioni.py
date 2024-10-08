@@ -1,7 +1,7 @@
-from Classe_t_associazioneTipiPiattiTipiPreparazioni.Repository_t_associazioneTipiPiattiTipiPreparazioni import RepositoryAssociazioneTipiPiattiTipiPreparazioni
+from Classi.ClassePiatti.Classe_t_associazioneTipiPiattiTipiPreparazioni.Repository_t_associazioneTipiPiattiTipiPreparazioni import RepositoryAssociazioneTipiPiattiTipiPreparazioni
 from datetime import datetime
 
-class Service_t_AssociazioneTipiPiattiTipiPreparazionie:
+class Service_t_AssociazioneTipiPiattiTipiPreparazioni:
 
     def __init__(self) -> None:
         self.repository = RepositoryAssociazioneTipiPiattiTipiPreparazioni()

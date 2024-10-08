@@ -47,14 +47,15 @@ class RepositoryAssociazioneTipiPiattiTipiPreparazioni:
 
     def get_fkTipoPatto_by_fkTipoPeparazione(self, fkTipoPreparazione):
             try:
-                result = self.session.query(TAssociazioneTipiPiattiTipiPreparazioni).filter_by(fkTipoPreparazione=fkTipoPreparazione, dataCancellazione=None).first()
-                return {'id': result.id, 
-                        'fkTipoPiatto': result.fkTipoPiatto, 
-                        'fkTipoPreparazione': result.fkTipoPreparazione, 
-                        'dataInserimento': result.dataInserimento, 
-                        'utenteInserimento': result.utenteInserimento, 
-                        'dataCancellazione': result.dataCancellazione, 
-                        'utenteCancellazione': result.utenteCancellazione} 
+                # Query the association table for matching dish types based on preparation type
+                piatti_associati = self.session.query(TAssociazioneTipiPiattiTipiPreparazioni) \
+                    .filter_by(fkTipoPreparazione=fkTipoPreparazione, dataCancellazione=None).all()
+                
+                # Extract and return the fkTipoPiatto values
+                if piatti_associati:
+                    return [associazione.fkTipoPiatto for associazione in piatti_associati]
+                else:
+                    return None
             except Exception as e:
                 self.session.rollback()
                 return {'Error': str(e)}, 500
