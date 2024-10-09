@@ -1,0 +1,171 @@
+{% extends "index.html" %}
+
+{% block title %}
+orari - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="orari-list">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nome</th>  
+                    <th>Orario</th>
+                    <th>Tempo Limite</th> 
+                    <th>Ordine Dipendente</th> 
+                    <th>Ordine Per Oggi</th>
+                </tr>
+            </thead>
+            <tbody id="orariTableBody">
+                {% for orario in orari %}
+                <tr>
+                    {% if page_permissions['/app_cucina/orari']['can_write'] %}
+                        <td>
+                            <div class="icon-pencil" onclick="showModificaForm({{ orario.id }})" title="Modifica orario"></div>
+                        </td>
+                    {% endif %}
+                    <td>{{ orario.nomeOrdine }}</td>
+                    <td>{{ orario.fkServizio }}</td>
+                    <td>{{ orario.tempoLimite }}</td>
+                    <td>{{ orario.ordineDipendente }}</td>
+                    <td>{{ orario.ordinePerOggi }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>    
+
+<!-- Modal per la modifica degli orari -->
+<div id="addModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <form id="orariForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
+            {{ form.hidden_tag() }}
+            <input type="hidden" id="orariId" name="orariId">
+            <h5 id="modalTitle">Modifica Orario</h5>
+            <div class="modal-body">
+                <div class="form-group">
+                    {{ form.nomeOrdine.label(class="form-label") }}
+                    {{ form.nomeOrdine(class="form-control") }}
+                    {% for error in form.nomeOrdine.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.fkServizio.label(class="form-label") }}
+                    {{ form.fkServizio(class="form-control") }}
+                    {% for error in form.fkServizio.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.tempoLimite.label(class="form-label") }}
+                    {{ form.tempoLimite(class="form-control") }}
+                    {% for error in form.tempoLimite.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.ordineDipendente.label(class="form-label") }}
+                    {{ form.ordineDipendente(class="form-control") }}
+                    {% for error in form.ordineDipendente.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.ordinePerOggi.label(class="form-label") }}
+                    {{ form.ordinePerOggi(class="form-control") }}
+                    {% for error in form.ordinePerOggi.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="submitButton" class="btn btn-primary">Modifica Orario</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+
+        function showModificaForm(orariId) {
+            console.log(`Richiesta di modifica per l'orario ID: ${orariId}`);
+    
+            fetch(`/app_cucina/orari/${orariId}`) // GET request
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Dati ricevuti:', data);
+    
+                    const form = document.getElementById('orariForm');
+                    document.getElementById('orariId').value = orariId; // Assicurati di avere l'ID
+                    document.getElementById('modalTitle').textContent = 'Modifica Orario';
+    
+                    // Popola i campi del modulo
+                    form.elements['nomeOrdine'].value = data.nomeOrdine || '';
+                    form.elements['fkServizio'].value = data.fkServizio || '';
+                    form.elements['tempoLimite'].value = data.tempoLimite || '';
+                    form.elements['ordineDipendente'].checked = data.ordineDipendente || false;
+                    form.elements['ordinePerOggi'].checked = data.ordinePerOggi || false;
+    
+                    // Mostra il modal
+                    document.getElementById('addModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                });
+        }
+    
+        document.getElementById('orariForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previeni il comportamento di invio predefinito
+        
+            const formData = new FormData(this);
+            const orariId = document.getElementById('orariId').value;
+        
+            // Disabilita il pulsante di invio per evitare duplicazioni
+            disableAllSubmitButtons();
+        
+            fetch(`/app_cucina/orari/${orariId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Risposta dopo l\'aggiornamento:', data);
+                closeModal(); // Chiudi il modal dopo l'aggiornamento
+                // Ricarica la pagina per riflettere i cambiamenti
+                window.location.reload(); // Puoi anche aggiornare solo una parte specifica se necessario
+            })
+            .catch(error => {
+                console.error('Errore durante l\'aggiornamento:', error);
+            });
+        });
+        
+        function closeModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+        
+    </script>
+
+
+{% endblock %}

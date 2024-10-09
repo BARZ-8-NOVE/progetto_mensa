@@ -207,7 +207,7 @@ Home - Gestione Cucina
                             {{ tipi_menu_map[menu.fkTipoMenu] }}
                         </div>
                     </td>
-                    <td class="{% if (menu.data - tomorrow).days < 7 and (menu.data - tomorrow).days >= 0 %}warning{% endif %}">
+                    <td class="{% if (menu.data - today).days < 7 and (menu.data - today).days >= 0 %}warning{% endif %}">
                         {{ menu.data.strftime('%d/%m/%Y') }} 
                     </td>
                 </tr>

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SelectField,DecimalField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
+from wtforms import StringField, IntegerField,TimeField, SelectField, DecimalField, SelectMultipleField, HiddenField, SubmitField, widgets, BooleanField, DateField, FileField, FormField, FieldList,PasswordField, RadioField, TextAreaField
 from wtforms.validators import DataRequired, Optional, Length,  Email, EqualTo
 from wtforms.validators import StopValidation
 from datetime import datetime
@@ -66,6 +66,17 @@ class AlimentoForm(FlaskForm):
     quantita = StringField('Quantità', validators=[Optional()])
     fkTipoQuantita = SelectField('Tipo Quantità', coerce=int, validators=[Optional()])
     note = StringField('Note', validators=[Optional()])
+
+
+class OrariForm(FlaskForm):
+    nomeOrdine = StringField('Nome Ordine', validators=[DataRequired()])  # Definisce un campo di input di tipo String
+    fkServizio = SelectField('Servizio', coerce=int, validators=[Optional()])  # Campo di selezione, le scelte verranno popolate dinamicamente
+    tempoLimite = TimeField('Tempo Limite', validators=[DataRequired()])  # Campo di input per il tempo
+    ordineDipendente = BooleanField('Ordine Dipendente', default=True)  # Checkbox per ordine dipendente
+    ordinePerOggi = BooleanField('Ordine per Oggi', default=True)  # Checkbox per ordine per oggi
+    submit = SubmitField('Invia')  # Pulsante di invio
+
+
 
 class PreparazioniForm(FlaskForm):
     descrizione = StringField('Descrizione', validators=[Optional()])

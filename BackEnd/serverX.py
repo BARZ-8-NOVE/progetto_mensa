@@ -44,6 +44,7 @@ from Classi.ClasseReparti.Service_t_reparti import Service_t_Reparti
 
 from Classi.ClasseSchede.Classe_t_schede.Service_t_schede import Service_t_Schede
 from Classi.ClasseSchede.Classe_t_schedePiatti.Service_t_schedePiatti import Service_t_SchedePiatti
+from Classi.ClasseOrdini.Classe_t_orariOrdini.Service_t_orariOrdini import Service_t_OrariOrdini
 from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import Service_t_Ordini
 from Classi.ClasseOrdini.Classe_t_ordiniSchede.Service_t_ordiniSchede import Service_t_OrdiniSchede
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import Service_t_OrdiniPiatti
@@ -73,7 +74,7 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
                                     TipologiaMenuForm, RepartiForm, ServiziForm, LogoutFormNoCSRF, 
                                     CambioPasswordForm, ordinedipendenteForm, ContattiForm, 
                                     PasswordResetRequestForm, ordineSchedaDipendentiForm,
-                                    PasswordResetForm, CambioEmailForm)
+                                    PasswordResetForm, CambioEmailForm, OrariForm)
 
 # Initialize the app and configuration
 import Reletionships
@@ -131,6 +132,7 @@ service_t_MenuServizi = Service_t_MenuServizi()
 service_t_MenuServiziAssociazione = Service_t_MenuServiziAssociazione()
 service_t_TipiAlimentazione = Service_t_TipiAlimentazione()
 service_t_Schede = Service_t_Schede()
+service_t_OrariOrdini = Service_t_OrariOrdini()
 service_t_Ordini = Service_t_Ordini()
 service_t_OrdiniSchede = Service_t_OrdiniSchede()
 service_t_OrdiniPiatti = Service_t_OrdiniPiatti()
@@ -167,23 +169,7 @@ def handle_expired_token(jwt_header, jwt_payload):
 #-------------------------------------Funzioni--------------------------------------------
 
 
-# Controlla se l'ora corrente è prima delle 14 ore rispetto alla data dell'ordine
-def check_order_time_limit(order_date):
-    today = datetime.now().date()
-    tomorrow = today + timedelta(days=1)
-    
-    # Blocca ordini per oggi o ieri
-    if order_date <= today:
-        return False
 
-    # Controlla solo se l'ordine è per domani e dopo le 10 del mattino
-    current_time = datetime.now().time()
-    time_limit = datetime.strptime("10:00:00", "%H:%M:%S").time()
-
-    if order_date == tomorrow and current_time > time_limit:
-        return False
-
-    return True
 
 
 #struttura il percorso per i vari permessi
@@ -837,16 +823,16 @@ def home():
     if 'authenticated' in session:
         try:
              # Ottieni la data di domani
-            tomorrow = datetime.now().date() + timedelta(days=1)  
-            year = request.args.get('year', tomorrow.year, type=int)
-            month = request.args.get('month', tomorrow.month, type=int)
-            day = request.args.get('day', tomorrow.day, type=int)
+            today = datetime.now().date() 
+            year = request.args.get('year', today.year, type=int)
+            month = request.args.get('month', today.month, type=int)
+            day = request.args.get('day', today.day, type=int)
             servizi = service_t_Servizi.get_all_servizi()
             ultimi_menu = service_t_Menu.get_latest_by_fkTipoMenu()
             user = service_t_utenti.get_utente_by_public_id(session['user_id'])
             
             # Calcola il mese e l'anno precedente
-            mese_scorso_data = tomorrow - relativedelta(months=1)
+            mese_scorso_data = today - relativedelta(months=1)
             mese_scorso = mese_scorso_data.month
             anno_mese_scorso = mese_scorso_data.year
 
@@ -929,7 +915,7 @@ def home():
                 ordini_per_menu_anno=ordini_per_menu_anno,
                 ordini_per_menu_mese=ordini_per_menu_mese,
                 ordini_per_menu_giorno=ordini_per_menu_giorno,
-                tomorrow=tomorrow,
+                today=today,
 
                 ordini_totali_per_servizio=ordini_totali_per_servizio,
                 totale_pazienti=totale_pazienti or 0,
@@ -2045,6 +2031,93 @@ def servizi():
     else:
         return redirect(url_for('app_cucina.login'))
     
+
+@app_cucina.route('/orari', methods=['GET'])
+def orari():
+    """
+    Gestisce la visualizzazione e la creazione degli orari.
+
+    Questa funzione consente di:
+    - Visualizzare l'elenco degli orari esistenti.
+    - Modificare un orario se l'utente è autenticato.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza tutti i orari esistenti e un modulo per la creazione di un nuovo orario.
+
+
+    Args:
+        Nessuno. La funzione gestisce l'autenticazione tramite sessione per garantire l'accesso.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'orari.html' con i seguenti dati:
+                    - Elenco degli orari esistenti.
+                    - Un modulo per modificare gli orari
+                
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza il orario `service_t_orari` per recuperare e gestire i orari.
+        - La funzione gestisce la validazione del modulo e la comunicazione di successi o errori all'utente.
+    """
+    if 'authenticated' in session:
+        orari = service_t_OrariOrdini.get_all()
+        servizi = service_t_Servizi.get_all_servizi()
+
+        servizio_map = {int(servizio['id']): servizio['descrizione'] for servizio in servizi}
+
+        form = OrariForm() 
+        form.fkServizio.choices = [(servizio['id'], servizio['descrizione']) for servizio in servizi]
+            
+
+        return render_template('orari_ordini.html',orari=orari, form=form, servizio_map=servizio_map)
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/orari/<int:orari_id>', methods=['GET', 'POST'])
+def modifica_orari(orari_id):
+    if 'authenticated' in session:
+        if request.method == 'GET':
+            orario = service_t_OrariOrdini.get_by_id(orari_id)
+            if not orario:
+                return jsonify({'error': 'Orario non trovato'}), 404
+            
+            if orario:
+                return jsonify({
+                    'nomeOrdine': orario.get('nomeOrdine'),
+                    'fkServizio': orario.get('fkServizio'),
+                    'tempoLimite': orario['tempoLimite'].strftime('%H:%M:%S'),  # Correctly format the time
+                    'ordineDipendente': orario.get('ordineDipendente'),
+                    'ordinePerOggi': orario.get('ordinePerOggi'),
+                })
+
+        if request.method == 'POST':
+            form = OrariForm(request.form)
+            
+            try:
+                service_t_OrariOrdini.update(
+                        id=orari_id,
+                        nomeOrdine=form.nomeOrdine.data,
+                        fkServizio=form.fkServizio.data,
+                        tempoLimite=form.tempoLimite.data,
+                        ordineDipendente=form.ordineDipendente.data,
+                        ordinePerOggi=form.ordinePerOggi.data,
+                        utenteModifica=session.get('username')
+                    )
+                return jsonify({'message': 'Servizio aggiornato con successo!'}), 200
+
+            except Exception as e:
+                print(f"Errore durante l'aggiornamento: {e}")
+                return jsonify({'error': 'Errore durante l\'aggiornamento del Servizio'}), 500
+        else:
+            return jsonify({'error': 'Errore nella validazione del form'}), 400
+    return redirect(url_for('app_cucina.login'))
+
+
+
+
 
 
 @app_cucina.route('/servizi/<int:id>', methods=['GET', 'PUT', 'DELETE'])
@@ -3292,6 +3365,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
         
         # Recupera i dati necessari
+        tipo_commensale = False #indichiamo che il tipo di commensale è un paziente
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
         get_data = service_t_Ordini.get_by_id(id)
@@ -3399,9 +3473,10 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
         if form.validate_on_submit():
 
-                     # Time limit check
-            if not check_order_time_limit(get_data['data']):
-                flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
+            result, status_code = service_t_OrariOrdini.check_order_time_limit(servizio, tipo_commensale, get_data['data'])
+
+            if status_code != 200:
+                flash(result['Error'], 'error')
                 return redirect(url_for('app_cucina.ordini'))
 
             fkOrdine = id
@@ -3529,6 +3604,7 @@ def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
         
         # Recupera i dati necessari
+        tipo_commensale = True
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
         get_data = service_t_Ordini.get_by_id(id)
@@ -3547,6 +3623,7 @@ def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
         allergeni_map = {str(allergene['id']): allergene['nome'] for allergene in allergeni}
 
         ordine_data = get_data['data']
+        print(ordine_data)
         year = ordine_data.year
         month = ordine_data.month
         day = ordine_data.day
@@ -3608,10 +3685,13 @@ def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
 
         if form.validate_on_submit():
 
-                     # Time limit check
-            if not check_order_time_limit(get_data['data']):
-                flash("Non è possibile effettuare ordini per il giorno successivo dopo le 10 del mattino.", 'error')
-                return redirect(url_for('app_cucina.ordini_dipendenti'))
+            # Time limit check
+            result, status_code = service_t_OrariOrdini.check_order_time_limit(servizio, tipo_commensale, get_data['data'])
+
+            if status_code != 200:
+                flash(result['Error'], 'error')
+                return redirect(url_for('app_cucina.ordini_dipendenti', year=year, month=month, day=day, servizio=servizio))  # Esci subito in caso di errore
+
 
             data = get_data['data']
             fkScheda = scheda['id']
@@ -3956,10 +4036,10 @@ def ordina_pasto():
     """
     if 'authenticated' in session:
         # Imposta la data per domani
-        tomorrow = datetime.now() + timedelta(days=1)
-        year = request.args.get('year', tomorrow.year, type=int)
-        month = request.args.get('month', tomorrow.month, type=int)
-        day = request.args.get('day', tomorrow.day, type=int)
+        today = datetime.now() 
+        year = request.args.get('year', today.year, type=int)
+        month = request.args.get('month', today.month, type=int)
+        day = request.args.get('day', today.day, type=int)
         servizio_corrente = request.args.get('servizio', '1')
         
         piatti = service_t_Piatti.get_all()
@@ -4095,6 +4175,7 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
     if 'authenticated' in session:
 
         # Recupera i dati necessari
+        tipo_commensale = True
         schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(scheda, servizio)
         schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(scheda, servizio)
         get_data = service_t_Ordini.get_by_id(id)
@@ -4144,6 +4225,14 @@ def ordine_schede_dipendente(id, servizio, reparto, scheda, ordine_id=None):
         if request.method == 'POST':
             if form.validate_on_submit():
                 piatti_list = json.loads(request.form['piattiList']) 
+
+                result, status_code = service_t_OrariOrdini.check_order_time_limit(servizio, tipo_commensale, get_data['data'])
+
+                if status_code != 200:
+                    flash(result['Error'], 'error')
+                    return redirect(url_for('app_cucina.ordina_pasto', servizio=servizio, reparto=reparto))
+
+
 
                 # Check if piatti_list is empty or None
                 if not piatti_list or len(piatti_list) == 0:
