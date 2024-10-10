@@ -20,6 +20,7 @@ Creazione Schede - Gestione Cucina
                 <th></th>
                 <th></th>
                 <th></th>
+                <th></th>
                 <th>Tipo</th>
                 <th>Nome</th>
                 <th>Scheda</th>
@@ -39,6 +40,7 @@ Creazione Schede - Gestione Cucina
                 </td>
                 <td><div class="icon-pencil" onclick="showModificaSchedaForm({{ scheda.id }})" title="visualizza scheda"></div></td>
                 <td><div class="icon-modifica" onclick="showLoadingSpinner();showAddSchedaPiattiForm({{ scheda.id }})" title="configura scheda"></div></td>
+                <td><div class="icon_archivio" onclick="showLoadingSpinner();showAddSchedapreconfezionataForm({{ scheda.id }})" title="configura schede preconfezionate"></div></td>
                 <td>{{ tipi_alimentazione_map[scheda.fkTipoAlimentazione] }}</td>
                 <td>{{ scheda.nome }}</td>
                 <td>{{ scheda.titolo }}</td>

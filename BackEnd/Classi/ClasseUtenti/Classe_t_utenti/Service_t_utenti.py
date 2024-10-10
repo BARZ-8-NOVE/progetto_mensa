@@ -61,6 +61,50 @@ class Service_t_utenti:
             # Gestione degli errori
             raise Exception(f"An error occurred while creating the user: {str(e)}")
 
+    def get_or_create_google_user(self, email: str, username: str):
+        try:
+            # Log dell'email e del nome utente in ingresso
+            print(f"Getting or creating user with: email={email}, username={username}")
+
+            # Verifica se l'utente esiste già per email
+            existing_user = self.exists_utente_by_email(email)
+            if existing_user:
+                # Se l'utente esiste, restituisce l'oggetto esistente
+                print("User already exists, returning existing user.")
+                return existing_user
+
+            # Se l'utente non esiste, procedere alla creazione
+            nome = "Nome di default"  # Sostituisci con il nome reale se disponibile
+            cognome = "Cognome di default"  # Sostituisci con il cognome reale se disponibile
+            fkTipoUtente = 42  # Assicurati che questo sia l'ID corretto per il tipo di utente
+            fkFunzCustom = ""  # Aggiungi eventuali funzioni personalizzate
+            reparti = ""  # Imposta i reparti se necessari
+            attivo = 1  # Imposta l'utente come attivo
+            inizio = datetime.now()  # Data di inizio corrente
+            password = "password_default"  # Imposta una password di default o generata casualmente
+            fine = None  # Imposta fine se necessario
+
+            # Creazione dell'utente
+            return self.create_utente(
+                username=username,
+                nome=nome,
+                cognome=cognome,
+                fkTipoUtente=fkTipoUtente,
+                fkFunzCustom=fkFunzCustom,
+                reparti=reparti,
+                attivo=attivo,
+                email=email,
+                password=password,
+                inizio=inizio,
+                fine=fine
+            )
+
+        except Exception as e:
+            # Gestione degli errori
+            print(f"Error occurred while getting or creating Google user: {str(e)}")
+            raise Exception(f"An error occurred while getting or creating Google user: {str(e)}")
+
+
     
     def update_utente_username(self, id:int, username:str):
         return self.repository.update_utente_username(id, username)
@@ -121,3 +165,6 @@ class Service_t_utenti:
     
     def manage_token(self, id, token):
         return self.repository.manage_token(id, token)
+    
+    def get_or_create_google_user(self, email, username):
+        return self.repository.get_or_create_google_user(email, username)

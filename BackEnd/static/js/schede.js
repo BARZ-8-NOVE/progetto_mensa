@@ -91,3 +91,7 @@ window.addEventListener('keydown', function(event) {
 function showAddSchedaPiattiForm(schedaId) {
     window.location.href = `schede/piatti/${schedaId}`;
 }
+
+function showAddSchedapreconfezionataForm(schedaId) {
+    window.location.href = `schede/schedepreconfezionate/${schedaId}`;
+}

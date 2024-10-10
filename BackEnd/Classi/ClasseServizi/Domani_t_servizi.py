@@ -16,3 +16,4 @@ class TServizi(Base):
     ordiniSchede = relationship("TOrdiniSchede", back_populates="servizi", uselist=True)
     menu_servizi = relationship("TMenuServizi", back_populates="servizi", uselist=True)
     schede_piatti = relationship('TSchedePiatti', back_populates='servizi')
+

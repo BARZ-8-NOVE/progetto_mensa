@@ -7,6 +7,9 @@ class Service_t_Reparti:
 
     def get_all(self):
         return self.repository.get_all()
+    
+    def get_all_con_fine(self):
+        return self.repository.get_all_con_fine()
 
     def get_by_id(self, id):
         return self.repository.get_by_id(id)

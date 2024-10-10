@@ -10,23 +10,49 @@ class RepositoryReparti:
 
     def get_all(self):
         try:
-            results = self.session.query(TReparti).filter(TReparti.dataCancellazione.is_(None)).all()
+            # Filtra solo i record con dataCancellazione NULL e fine NULL
+            results = self.session.query(TReparti).filter(
+                TReparti.dataCancellazione.is_(None),
+                TReparti.fine.is_(None)
+            ).all()
+            
             return [{'id': result.id, 'codiceAreas': result.codiceAreas, 'descrizione': result.descrizione,
-                     'sezione': result.sezione, 'ordinatore': result.ordinatore, 'padiglione': result.padiglione,
-                     'piano': result.piano, 'lato': result.lato, 'inizio': result.inizio, 'fine': result.fine,
-                     'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
-                     'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
+                    'sezione': result.sezione, 'ordinatore': result.ordinatore, 'padiglione': result.padiglione,
+                    'piano': result.piano, 'lato': result.lato, 'inizio': result.inizio, 'fine': result.fine,
+                    'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
                     for result in results]
         except Exception as e:
             self.session.rollback()
             return {'Error': str(e)}, 500
         finally:
-            # Chiudi sempre la sessione
             self.session.close()
+
+
+    def get_all_con_fine(self):
+        try:
+            # Filtra solo i record con dataCancellazione NULL e fine NULL
+            results = self.session.query(TReparti).filter(
+                TReparti.dataCancellazione.is_(None),
+                
+            ).all()
+            
+            return [{'id': result.id, 'codiceAreas': result.codiceAreas, 'descrizione': result.descrizione,
+                    'sezione': result.sezione, 'ordinatore': result.ordinatore, 'padiglione': result.padiglione,
+                    'piano': result.piano, 'lato': result.lato, 'inizio': result.inizio, 'fine': result.fine,
+                    'dataInserimento': result.dataInserimento, 'utenteInserimento': result.utenteInserimento,
+                    'dataCancellazione': result.dataCancellazione, 'utenteCancellazione': result.utenteCancellazione}
+                    for result in results]
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            self.session.close()        
 
 
     def get_by_id(self, id):
         try:
+            # Filtra anche per fine NULL
             result = self.session.query(TReparti).filter_by(id=id).first()
             if result:
                 return {'id': result.id, 'codiceAreas': result.codiceAreas, 'descrizione': result.descrizione,
@@ -40,24 +66,22 @@ class RepositoryReparti:
             self.session.rollback()
             return {'Error': str(e)}, 400
         finally:
-            # Chiudi sempre la sessione
             self.session.close()
 
 
     def get_by_ids(self, ids):
         try:
-            # Assicurati che 'ids' sia una lista di numeri interi
             if not isinstance(ids, list) or not all(isinstance(id, int) for id in ids):
                 return {'Error': 'IDs should be provided as a list of integers'}, 400
             
-            # Filtra i risultati per ID
-            results = self.session.query(TReparti).filter(TReparti.id.in_(ids)).all()
+            # Filtra i risultati per ID e fine NULL
+            results = self.session.query(TReparti).filter(
+                TReparti.id.in_(ids)
+            ).all()
             
-            # Se non ci sono risultati, ritorna un errore
             if not results:
                 return {'Error': f'No matches found for these IDs: {ids}'}, 404
             
-            # Mappa i risultati in un dizionario
             result_list = []
             for result in results:
                 result_list.append({
@@ -83,8 +107,8 @@ class RepositoryReparti:
             self.session.rollback()
             return {'Error': str(e)}, 400
         finally:
-            # Chiudi sempre la sessione
             self.session.close()
+
 
 
     def create(self, codiceAreas, descrizione, sezione, ordinatore, padiglione, piano, lato, inizio, fine, utenteInserimento):

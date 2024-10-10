@@ -67,6 +67,8 @@ class AlimentoForm(FlaskForm):
     fkTipoQuantita = SelectField('Tipo Quantità', coerce=int, validators=[Optional()])
     note = StringField('Note', validators=[Optional()])
 
+class salvaForm(FlaskForm):
+    submit = SubmitField('Salva modifiche')
 
 class OrariForm(FlaskForm):
     nomeOrdine = StringField('Nome Ordine', validators=[DataRequired()])  # Definisce un campo di input di tipo String
@@ -142,6 +144,13 @@ class schedaForm(FlaskForm):
     nominativa = BooleanField('scheda nominativa', default=False, validators=[Optional()])
     submit = SubmitField('Aggiungi Scheda')
 
+
+class schedaPreconfezionataForm(FlaskForm):
+    fkServizio = SelectField('Servizio', coerce=int, validators=[Optional()])  # Campo di selezione, le scelte verranno popolate dinamicamente
+    descrizione = StringField('Descrizione', validators=[Optional(), Length(max=50)])
+    note = TextAreaField('Note', validators=[Optional()])
+    ordinatore = IntegerField('Ordinatore', validators=[Optional()])
+    submit = SubmitField('Aggiungi Scheda')
 
 class schedaPiattiForm(FlaskForm):
     piatti = SelectField('Piatti', choices=[], coerce=int)

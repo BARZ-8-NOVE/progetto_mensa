@@ -27,7 +27,7 @@ orari - Gestione Cucina e Mensa Ospedaliera
                         </td>
                     {% endif %}
                     <td>{{ orario.nomeOrdine }}</td>
-                    <td>{{ orario.fkServizio }}</td>
+                    <td>{{ servizio_map[orario.fkServizio] }}</td>
                     <td>{{ orario.tempoLimite }}</td>
                     <td>{{ orario.ordineDipendente }}</td>
                     <td>{{ orario.ordinePerOggi }}</td>

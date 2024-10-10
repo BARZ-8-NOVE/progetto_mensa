@@ -3,12 +3,15 @@ from datetime import datetime, date, timedelta, time, timezone
 
 import calendar
 import locale
+import requests
 from functools import wraps
 import pprint
 import logging
 import traceback
 from dateutil.relativedelta import relativedelta
 from itsdangerous import URLSafeTimedSerializer
+from oauthlib.oauth2 import WebApplicationClient
+# from flask_talisman import Talisman //per implementare https
 
 from Classi.ClasseUtenti.Classe_t_funzionalita.Service_t_funzionalita import Service_t_funzionalita
 from Classi.ClasseUtenti.Classe_t_funzionalitaUtenti.Service_t_funzionalitaUtente import Service_t_FunzionalitaUtente
@@ -29,9 +32,9 @@ from Classi.ClasseMenu.Classe_t_menuServiziAssociazione.Service_t_menuServiziAss
 
 from Classi.ClassePiatti.Classe_t_tipiPiatti.Service_t_tipiPiatti import Service_t_TipiPiatti
 from Classi.ClassePiatti.Classe_t_piatti.Service_t_piatti import Service_t_Piatti
- 
 from Classi.ClassePiatti.Classe_t_associazionePiattiPreparazioni.Service_t_associazionePiattiPreparazioni import Service_t_AssociazionePiattiPreparazionie
 from Classi.ClassePiatti.Classe_t_associazioneTipiPiattiTipiPreparazioni.Service_t_associazioneTipiPiattiTipiPreparazioni import Service_t_AssociazioneTipiPiattiTipiPreparazioni
+
 from Classi.ClassePreparazioni.Classe_t_tipoPreparazioni.Service_t_tipoPreparazioni import Service_t_tipipreparazioni
 from Classi.ClassePreparazioni.Classe_t_Preparazioni.Service_t_Preparazioni import Service_t_preparazioni
 from Classi.ClassePreparazioni.Classe_t_tipiquantita.Service_t_tipiquantita import Service_t_tipoquantita
@@ -44,10 +47,14 @@ from Classi.ClasseReparti.Service_t_reparti import Service_t_Reparti
 
 from Classi.ClasseSchede.Classe_t_schede.Service_t_schede import Service_t_Schede
 from Classi.ClasseSchede.Classe_t_schedePiatti.Service_t_schedePiatti import Service_t_SchedePiatti
+from Classi.ClasseSchede.Classe_t_schedePreconfezionate.Service_t_schedePreconfezionate import Service_t_SchedePreconfezionate
+from Classi.ClasseSchede.Classe_t_schedePreconfezionatePiatti.Service_t_schedePreconfezionatePiatti import Service_t_SchedePreconfezionatePiatti
+
 from Classi.ClasseOrdini.Classe_t_orariOrdini.Service_t_orariOrdini import Service_t_OrariOrdini
 from Classi.ClasseOrdini.Classe_t_ordini.Service_t_ordini import Service_t_Ordini
 from Classi.ClasseOrdini.Classe_t_ordiniSchede.Service_t_ordiniSchede import Service_t_OrdiniSchede
 from Classi.ClasseOrdini.Classe_t_ordiniPiatti.Service_t_ordiniPiatti import Service_t_OrdiniPiatti
+
 from Classi.ClasseUtility import *
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -65,7 +72,7 @@ import json
 # Import your service modules here
 
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
-from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
+from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_DISCOVERY_URL
 from Classi.ClasseDB.config import EmailConfig
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, 
@@ -73,8 +80,8 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
                                     UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, 
                                     TipologiaMenuForm, RepartiForm, ServiziForm, LogoutFormNoCSRF, 
                                     CambioPasswordForm, ordinedipendenteForm, ContattiForm, 
-                                    PasswordResetRequestForm, ordineSchedaDipendentiForm,
-                                    PasswordResetForm, CambioEmailForm, OrariForm)
+                                    PasswordResetRequestForm, ordineSchedaDipendentiForm,salvaForm,
+                                    PasswordResetForm, CambioEmailForm, OrariForm, schedaPreconfezionataForm)
 
 # Initialize the app and configuration
 import Reletionships
@@ -82,7 +89,7 @@ import Reletionships
 
 
 app = Flask(__name__)
-
+# Talisman(app, force_https=True) per implementare https
 # Carica configurazioni del DB
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -90,6 +97,10 @@ app.config['SECRET_KEY'] = SECRET_KEY
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 app.config['WTF_CSRF_ENABLED'] = True
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+app.config['GOOGLE_CLIENT_ID'] = GOOGLE_CLIENT_ID
+app.config['GOOGLE_CLIENT_SECRET'] = GOOGLE_CLIENT_SECRET
+app.config['GOOGLE_DISCOVERY_URL'] = GOOGLE_DISCOVERY_URL
 
 # Carica configurazioni dell'email
 app.config['MAIL_SERVER'] = EmailConfig.MAIL_SERVER
@@ -100,6 +111,8 @@ app.config['MAIL_USE_TLS'] = EmailConfig.MAIL_USE_TLS
 app.config['MAIL_USE_SSL'] = EmailConfig.MAIL_USE_SSL
 app.config['MAIL_DEFAULT_SENDER'] = EmailConfig.MAIL_DEFAULT_SENDER
 
+#client per fare l'utenticazione con google
+client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
 # Initialize csrf
 csrf = CSRFProtect(app)
 # Initialize e-mail
@@ -138,6 +151,8 @@ service_t_OrdiniSchede = Service_t_OrdiniSchede()
 service_t_OrdiniPiatti = Service_t_OrdiniPiatti()
 service_t_funzionalita = Service_t_funzionalita ()
 service_t_SchedePiatti = Service_t_SchedePiatti()
+service_t_SchedePreconfezionate = Service_t_SchedePreconfezionate()
+service_t_SchedePreconfezionatePiatti = Service_t_SchedePreconfezionatePiatti()
 service_t_tipiUtenti = Service_t_tipiUtenti()
 service_t_FunzionalitaUtente = Service_t_FunzionalitaUtente()
 
@@ -209,13 +224,22 @@ def get_user_reparti(user_id):
     
     # Se l'utente ha reparti associati, recupera solo quelli
     if user_reparti_ids:
+        # Controlla se l'ID 59 è presente nella lista dei reparti
+        if 59 in user_reparti_ids:
+            flash('Il tuo utente non può effettuare ordini','error')
+            return redirect(url_for('app_cucina.home'))
+            
+        
         response = service_t_Reparti.get_by_ids(user_reparti_ids)
+        
         if 'Error' in response:
             return {'Error': 'Errore nel recupero dei reparti'}
+        
         return response['results']
-    else:
-        # Se non ci sono reparti associati, ritorna tutti i reparti
-        return service_t_Reparti.get_all()
+    
+    # Se non ci sono reparti associati, ritorna tutti i reparti
+    return service_t_Reparti.get_all()
+
 
 
 # Funzione per clonare un menu esistente
@@ -456,7 +480,9 @@ def check_token_and_permissions():
                      'app_cucina.index',
                      'app_cucina.reset_password', 
                      'app_cucina.richiesta_recupero_password', 
-                     'app_cucina.do_logout', 
+                     'app_cucina.do_logout',
+                     'app_cucina.google_login',
+                     'app_cucina.google_callback', 
                      'app_cucina.contatti'
                      ]
 
@@ -532,6 +558,8 @@ def check_csrf():
                      'app_cucina.do_logout',
                      'app_cucina.reset_password',
                      'app_cucina.richiesta_recupero_password',
+                     'app_cucina.google_login',
+                     'app_cucina.google_callback', 
                      'app_cucina.contatti' ]
     if request.endpoint not in exempt_routes:
         csrf.protect()
@@ -694,6 +722,89 @@ def login():
             return render_template('loginx.html', form=form)
 
     return render_template('loginx.html', form=form)  # GET request
+
+
+
+
+
+
+
+
+
+@app_cucina.route('/login/google')
+def google_login():
+    # Ottieni il provider configuration URL di Google
+    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+
+    # Costruisci l'URL di richiesta per l'autenticazione
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=url_for('app_cucina.google_callback', _external=True),
+        scope=["openid", "email", "profile"],
+    )
+    return redirect(request_uri)
+
+@app_cucina.route('/login/google/callback')
+def google_callback():
+    # Ottieni il provider configuration URL di Google
+    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
+    token_endpoint = google_provider_cfg["token_endpoint"]
+
+    # Ottieni il codice di autorizzazione da Google
+    code = request.args.get("code")
+
+    # Prepara e invia una richiesta per ottenere il token
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=url_for('app_cucina.google_callback', _external=True),
+        code=code
+    )
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(app.config['GOOGLE_CLIENT_ID'], app.config['GOOGLE_CLIENT_SECRET']),
+    )
+
+    # Parse the tokens
+    client.parse_request_body_response(token_response.text)
+
+    # Ottieni l'indirizzo per il profilo utente
+    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)
+
+    # Estrai informazioni dall'account Google dell'utente
+    userinfo = userinfo_response.json()
+    if userinfo.get("email_verified"):
+        email = userinfo["email"]
+        username = userinfo["name"]
+
+        # Logica per gestire l'accesso con Google (creazione utente o login)
+        user = service_t_utenti.get_or_create_google_user(email, username)
+        
+        # Memorizza le informazioni utente nella sessione
+        session['authenticated'] = True
+        session['user_id'] = user['public_id']
+        session['token'] = user['token']
+        session['username'] = user['username']
+
+        return redirect(url_for('app_cucina.home'))
+    else:
+        return "L'email non è verificata da Google.", 400
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3000,6 +3111,108 @@ def modifica_scheda(id):
         return redirect(url_for('app_cucina.login'))
 
 
+
+@app_cucina.route('/schede/schedepreconfezionate/<int:id>', methods=['GET', 'POST'])
+def schedepreconfezionate(id):
+
+    if 'authenticated' in session:
+
+        schedePreconfezionate = service_t_SchedePreconfezionate.get_all_by_fk_scheda(id)
+        servizi = service_t_Servizi.get_all_servizi()
+        scheda = service_t_Schede.get_by_id(id)
+        servizio_map = {int(servizio['id']): servizio['descrizione'] for servizio in servizi}
+
+        form = schedaPreconfezionataForm()  
+        form.fkServizio.choices = [(servizio['id'], servizio['descrizione']) for servizio in servizi]  
+
+        if form.validate_on_submit():
+            try:
+                service_t_SchedePreconfezionate.create(
+                        fkScheda = id, 
+                        fkServizio = form.fkServizio.data, 
+                        descrizione = form.descrizione.data,
+                        note = form.note.data,
+                        ordinatore = form.ordinatore.data,
+                        utenteInserimento = session.get('username')
+
+                )  
+                flash('Scheda preconfezionata aggiunta con successo!', 'success')
+                return redirect(url_for('app_cucina.schedepreconfezionate', id=id))
+            except Exception as e:
+                flash(f'Errore durante l\'aggiunta della scheda: {str(e)}', 'danger')
+           
+        return render_template(
+            'schedepreconfezionate.html',
+            schedePreconfezionate=schedePreconfezionate,
+            servizio_map=servizio_map,
+            scheda=scheda,
+            form=form
+         
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('schede/schedepreconfezionate/dettaglio/<int:id>', methods=['GET', 'POST', 'DELETE'])
+def modifica_scheda_preconfezionata(id):
+    if 'authenticated' in session:
+        # Gestione della richiesta GET
+        if request.method == 'GET':
+            schedaPreconfezionata = service_t_SchedePreconfezionate.get_by_id(id)
+            print(schedaPreconfezionata['fkScheda'])
+            if not schedaPreconfezionata:
+                flash('Scheda non trovata!', 'danger')
+                return redirect(url_for('app_cucina.schede'))
+            
+            form = schedaPreconfezionataForm(obj=schedaPreconfezionata)
+            servizi = service_t_Servizi.get_all_servizi()
+            form.fkServizio.choices = [(servizio['id'], servizio['descrizione']) for servizio in servizi]
+
+            return jsonify({
+                'fkServizio': schedaPreconfezionata.get('fkServizio'),
+                'descrizione': schedaPreconfezionata.get('descrizione'),
+                'note': schedaPreconfezionata.get('note'),
+                'ordinatore': schedaPreconfezionata.get('ordinatore'),
+            })
+
+        # Gestione della richiesta POST
+        elif request.method == 'POST':
+            schedaPreconfezionata = service_t_SchedePreconfezionate.get_by_id(id)
+
+            form = schedaPreconfezionataForm()  # Usa il modulo corretto
+
+
+            service_t_SchedePreconfezionate.update(
+                    id=id,
+                    fkServizio=form.fkServizio.data, 
+                    descrizione=form.descrizione.data,
+                    note=form.note.data,
+                    ordinatore=form.ordinatore.data,
+                    utenteInserimento=session.get('username')
+                )
+
+            flash('Scheda aggiornata con successo!', 'success')
+            return redirect(url_for('app_cucina.schedepreconfezionate', id = schedaPreconfezionata['fkScheda']))
+
+        # Gestione della richiesta DELETE
+        elif request.method == 'DELETE':
+            print(f"Request to delete scheda with ID: {id}")  # Log della richiesta
+            try:
+                service_t_SchedePreconfezionate.delete(id=id, utenteCancellazione=session.get('username'))
+                flash('Scheda preconfezionata eliminata con successo!', 'success')
+                return '', 204  # Status code 204 No Content
+            except Exception as e:
+                print(f"Error deleting scheda preconfezionata: {e}")  # Log per l'errore
+                flash('Errore durante l\'eliminazione della scheda preconfezionata.', 'danger')
+                return '', 400  # Status code 400 Bad Request
+
+    # Redirigi se l'utente non è autenticato
+    return redirect(url_for('app_cucina.login'))
+
+
+
+
+
 @app_cucina.route('/schede/piatti/<int:id>', methods=['GET', 'POST'])
 def schede_piatti(id):
     """
@@ -3226,6 +3439,59 @@ def modifica_piatti_scheda(id_scheda, id_piatto_scheda):
     else:
         return redirect(url_for('app_cucina.login'))
     
+
+
+@app_cucina.route('/schede/schedepiattipreconfezionate/<int:id_schedaPreconfezionata>/<int:id_scheda>/<int:servizio>', methods=['GET', 'POST'])
+def shcedePiattiPreconfezionata(id_schedaPreconfezionata, id_scheda, servizio):
+    if 'authenticated' in session:
+
+        schedaPiatti_preconfezionata = service_t_SchedePreconfezionate.get_by_id(id_schedaPreconfezionata)
+        piatti_preconfezionata = service_t_SchedePreconfezionatePiatti.get_piatti_by_scheda(id_schedaPreconfezionata)
+        print (piatti_preconfezionata)
+        
+        piatti = service_t_Piatti.get_all()
+        
+        schedePiatti = service_t_SchedePiatti.get_piatti_non_dolci_by_scheda(id_scheda, servizio)
+
+        schedeDolci = service_t_SchedePiatti.get_dolci_pane_by_scheda(id_scheda, servizio)
+
+        form = salvaForm()
+        
+        piatti_map = {}
+        for piatto in piatti:
+            piatto_id = int(piatto['id'])
+
+            piatti_map[piatto_id] = {
+                    'id': piatto['id'],
+                    'titolo': piatto['titolo'], # Usa solo la descrizione della preparazione
+                    'codice': piatto['codice'],
+                }
+            
+        if form.validate_on_submit():
+            pass
+
+        #siamo aarrivati a qui
+
+        # Pass variables to the template
+        return render_template(
+            'schedepiattipreconfezionate.html',
+            schedaPiatti_preconfezionata=schedaPiatti_preconfezionata,
+            piatti_preconfezionata=piatti_preconfezionata,
+            schedePiatti=schedePiatti,
+            piatti_map=piatti_map,
+            schedeDolci=schedeDolci,
+            id_schedaPreconfezionata=id_schedaPreconfezionata,
+            id_scheda=id_scheda,
+            servizio=servizio,
+            form=form
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+
 
 
 @app_cucina.route('/ordini/brodi', methods=['POST'])
@@ -3470,6 +3736,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
             info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
             info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+            
 
         if form.validate_on_submit():
 
@@ -3682,6 +3949,7 @@ def schede_dipendenti(id, servizio, reparto, scheda, ordine_id=None):
 
             info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
             info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+            print(info_piatti)
 
         if form.validate_on_submit():
 
@@ -4581,7 +4849,7 @@ def creazione_utenti():
         # Recupera tutte le tipologie di utente
         tipologieUtente = service_t_tipiUtenti.get_tipiUtenti_all()
         # Recupera tutti i reparti
-        reparti = service_t_Reparti.get_all()
+        reparti = service_t_Reparti.get_all_con_fine()
         # Recupera tutte le funzionalità
         funzionalita = service_t_funzionalita.get_all_menus()
         # Prepara le scelte per i campi del modulo
@@ -5328,5 +5596,6 @@ app.register_blueprint(app_cucina, url_prefix='/app_cucina')
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # app.run(debug=True, ssl_context='adhoc') per https
 
 

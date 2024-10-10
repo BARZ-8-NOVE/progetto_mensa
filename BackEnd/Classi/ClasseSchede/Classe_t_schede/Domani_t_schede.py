@@ -32,5 +32,7 @@ class TSchede(Base):
     tipo_menu = relationship('TTipiMenu', back_populates='schede')
     schede_piatti = relationship('TSchedePiatti', back_populates='scheda')
     ordiniSchede = relationship("TOrdiniSchede", back_populates="schede")
+    schede_preconfezionate = relationship('TSchedePreconfezionate', back_populates='scheda', uselist=True)
+    
 
 

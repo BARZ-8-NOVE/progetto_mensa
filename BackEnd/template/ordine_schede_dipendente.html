@@ -76,6 +76,12 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 <script>
     const selectedItems = [];
 
+        // Assicurati che il DOM sia completamente carico prima di eseguire lo script
+        document.addEventListener("DOMContentLoaded", function() {
+            const popupContainer = document.getElementById('popupContainer');
+            console.log(popupContainer.innerHTML);
+        });
+
     {% for piatto in info_piatti %}
         selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }}, note: "{{ piatto.note }}" });
     {% endfor %}

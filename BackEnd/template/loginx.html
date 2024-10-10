@@ -35,6 +35,17 @@
                 {{ form.submit(class="btn btn-primary") }}
             </div>
         </form>
+
+        <form method="GET" action="{{ url_for('app_cucina.google_login') }}">
+            <button type="submit" class="btn-google">
+                <img src="{{ url_for('static', filename='images/logo-G.png') }}" alt="Google Logo">
+                Accedi con Google
+            </button>
+        </form>
+        
+        
+        
+
         <button id="forgotPasswordBtn">Password Dimenticata</button>
     </div>
 
@@ -55,7 +66,7 @@
             </form>
         </div>
     </div>
-    
+
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>

@@ -1,0 +1,107 @@
+{% extends "index.html" %}
+
+{% block title %}
+Schede Piatti - Gestione Cucina e Mensa Ospedaliera
+{% endblock %}
+
+{% block content %}
+<div class="popup">
+    <form method="POST" action="{{ url_for('app_cucina.shcedePiattiPreconfezionata', id_schedaPreconfezionata=id_schedaPreconfezionata, id_scheda=id_scheda, servizio=servizio) }}">
+        <div class="form-row-ordiniPiatti">
+           <h2>{{schedaPiatti_preconfezionata.descrizione}}</h2>
+        </div>
+
+        <div class="popup-content">
+            <div class="popup-grid">
+                {% for scheda_piatto in schedePiatti %}
+                {% if scheda_piatto.fkPiatto in piatti_map %}
+                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                <div class="popup-item" data-id="{{ piatto.id }}" data-type="{{ piatto.fkTipoPiatto }}" onclick="toggleSelection(this, {{ piatto.id }})">
+                    <span class="item-id">{{ piatto.codice }}</span>
+                    <div class="item-name">{{ piatto.titolo }}</div>
+                </div>     
+                {% else %}
+                <div class="popup-item unknown"></div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="popup-custom-column">
+                {% for scheda_piatto in schedeDolci %}
+                {% if scheda_piatto.fkPiatto in piatti_map %}
+                {% set piatto = piatti_map[scheda_piatto.fkPiatto] %}
+                <div class="popup-custom-column-item" data-id="{{ piatto.id }}" data-type="{{ piatto.fkTipoPiatto }}" onclick="toggleSelection(this, {{ piatto.id }})">
+                    <span class="item-id">{{ piatto.codice }}</span>
+                    <div class="item-name">{{ piatto.titolo }}</div>
+                </div>       
+                {% else %}
+                <div class="popup-custom-column-item unknown"></div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <button type="button" class="styled-button" onclick="showLoadingSpinner(), window.location.href='{{ url_for('app_cucina.schedepreconfezionate', id=id_scheda) }}'">Annulla</button>
+
+
+        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
+
+        <input type="hidden" id="piattiList" name="piattiList">
+        <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">
+    </form>
+</div>
+
+<script>
+    // Inizializza l'array selectedItems
+    const selectedItems = [];
+
+    // Assicurati che il DOM sia completamente carico prima di eseguire lo script
+    document.addEventListener("DOMContentLoaded", function() {
+        const popupContainer = document.getElementById('popupContainer');
+        console.log(popupContainer.innerHTML);
+    });
+
+{% for piatto in piatti_preconfezionata %}
+    selectedItems.push({ fkPiatto: {{ piatto.fkPiatto }}, quantita: {{ piatto.quantita }} });
+{% endfor %}
+
+function toggleSelection(element, piattoId) {
+    // Controlla se l'elemento è già selezionato
+    if (element.classList.contains('selezionato')) {
+        // Deseleziona il piatto
+        element.classList.remove('selezionato');
+        const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === piattoId);
+        if (index > -1) {
+            selectedItems.splice(index, 1); // Rimuovi dalla lista dei selezionati
+        }
+    } else {
+        // Seleziona il nuovo piatto
+        element.classList.add('selezionato');
+        selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "" }); // Aggiungi il piatto corrente alla lista
+    }
+
+    // Aggiorna il campo nascosto e il pulsante di invio
+    updateHiddenField();
+    toggleSubmitButton();
+}
+
+// Funzione per aggiornare il campo nascosto
+function updateHiddenField() {
+    document.getElementById('piattiList').value = JSON.stringify(selectedItems);
+}
+
+// Funzione per attivare/disattivare il bottone di invio
+function toggleSubmitButton() {
+    const submitButton = document.getElementById('submitButton');
+    submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
+}
+
+// Inizializza la selezione all'apertura del popup
+document.querySelectorAll('.popup-item, .popup-custom-column-item').forEach(item => {
+    const piattoId = parseInt(item.getAttribute('data-id'));
+    if (selectedItems.find(item => item.fkPiatto === piattoId)) {
+        item.classList.add('selezionato');
+    }
+});
+</script>
+
+{% endblock %}
