@@ -82,7 +82,8 @@ from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm
                                     TipologiaMenuForm, RepartiForm, ServiziForm, LogoutFormNoCSRF, 
                                     CambioPasswordForm, ordinedipendenteForm, ContattiForm, AllergeniForm,
                                     PasswordResetRequestForm, ordineSchedaDipendentiForm,salvaForm,
-                                    PasswordResetForm, CambioEmailForm, OrariForm, schedaPreconfezionataForm)
+                                    PasswordResetForm, CambioEmailForm, OrariForm, schedaPreconfezionataForm,
+                                    TipoAlimentoForm, ConservazioneForm )
 
 # Initialize the app and configuration
 import Reletionships
@@ -1031,6 +1032,63 @@ def allergeni():
     else:
         return redirect(url_for('app_cucina.login'))
 
+@app_cucina.route('/allergeni/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_allergeni(id):
+    
+    if 'authenticated' in session:
+
+        if request.method == 'GET':
+            allergene = service_t_Allergeni.get_by_id(id)
+           
+
+            form = AllergeniForm(obj=allergene)
+            
+            if allergene:
+                all_json = jsonify({
+                    'nome': allergene.get('nome'),
+                   
+                })
+                return all_json
+            else:
+                return jsonify({'error': 'Allergene non trovato.'}), 404
+
+        if request.method == 'PUT':
+            print("Richiesta PUT ricevuta")
+            allergene = service_t_Allergeni.get_by_id(id)
+            if not allergene:
+                return jsonify({'error': 'Alimento non trovato.'}), 404
+
+            form = AllergeniForm(request.form)
+
+            try:
+
+                # Esegui l'aggiornamento
+                service_t_Allergeni.update(
+                    id=id,    
+                    nome=form.nome.data
+                )
+
+                return jsonify({'message': 'allergene aggiornato con successo!'}), 200
+
+            except Exception as e:
+                print(f"Errore durante l'aggiornamento: {e}")
+                return jsonify({'error': 'Errore durante l\'aggiornamento del Servizio'}), 500
+            
+
+        if request.method == 'DELETE':
+            allergene = service_t_Allergeni.get_by_id(id)
+            if not allergene:
+                return jsonify({'error': 'allergene non trovato.'}), 404
+            try:
+                #service_t_Allergeni.delete(id=id)
+                flash('gli allergene non si possono eliminare!', 'warning')
+                return jsonify({'message': f'allergene {id} non si possono eliminare gli allergeni!'}), 204
+            except Exception as e:
+                print(f"Errore durante l'eliminazione: {e}")
+                return jsonify({'error': 'Errore durante l\'eliminazione del\' allergene'}), 400
+    else:
+        return redirect(url_for('app_cucina.login'))
+
 
 
 
@@ -1076,14 +1134,38 @@ def tipologia_alimenti():
 
         conservazione_map = {int(tipo_cons['id']): tipo_cons['nome'] for tipo_cons in conservazione}
         
-        form = AlimentiForm()
+        formConservazione = ConservazioneForm()        
+        
+        formTipoAlimento = TipoAlimentoForm()
+        formTipoAlimento.fktipologiaConservazione.choices = [(cons['id'], cons['nome']) for cons in conservazione]
+
+
+        if formConservazione.validate_on_submit():
+          
+            service_t_TipologiaConservazioni.create(
+                nome=formConservazione.nome.data 
+            )
+
+            flash('	Metodo di Conservazione aggiunto con successo!', 'success')
+            return redirect(url_for('app_cucina.tipologia_alimenti'))
+        
+        if formTipoAlimento.validate_on_submit():
+          
+            service_t_tipologiaalimenti.create(
+                nome=formConservazione.nome.data, 
+                fktipologiaConservazione=formConservazione.fktipologiaConservazione.data
+            )
+
+            flash('	tipologia alimento aggiunto con successo!', 'success')
+            return redirect(url_for('app_cucina.tipologia_alimenti'))
 
         return render_template(
             'tipologia_alimenti.html',
             tipologia_alimenti=tipologia_alimenti,
             conservazione=conservazione,
             conservazione_map=conservazione_map,
-            form=form
+            formTipoAlimento=formTipoAlimento,
+            formConservazione=formConservazione
 
             
         )
@@ -1092,8 +1174,129 @@ def tipologia_alimenti():
 
 
 
+@app_cucina.route('/tipologia_alimenti/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_tipologia_alimenti(id):
+    
+    if 'authenticated' in session:
+
+        if request.method == 'GET':
+            tipologia_alimenti = service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
+            conservazione = service_t_TipologiaConservazioni.get_all()
+
+           
+
+            formTipoAlimento = TipoAlimentoForm(obj=tipologia_alimenti)
+            formTipoAlimento.fktipologiaConservazione.choices = [(cons['id'], cons['nome']) for cons in conservazione]
 
 
+            
+            if tipologia_alimenti:
+                all_json = jsonify({
+                    'nome': tipologia_alimenti.get('nome'),
+                    'fktipologiaConservazione': tipologia_alimenti.get('fktipologiaConservazione'),
+                   
+                })
+                return all_json
+            else:
+                return jsonify({'error': 'fktipologiaConservazione non trovato.'}), 404
+
+        if request.method == 'PUT':
+            print("Richiesta PUT ricevuta")
+            tipologia_alimenti = service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
+            if not tipologia_alimenti:
+                return jsonify({'error': 'tipologia alimenti non trovato.'}), 404
+
+            formTipoAlimento = TipoAlimentoForm()
+
+            try:
+
+                # Esegui l'aggiornamento
+                service_t_tipologiaalimenti.update(
+                    id=id,    
+                    nome=formTipoAlimento.nome.data,
+                    fktipologiaConservazione=formTipoAlimento.fktipologiaConservazione.data
+                )
+
+                return jsonify({'message': 'tipologia alimentio aggiornato con successo!'}), 200
+
+            except Exception as e:
+                print(f"Errore durante l'aggiornamento: {e}")
+                return jsonify({'error': 'Errore durante l\'aggiornamento della tipologia alimento'}), 500
+            
+
+        if request.method == 'DELETE':
+            tipologia_alimenti = service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
+            if not tipologia_alimenti:
+                return jsonify({'error': 'tipologia alimento non trovato.'}), 404
+            try:
+                # service_t_tipologiaalimenti.delete(id=id)
+                flash('le tipologie alimenti non si possono eliminare!', 'warning')
+                return jsonify({'message': f'tipologia_alimenti {id} non si possono eliminare gli tipologia_alimenti!'}), 204
+            except Exception as e:
+                print(f"Errore durante l'eliminazione: {e}")
+                return jsonify({'error': 'Errore durante l\'eliminazione delle tipologie alimenti'}), 400
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('tipologia_alimenti/metodo_conservazione/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+def modifica_metodo_conservazione(id):
+    
+    if 'authenticated' in session:
+
+        if request.method == 'GET':
+            conservazione = service_t_TipologiaConservazioni.get_by_id(id)
+
+           
+
+            formConservazione = ConservazioneForm(obj=conservazione)
+
+
+            
+            if conservazione:
+                all_json = jsonify({
+                    'nome': conservazione.get('nome'), 
+                })
+                return all_json
+            else:
+                return jsonify({'error': 'fktipologiaConservazione non trovato.'}), 404
+
+        if request.method == 'PUT':
+            print("Richiesta PUT ricevuta")
+            conservazione = service_t_TipologiaConservazioni.get_by_id(id)
+            if not conservazione:
+                return jsonify({'error': 'tipologia conservazione non trovato.'}), 404
+
+            formConservazione = TipoAlimentoForm()
+
+            try:
+
+                # Esegui l'aggiornamento
+                service_t_TipologiaConservazioni.update(
+                    id=id,    
+                    nome=formConservazione.nome.data,
+                )
+
+                return jsonify({'message': 'tipologia conservazione aggiornato con successo!'}), 200
+
+            except Exception as e:
+                print(f"Errore durante l'aggiornamento: {e}")
+                return jsonify({'error': 'Errore durante l\'aggiornamento del conservazione'}), 500
+            
+
+        if request.method == 'DELETE':
+            tipologia_alimenti = service_t_TipologiaConservazioni.get_by_id(id)
+            if not tipologia_alimenti:
+                return jsonify({'error': 'tipologia conservazione non trovato.'}), 404
+            try:
+                #service_t_TipologiaConservazioni.delete(id=id)
+                flash('le tipologie conservazione non si possono eliminare!', 'warning')
+                return jsonify({'message': f'tipologia_alimenti {id} non si possono eliminare gli tipologia conservazione!'}), 204
+            except Exception as e:
+                print(f"Errore durante l'eliminazione: {e}")
+                return jsonify({'error': 'Errore durante l\'eliminazione delle tipologie conservazione'}), 400
+    else:
+        return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/alimenti', methods=['GET', 'POST'])
@@ -1237,11 +1440,11 @@ def modifica_alimento(id):
                     fkTipologiaAlimento=form.fkTipologiaAlimento.data
                 )
 
-                return jsonify({'message': 'Piatto aggiornato con successo!'}), 200
+                return jsonify({'message': 'alimento aggiornato con successo!'}), 200
 
             except Exception as e:
                 print(f"Errore durante l'aggiornamento: {e}")
-                return jsonify({'error': 'Errore durante l\'aggiornamento del Servizio'}), 500
+                return jsonify({'error': 'Errore durante l\'aggiornamento del alimento'}), 500
             
 
         if request.method == 'DELETE':
@@ -1253,7 +1456,7 @@ def modifica_alimento(id):
                 return jsonify({'message': f'Alimento {id} eliminato con successo!'}), 204
             except Exception as e:
                 print(f"Errore durante l'eliminazione: {e}")
-                return jsonify({'error': 'Errore durante l\'eliminazione del Servizio'}), 400
+                return jsonify({'error': 'Errore durante l\'eliminazione del alimento'}), 400
     else:
         return redirect(url_for('app_cucina.login'))
 

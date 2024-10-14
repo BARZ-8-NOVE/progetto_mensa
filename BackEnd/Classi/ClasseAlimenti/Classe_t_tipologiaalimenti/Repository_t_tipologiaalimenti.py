@@ -35,7 +35,7 @@ class Repository_t_tipologiaalimenti:
             if self.session:
                 self.session.close()
 
-    def create_tipologiaalimenti(self, nome, fktipologiaConservazione):
+    def create(self, nome, fktipologiaConservazione):
         try:
             tipologiaalimenti = TTipologiaAlimenti(nome=nome, fktipologiaConservazione=fktipologiaConservazione)
             self.session.add(tipologiaalimenti)
@@ -49,7 +49,35 @@ class Repository_t_tipologiaalimenti:
             if self.session:
                 self.session.close()
 
-    def delete_tipologiaalimenti(self, id):
+    def update(self, id, nome, fktipologiaConservazione):
+        try:
+            # Cerca l'elemento TTipologiaAlimenti in base all'id e alla fk
+            tipologiaalimenti = self.session.query(TTipologiaAlimenti).filter_by(id=id).first()
+            
+            if tipologiaalimenti:
+                # Aggiorna i campi con i nuovi valori
+                tipologiaalimenti.nome = nome
+                tipologiaalimenti.fktipologiaConservazione = fktipologiaConservazione
+                
+                # Commit dei cambiamenti
+                self.session.commit()
+                return {'tipologia alimenti': 'updated!'}, 200
+            else:
+                return {'Error': f'No match found for this ID: {id}'}, 404
+
+        except Exception as e:
+            # Rollback in caso di errore
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+
+        finally:
+            # Chiude la sessione, se necessario
+            if self.session:
+                self.session.close()
+
+
+
+    def delete(self, id):
         try:
             tipologiaalimenti = self.session.query(TTipologiaAlimenti).filter_by(id=id).first()
             if tipologiaalimenti:

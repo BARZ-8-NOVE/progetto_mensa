@@ -11,8 +11,11 @@ class Service_t_tipologiaalimenti:
     def get_tipologiaalimenti_by_id(self, id):
         return self.repository.get_tipologiaalimenti_by_id(id)
 
-    def create_tipologiaalimenti(self, nome, fktipologiaConservazione):
-        return self.repository.create_tipologiaalimenti(nome, fktipologiaConservazione)
+    def create(self, nome, fktipologiaConservazione):
+        return self.repository.create(nome, fktipologiaConservazione)
+    
+    def update(self, id, nome, fktipologiaConservazione):
+        return self.repository.update(id, nome, fktipologiaConservazione)
 
-    def delete_tipologiaalimenti(self, id):
-        return self.repository.delete_tipologiaalimenti(id)
+    def delete(self, id):
+        return self.repository.delete(id)

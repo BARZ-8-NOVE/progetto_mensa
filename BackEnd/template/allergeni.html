@@ -1,0 +1,75 @@
+{% extends "index.html" %}
+
+
+    {% block title %}
+    alimenti - Gestione Cucina e Mensa Ospedaliera
+    {% endblock %}
+    
+
+{% block content %}
+<div class="container">
+    <div class="search-container">
+        <div>
+            <input type="text" id="searchName" placeholder="Cerca per nome...">
+           
+        {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+            </div>
+                <button onclick="showAddAlimentoForm()">Aggiungi Allergene</button>
+            </div>
+        {% endif %}
+    <table>
+        <thead>
+            <tr>{% if page_permissions['/app_cucina/allergeni']['can_write'] %}
+                <th></th>
+                {% endif %}
+                <th>Allergene</th>
+                {% if page_permissions['/app_cucina/allergeni']['can_write'] %}
+                <th></th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody id="alimentiTableBody">
+            {% for allergene in allergeni %}
+            <tr>
+                {% if page_permissions['/app_cucina/allergeni']['can_write'] %}
+                <td> <div class="icon-pencil" onclick="showModificaAlimentoForm({{ allergene.id }})"title="visualizza allergene"></div></td>
+                {% endif %}
+                <td>{{ allergene.nome }}</td>
+                {% if page_permissions['/app_cucina/allergeni']['can_write'] %}
+                <td><div class="icon-cancella" onclick="eliminaAlimento({{ allergene.id }})" title='Elimina allergene'></div></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+<!-- Modal for Adding/Editing Alimento -->
+<div id="addAlimentoModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
+            <h2 id="modalTitle">Aggiungi Allergene</h2>
+            <form id="alimentoForm" method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <!-- Campo nascosto per l'ID dell'alimento (usato per modifiche) -->
+                <input type="hidden" id="alimentoId" name="alimentoId">
+
+                <div>
+                    {{ form.nome.label }} {{ form.nome(size=32) }}
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi allergene</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddAlimentoForm()">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/allergeni.js') }}"></script>
+
+{% endblock %}
