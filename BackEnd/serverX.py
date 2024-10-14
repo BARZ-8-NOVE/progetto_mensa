@@ -22,6 +22,7 @@ from Classi.ClasseUtenti.Classe_t_log.Service_t_log import Service_t_Log
 
 from Classi.ClasseAlimenti.Classe_t_alimenti.Service_t_alimenti import Service_t_Alimenti
 from Classi.ClasseAlimenti.Classe_t_allergeni.Service_t_allergeni import Service_t_Allergeni
+from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione.Service_t_tipologiaconservazione import Service_t_TipologiaConservazioni
 from Classi.ClasseAlimenti.Classe_t_tipologiaalimenti.Service_t_tipologiaalimenti import Service_t_tipologiaalimenti
 
 from Classi.ClasseMenu.Classe_t_tipiMenu.Service_t_tipiMenu import Service_t_TipiMenu
@@ -72,14 +73,14 @@ import json
 # Import your service modules here
 
 from Classi.ClasseUtility.UtilityGeneral.UtilityGeneral import UtilityGeneral
-from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_DISCOVERY_URL
+from Classi.ClasseDB.config import DATABASE_URI, SECRET_KEY
 from Classi.ClasseDB.config import EmailConfig
 from Classi.ClasseUtility.UtilityGeneral.UtilityHttpCodes import HttpCodes
 from Classi.ClasseForm.form import (AlimentiForm, PreparazioniForm, AlimentoForm, PiattiForm, MenuForm, 
                                     LoginFormNoCSRF, schedaForm, ordineSchedaForm, schedaPiattiForm, 
                                     UtenteForm, CloneMenuForm, TipoUtenteForm , TipologiaPiattiForm, 
                                     TipologiaMenuForm, RepartiForm, ServiziForm, LogoutFormNoCSRF, 
-                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm, 
+                                    CambioPasswordForm, ordinedipendenteForm, ContattiForm, AllergeniForm,
                                     PasswordResetRequestForm, ordineSchedaDipendentiForm,salvaForm,
                                     PasswordResetForm, CambioEmailForm, OrariForm, schedaPreconfezionataForm)
 
@@ -98,9 +99,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=1)
 app.config['WTF_CSRF_ENABLED'] = True
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-app.config['GOOGLE_CLIENT_ID'] = GOOGLE_CLIENT_ID
-app.config['GOOGLE_CLIENT_SECRET'] = GOOGLE_CLIENT_SECRET
-app.config['GOOGLE_DISCOVERY_URL'] = GOOGLE_DISCOVERY_URL
+
 
 # Carica configurazioni dell'email
 app.config['MAIL_SERVER'] = EmailConfig.MAIL_SERVER
@@ -111,8 +110,7 @@ app.config['MAIL_USE_TLS'] = EmailConfig.MAIL_USE_TLS
 app.config['MAIL_USE_SSL'] = EmailConfig.MAIL_USE_SSL
 app.config['MAIL_DEFAULT_SENDER'] = EmailConfig.MAIL_DEFAULT_SENDER
 
-#client per fare l'utenticazione con google
-client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
+
 # Initialize csrf
 csrf = CSRFProtect(app)
 # Initialize e-mail
@@ -131,6 +129,7 @@ service_t_Servizi = Service_t_Servizi()
 service_t_Alimenti = Service_t_Alimenti()
 service_t_tipologiaalimenti = Service_t_tipologiaalimenti()
 service_t_Allergeni = Service_t_Allergeni()
+service_t_TipologiaConservazioni = Service_t_TipologiaConservazioni()
 service_t_AssociazioneTipiPiattiTipiPreparazioni = Service_t_AssociazioneTipiPiattiTipiPreparazioni()
 service_t_TipiPiatti= Service_t_TipiPiatti()
 service_t_Piatti = Service_t_Piatti()
@@ -731,76 +730,6 @@ def login():
 
 
 
-@app_cucina.route('/login/google')
-def google_login():
-    # Ottieni il provider configuration URL di Google
-    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
-    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-
-    # Costruisci l'URL di richiesta per l'autenticazione
-    request_uri = client.prepare_request_uri(
-        authorization_endpoint,
-        redirect_uri=url_for('app_cucina.google_callback', _external=True),
-        scope=["openid", "email", "profile"],
-    )
-    return redirect(request_uri)
-
-@app_cucina.route('/login/google/callback')
-def google_callback():
-    # Ottieni il provider configuration URL di Google
-    google_provider_cfg = requests.get(app.config['GOOGLE_DISCOVERY_URL']).json()
-    token_endpoint = google_provider_cfg["token_endpoint"]
-
-    # Ottieni il codice di autorizzazione da Google
-    code = request.args.get("code")
-
-    # Prepara e invia una richiesta per ottenere il token
-    token_url, headers, body = client.prepare_token_request(
-        token_endpoint,
-        authorization_response=request.url,
-        redirect_url=url_for('app_cucina.google_callback', _external=True),
-        code=code
-    )
-    token_response = requests.post(
-        token_url,
-        headers=headers,
-        data=body,
-        auth=(app.config['GOOGLE_CLIENT_ID'], app.config['GOOGLE_CLIENT_SECRET']),
-    )
-
-    # Parse the tokens
-    client.parse_request_body_response(token_response.text)
-
-    # Ottieni l'indirizzo per il profilo utente
-    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
-    uri, headers, body = client.add_token(userinfo_endpoint)
-    userinfo_response = requests.get(uri, headers=headers, data=body)
-
-    # Estrai informazioni dall'account Google dell'utente
-    userinfo = userinfo_response.json()
-    if userinfo.get("email_verified"):
-        email = userinfo["email"]
-        username = userinfo["name"]
-
-        # Logica per gestire l'accesso con Google (creazione utente o login)
-        user = service_t_utenti.get_or_create_google_user(email, username)
-        
-        # Memorizza le informazioni utente nella sessione
-        session['authenticated'] = True
-        session['user_id'] = user['public_id']
-        session['token'] = user['token']
-        session['username'] = user['username']
-
-        return redirect(url_for('app_cucina.home'))
-    else:
-        return "L'email non è verificata da Google.", 400
-
-
-
-
-
-
-
 
 
 
@@ -1050,6 +979,119 @@ def home():
 
     else:
         return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/allergeni', methods=['GET', 'POST'])
+def allergeni():
+    """
+    Gestisce la visualizzazione e la creazione di allergeni nel sistema.
+
+    Questa funzione consente di:
+    - Visualizzare un elenco di allergeni già esistenti.
+    - Creare un nuovo alimento specificando le sue caratteristiche e i suoi allergeni.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza l'elenco degli allergeni, le tipologie disponibili e gli allergeni.
+    - **POST**: Crea un nuovo alimento se il modulo viene inviato con dati validi.
+
+    Args:
+        Nessuno. Le informazioni sugli allergeni, le tipologie e gli allergeni sono gestite attraverso i servizi.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'allergeni.html' con i seguenti dati:
+                    - Elenco degli allergeni esistenti.
+                 
+            - **POST**:
+                - Se il modulo è valido, viene creato un nuovo alimento con le informazioni specificate.
+                - Ritorna alla pagina aggiornata degli allergeni con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati da un database, inclusi allergeni, tipologie e allergeni.
+        - Il form per l'aggiunta di un alimento consente di specificare allergeni multipli e tipologie.
+        - Un messaggio di successo viene mostrato dopo l'aggiunta di un nuovo alimento.
+    """
+    if 'authenticated' in session:
+
+
+        # Retrieve the list of allergeni, tipologie, and allergeni from your database
+        allergeni = service_t_Allergeni.get_all()
+        
+        form = AllergeniForm()
+
+        return render_template(
+            'allergeni.html',
+            allergeni=allergeni,
+            form=form
+
+            
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
+@app_cucina.route('/tipologia_alimenti', methods=['GET', 'POST'])
+def tipologia_alimenti():
+    """
+    Gestisce la visualizzazione e la creazione di tipologia_alimenti nel sistema.
+
+    Questa funzione consente di:
+    - Visualizzare un elenco di tipologia_alimenti già esistenti.
+    - Creare un nuovo alimento specificando le sue caratteristiche e i suoi tipologia_alimenti.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza l'elenco degli tipologia_alimenti, le tipologie disponibili e gli tipologia_alimenti.
+    - **POST**: Crea un nuovo alimento se il modulo viene inviato con dati validi.
+
+    Args:
+        Nessuno. Le informazioni sugli tipologia_alimenti, le tipologie e gli tipologia_alimenti sono gestite attraverso i servizi.
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'tipologia_alimenti.html' con i seguenti dati:
+                    - Elenco degli tipologia_alimenti esistenti.
+                 
+            - **POST**:
+                - Se il modulo è valido, viene creato un nuovo alimento con le informazioni specificate.
+                - Ritorna alla pagina aggiornata degli tipologia_alimenti con un messaggio di successo.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati da un database, inclusi tipologia_alimenti, tipologie e tipologia_alimenti.
+        - Il form per l'aggiunta di un alimento consente di specificare tipologia_alimenti multipli e tipologie.
+        - Un messaggio di successo viene mostrato dopo l'aggiunta di un nuovo alimento.
+    """
+    if 'authenticated' in session:
+
+
+        # Retrieve the list of tipologia_alimenti, tipologie, and tipologia_alimenti from your database
+        tipologia_alimenti = service_t_tipologiaalimenti.get_all_tipologiaalimenti()
+        conservazione = service_t_TipologiaConservazioni.get_all()
+
+
+        conservazione_map = {int(tipo_cons['id']): tipo_cons['nome'] for tipo_cons in conservazione}
+        
+        form = AlimentiForm()
+
+        return render_template(
+            'tipologia_alimenti.html',
+            tipologia_alimenti=tipologia_alimenti,
+            conservazione=conservazione,
+            conservazione_map=conservazione_map,
+            form=form
+
+            
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
 
 
 
@@ -3198,6 +3240,7 @@ def modifica_scheda_preconfezionata(id):
         elif request.method == 'DELETE':
             print(f"Request to delete scheda with ID: {id}")  # Log della richiesta
             try:
+                service_t_SchedePreconfezionatePiatti.delete_by_fkSchedaPreconfezionata(fkSchedaPreconfezionata=id, utenteCancellazione=session.get('username'))
                 service_t_SchedePreconfezionate.delete(id=id, utenteCancellazione=session.get('username'))
                 flash('Scheda preconfezionata eliminata con successo!', 'success')
                 return '', 204  # Status code 204 No Content
@@ -3468,9 +3511,23 @@ def shcedePiattiPreconfezionata(id_schedaPreconfezionata, id_scheda, servizio):
                 }
             
         if form.validate_on_submit():
-            pass
+            service_t_SchedePreconfezionatePiatti.delete_by_fkSchedaPreconfezionata(id_schedaPreconfezionata,utenteCancellazione=session.get('username'), )
+            
+            piatti_list = json.loads(request.form['piattiList'])
+            for piatto in piatti_list:
+                try: 
+                    service_t_SchedePreconfezionatePiatti.create(
+                        fkSchedaPreconfezionata=id_schedaPreconfezionata,
+                        fkPiatto=int(piatto['fkPiatto']),
+                        quantita=int(piatto['quantita']),
+                        utenteInserimento=session.get('username'),
+                    )
+                    print(f"ordine piatti saved: {piatto}")
+                except (ValueError, KeyError) as e:
+                    print(f"Error processing ordine piatti: {piatto}, error: {e}")
 
-        #siamo aarrivati a qui
+            flash('Preparazione aggiunta con successo!', 'success')
+            return redirect(url_for('app_cucina.schedepreconfezionate', id = id_scheda))
 
         # Pass variables to the template
         return render_template(
@@ -3643,7 +3700,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         tipi_piatti = service_t_TipiPiatti.get_all()
         preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni
         allergeni = service_t_Allergeni.get_all()
-
+        preconfezionate = service_t_SchedePreconfezionate.get_piatti_by_scheda_servizio(fkScheda=scheda['id'], fkServizio=servizio)
         # Costruisci una mappa delle preparazioni
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
         tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
@@ -3660,11 +3717,10 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         def calculate_preparations_calories(preparations_map):
             calories_data = {}
             for p_id, p_name in preparations_map.items():
-                print(p_id, p_name)
                 # Ottieni i dati delle calorie usando l'ID o il nome del piatto
                 prep_calorie = service_t_preparazioni.recupero_totale_ingredienti_base(p_name)  # O usa p_id se necessario
                 # Stampa di debug per verificare il risultato
-                print(f"Calorie info per {p_name} (ID: {p_id}): {prep_calorie}")
+
                 
                 # Assicurati che prep_calorie contenga i dati necessari
                 if prep_calorie:  # Se ci sono dati disponibili
@@ -3686,6 +3742,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
         
 
         form = ordineSchedaForm()
+
         
         piatti_map = {}
         for piatto in piatti:
@@ -3736,6 +3793,7 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
 
             info_utente = service_t_OrdiniSchede.get_by_id(ordine_id)
             info_piatti = service_t_OrdiniPiatti.get_all_by_ordine_scheda(ordine_id)
+            print(info_piatti)
             
 
         if form.validate_on_submit():
@@ -3821,12 +3879,45 @@ def ordine_schede_piatti(id, servizio, reparto, scheda, ordine_id=None):
             year=year,
             month=month,
             allergeni_map=allergeni_map,
+            preconfezionate=preconfezionate,
             prep_calorie_data=prep_calorie_data,
             day=day
         )
     else:
         return redirect(url_for('app_cucina.login'))
+
+@app_cucina.route('/ordini/scheda_preconfezionata/<int:id>', methods=['GET', 'POST'])
+def scheda_preconfezionata(id):
+    # Recupera tutti i piatti
+    piatti = service_t_Piatti.get_all()
+    # Recupera i piatti selezionati per la scheda corrente
+    selezionati = service_t_SchedePreconfezionatePiatti.get_piatti_by_scheda(fkScheda=id)
+
+    piatti_map = []
     
+    # Crea una mappa dei piatti solo dai piatti selezionati
+    for selezionato in selezionati:
+        fk_piatto = selezionato['fkPiatto']
+        quantita = selezionato['quantita']
+        
+        # Trova il piatto corrispondente nei dati recuperati
+        for piatto in piatti:
+            if piatto['id'] == fk_piatto:         
+                # Aggiungi il piatto alla mappa
+                piatti_map.append({
+                    'fkPiatto': fk_piatto,
+                    'quantita': quantita,
+                    'note': selezionato.get('note', ''),  # Assumi che tu abbia note nel selezionato
+
+                })
+
+    print("Già popolato:", piatti_map)  # Stampa per debug
+
+    # Restituisci la mappa dei piatti come JSON
+    return jsonify(piatti_map)  # Restituisci la lista dei piatti mappati
+
+
+
 
 
 @app_cucina.route('/ordini/schede_dipendenti/<int:id>/<int:servizio>/<int:reparto>/<int:scheda>', methods=['GET', 'POST'])

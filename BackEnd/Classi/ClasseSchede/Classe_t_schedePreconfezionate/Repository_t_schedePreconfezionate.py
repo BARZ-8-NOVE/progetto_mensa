@@ -112,6 +112,46 @@ class RepositoryTSchedePreconfezionate:
                 self.session.close()
 
 
+    def  get_piatti_by_scheda_servizio(self, fkScheda, fkServizio):
+        try:
+            # Esegui la query per ottenere tutti i risultati non cancellati con fkScheda specifico
+            results = self.session.query(TSchedePreconfezionate).filter(
+                TSchedePreconfezionate.fkScheda == fkScheda,
+                TSchedePreconfezionate.fkServizio == fkServizio,
+                TSchedePreconfezionate.dataCancellazione.is_(None)
+            ).order_by(
+                TSchedePreconfezionate.ordinatore
+            ).all()
+
+            # Costruisci la lista dei risultati
+            output = [{
+                'id': result.id,
+                'fkScheda': result.fkScheda,
+                'fkServizio': result.fkServizio,
+                'note': result.note,
+                'descrizione': result.descrizione,
+                'ordinatore': result.ordinatore,
+                'dataInserimento': result.dataInserimento,
+                'utenteInserimento': result.utenteInserimento,
+                'dataCancellazione': result.dataCancellazione,
+                'utenteCancellazione': result.utenteCancellazione
+            } for result in results]
+            
+            return output
+
+        except Exception as e:
+            self.session.rollback()
+            # Log dell'errore (opzionale)
+            # log.error(f"Error fetching data: {str(e)}")
+            return {'Error': str(e)}, 500
+
+        finally:
+            # Assicurati che la sessione venga chiusa per evitare perdite di risorse
+            if self.session:
+                self.session.close()
+
+
+
     def create(self, fkScheda, fkServizio, descrizione, note, ordinatore, utenteInserimento):
         try:
             scheda = TSchedePreconfezionate(

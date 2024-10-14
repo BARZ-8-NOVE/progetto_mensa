@@ -1,6 +1,6 @@
 from Classi.ClasseAlimenti.Classe_t_tipologiaconservazione.Repository_t_tipologiaconsevazione import RepositoryTipologiaConservazioni
 
-class ServiceTipologiaConservazioni:
+class Service_t_TipologiaConservazioni:
     def __init__(self) -> None:
         self.repository = RepositoryTipologiaConservazioni()
 

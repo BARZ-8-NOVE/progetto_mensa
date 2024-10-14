@@ -626,7 +626,14 @@ li {
 
 .form-group-ordiniPiatti {
     flex: 1; /* Ensures the fields grow to fill available space */
-    min-width: 200px; /* Optional: Sets a minimum width for each field */
+    min-width: 10px; /* Optional: Sets a minimum width for each field */
+}
+
+.form-group-schede-preconfezionate {
+    flex: 1; /* Ensures the fields grow to fill available space */
+    min-width: 10px;
+    margin-top: 22px;
+    max-height: 40px; /* Optional: Sets a minimum width for each field */
 }
 
 .form-label-ordiniPiatti {

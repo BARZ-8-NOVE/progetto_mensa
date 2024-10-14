@@ -14,6 +14,9 @@ class Service_t_SchedePreconfezionate:
     def get_all_by_fk_scheda(self, fkScheda):
         return self.repository.get_all_by_fk_scheda(fkScheda)
     
+    def  get_piatti_by_scheda_servizio(self, fkScheda, fkServizio):
+        return  self.repository.get_piatti_by_scheda_servizio(fkScheda, fkServizio)
+    
     def create(self, fkScheda, fkServizio, descrizione, note, ordinatore, utenteInserimento):
         return self.repository.create(fkScheda, fkServizio, descrizione, note, ordinatore, utenteInserimento)
 

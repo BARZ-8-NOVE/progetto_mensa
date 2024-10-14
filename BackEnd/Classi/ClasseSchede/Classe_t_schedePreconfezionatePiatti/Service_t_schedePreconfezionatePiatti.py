@@ -20,3 +20,6 @@ class Service_t_SchedePreconfezionatePiatti:
 
     def delete(self, id, utenteCancellazione):
         return  self.repository.delete(id, utenteCancellazione)
+    
+    def delete_by_fkSchedaPreconfezionata(self, fkSchedaPreconfezionata, utenteCancellazione):
+        return  self.repository.delete_by_fkSchedaPreconfezionata(fkSchedaPreconfezionata, utenteCancellazione)

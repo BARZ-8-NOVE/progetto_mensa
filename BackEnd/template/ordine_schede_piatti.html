@@ -20,28 +20,38 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
     </div>
     <form method="POST" action="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}" onsubmit="disableAllSubmitButtons()">
         {{ form.hidden_tag() }}
-
+    
         <div class="form-row-ordiniPiatti">
             <div class="form-group-ordiniPiatti">
                 {{ form.nome.label(class="form-label-ordiniPiatti") }}
                 {{ form.nome(class="form-control-ordiniPiatti", value=info_utente.nome if info_utente else '') }}
             </div>
-
+    
             <div class="form-group-ordiniPiatti">
                 {{ form.cognome.label(class="form-label-ordiniPiatti") }}
                 {{ form.cognome(class="form-control-ordiniPiatti", value=info_utente.cognome if info_utente else '') }}
             </div>
-
+    
             <div class="form-group-ordiniPiatti">
                 {{ form.letto.label(class="form-label-ordiniPiatti") }}
                 {{ form.letto(class="form-control-ordiniPiatti", value=info_utente.letto if info_utente else '') }}
             </div>
-
-            <div class="form-group-ordiniPiatti">
+    
+            <div class="form-label-ordiniPiatti">
                 {{ form.note.label(class="form-label-ordiniPiatti") }}
                 {{ form.note(class="form-control-ordiniPiatti", value=info_utente.note if info_utente else '') }}
             </div>
+    
+            <select class="form-group-schede-preconfezionate">
+                <option value="">Seleziona scheda</option>
+                {% for preconfezionata in preconfezionate %}
+                <option value="{{ preconfezionata.id }}">{{ preconfezionata.descrizione }}</option>
+                {% endfor %}
+            </select>
+
         </div>
+
+    
         <div class="popup-content">
             <div class="popup-grid">
                 {% for scheda_piatto in schedePiatti %}
@@ -154,20 +164,11 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <script>
-    const selectedItems = [];
+
+
+    let selectedItems = []; 
     let totalCalories = 0; // Variabile per tenere traccia delle calorie totali
 
-{% for piatto in info_piatti %}
-    {% set calorie_info = prep_calorie_data.get(piatto.fkPiatto, {}) %}
-    {% set calorie = calorie_info.calorie_totali if calorie_info.calorie_totali is not none and calorie_info.calorie_totali != 'Non disponibili' else 0 %}
-    selectedItems.push({
-        fkPiatto: {{ piatto.fkPiatto }},
-        quantita: {{ piatto.quantita }},
-        note: "{{ piatto.note }}",
-        calorie: {{ calorie }}
-    });
-    totalCalories += {{ calorie }}; // Aggiungi le calorie alla somma totale
-{% endfor %}  
 
 document.addEventListener('DOMContentLoaded', function() {
     const prevButton = document.getElementById('prev-button');
@@ -181,6 +182,90 @@ document.addEventListener('DOMContentLoaded', function() {
         nextButton.classList.add('disabled');
     }
 });
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const schedePreconfezionateSelect = document.querySelector('.form-group-schede-preconfezionate');
+    const prep_calorie_data = {{ prep_calorie_data | tojson }};
+    let selectedItems = [];
+    let totalCalories = 0;
+
+    schedePreconfezionateSelect.addEventListener('change', function() {
+        const selectedId = this.value;
+        selectedItems = []; // Reset selectedItems on each selection
+        totalCalories = 0; // Reset totalCalories on each selection
+
+        if (selectedId) {
+            
+            fetch(`/app_cucina/ordini/scheda_preconfezionata/${selectedId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(info_piatti => {
+
+
+                    // Populate selectedItems with fetched dishes
+                    info_piatti.forEach(piatto => {
+                        const calorieInfo = prep_calorie_data[piatto.fkPiatto] || {};
+                        const calorie = (calorieInfo.calorie_totali !== undefined && calorieInfo.calorie_totali !== 'Non disponibili') 
+                            ? calorieInfo.calorie_totali 
+                            : 0;
+
+                        // Add dish to selectedItems
+                        selectedItems.push({
+                            fkPiatto: piatto.fkPiatto,
+                            quantita: piatto.quantita,
+                            note: piatto.note,
+                            calorie: calorie
+                        });
+
+                        // Add to total calories
+                        totalCalories += calorie;
+
+                        // Select visual elements for the dish and call toggleSelection
+                        const piattoElements = document.querySelectorAll(`.popup-item[data-id="${piatto.fkPiatto}"], .popup-custom-column-item[data-id="${piatto.fkPiatto}"]`);
+                        piattoElements.forEach(piattoElement => {
+                            if (piattoElement) {
+                                toggleSelection(piattoElement, piatto.fkPiatto);
+                            }
+                        });
+                    });
+
+                    console.log(selectedItems); // Logs selected items to the console
+                    console.log(`Total Calories: ${totalCalories}`); // Logs total calories
+                    updateHiddenField(); // Update hidden field with selected items
+                    updateTotalCaloriesDisplay(); // Update the total calories display
+                })
+                .catch(error => console.error('Errore:', error));
+        }
+    });
+});
+
+
+
+
+
+{% for piatto in info_piatti %}
+    {% set calorie_info = prep_calorie_data.get(piatto.fkPiatto, {}) %}
+    {% set calorie = calorie_info.calorie_totali if calorie_info.calorie_totali is not none and calorie_info.calorie_totali != 'Non disponibili' else 0 %}
+    selectedItems.push({
+        fkPiatto: {{ piatto.fkPiatto }},
+        quantita: {{ piatto.quantita }},
+        note: "{{ piatto.note }}",
+        calorie: {{ calorie }}
+    });
+    totalCalories += {{ calorie }}; // Aggiungi le calorie alla somma totale
+{% endfor %}  
+
+
+// Funzione per aggiornare il campo nascosto
+function updateHiddenField() {
+    document.getElementById('piattiList').value = JSON.stringify(selectedItems);
+}
 
 </script>
 <script src="{{ url_for('static', filename='js/ordine_schede_piatti.js') }}"></script>

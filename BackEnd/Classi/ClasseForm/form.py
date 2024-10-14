@@ -173,7 +173,12 @@ class ordineSchedaDipendentiForm(FlaskForm):
 
 class ordinedipendenteForm(FlaskForm):
 
-    note = TextAreaField('Note', validators=[Optional()])
+    note = StringField('Note', validators=[Optional()])
+    submit = SubmitField('Salva e conferma')
+
+class AllergeniForm(FlaskForm):
+
+    nome = StringField('Nome', validators=[DataRequired(), Length(max=50)])
     submit = SubmitField('Salva e conferma')
 
 class UtenteForm(FlaskForm): 

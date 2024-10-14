@@ -7,6 +7,7 @@ Schede Piatti - Gestione Cucina e Mensa Ospedaliera
 {% block content %}
 <div class="popup">
     <form method="POST" action="{{ url_for('app_cucina.shcedePiattiPreconfezionata', id_schedaPreconfezionata=id_schedaPreconfezionata, id_scheda=id_scheda, servizio=servizio) }}">
+        {{ form.hidden_tag() }}
         <div class="form-row-ordiniPiatti">
            <h2>{{schedaPiatti_preconfezionata.descrizione}}</h2>
         </div>

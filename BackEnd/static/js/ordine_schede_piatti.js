@@ -4,9 +4,9 @@ function updateTotalCaloriesDisplay() {
 }
 
 function toggleSelection(element, piattoId) {
-    const calorie = parseInt(element.getAttribute('data-calorie')); // Ottieni le calorie dal data attribute
+    const calorie = parseInt(element.getAttribute('data-calorie')); // Get calories from the data attribute
 
-    // Rimuovi la selezione degli altri piatti dello stesso tipo
+    // Remove selection from other plates of the same type
     const piattoType = element.getAttribute('data-type');
     const itemsToDeselect = Array.from(document.querySelectorAll(`.popup-item[data-type="${piattoType}"], .popup-custom-column-item[data-type="${piattoType}"]`));
     itemsToDeselect.forEach(item => {
@@ -14,41 +14,45 @@ function toggleSelection(element, piattoId) {
             item.classList.remove('selezionato');
             const index = selectedItems.findIndex(selectedItem => selectedItem.fkPiatto === parseInt(item.getAttribute('data-id')));
             if (index > -1) {
-                totalCalories -= selectedItems[index].calorie; // Sottrai le calorie quando un piatto viene deselezionato
+                // If the item is already selected, remove it and subtract calories
+                totalCalories -= selectedItems[index].calorie;
                 selectedItems.splice(index, 1);
+            } else {
+                // If the item is not selected, add it and sum calories
+                totalCalories += calorie;
+                selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "", calorie: calorie }); // Ensure calorie is defined
             }
         }
     });
 
-    // Aggiungi o rimuovi la selezione per il piatto corrente
+    // Add or remove selection for the current item
     element.classList.toggle('selezionato');
     const index = selectedItems.findIndex(item => item.fkPiatto === piattoId);
     
     if (index > -1) {
-        // Se il piatto è già selezionato, rimuovilo e sottrai le calorie
+        // If the item is already selected, remove it and subtract calories
         totalCalories -= selectedItems[index].calorie;
         selectedItems.splice(index, 1);
     } else {
-        // Se il piatto non è selezionato, aggiungilo e somma le calorie
+        // If the item is not selected, add it and sum calories
         totalCalories += calorie;
-        selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "", calorie: calorie }); // Aggiungi calorie all'oggetto
+        selectedItems.push({ fkPiatto: piattoId, quantita: 1, note: "", calorie: calorie }); // Add calorie to the object
     }
     
-    console.log(selectedItems);
-    console.log(`Calorie totali: ${totalCalories}`); // Stampa il totale calorico
+    console.log(selectedItems); // Logs selected items to the console
+    console.log(`Calorie totali: ${totalCalories}`); // Logs total calories
     updateHiddenField();
     toggleSubmitButton();
-    updateTotalCaloriesDisplay(); // Aggiorna il totale delle calorie nel DOM
+    updateTotalCaloriesDisplay(); // Update the total calories display in the DOM
 }
 
-// Funzione per aggiornare il campo nascosto
-function updateHiddenField() {
-    document.getElementById('piattiList').value = JSON.stringify(selectedItems);
-}
+
+
 
 // Funzione per attivare/disattivare il bottone di invio
 function toggleSubmitButton() {
     const submitButton = document.getElementById('submitButton');
+    updateHiddenField();
     submitButton.disabled = selectedItems.length === 0; // Disattiva il pulsante se non ci sono piatti selezionati
 }
 

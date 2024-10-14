@@ -142,3 +142,20 @@ class RepositoryTSchedePreconfezionatePiatti:
                 # Assicurati che la sessione venga chiusa per evitare perdite di risorse
                 if self.session:
                     self.session.close()
+
+    def delete_by_fkSchedaPreconfezionata(self, fkSchedaPreconfezionata, utenteCancellazione):
+        try:
+            schede = self.session.query(TSchedePreconfezionatePiatti).filter_by(fkSchedaPreconfezionata=fkSchedaPreconfezionata).all()
+            if schede:
+                for scheda in schede:
+                    scheda.dataCancellazione = datetime.now()
+                    scheda.utenteCancellazione = utenteCancellazione
+                self.session.commit()
+                return {'Message': 'Scheda deleted successfully!'}, 200
+            else:
+                return {'Error': f'No match found for fkSchedaPreconfezionata: {fkSchedaPreconfezionata}'}, 404
+        except Exception as e:
+            self.session.rollback()
+            return {'Error': str(e)}, 500
+        finally:
+            self.session.close()
