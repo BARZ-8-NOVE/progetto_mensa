@@ -33,12 +33,16 @@ class Service_t_preparazioni:
     def delete_preparazione(self, id, utenteCancellazione):
         return self.repository.delete(id, utenteCancellazione)
     
-    def calcola_calorie_per_nome(self, titolo_piatto):
-        return self.repository.calcola_calorie_per_nome(titolo_piatto)
+    # non spacchetta gli ingredienti 
+    # def calcola_calorie_per_nome(self, titolo_piatto):
+    #     return self.repository.calcola_calorie_per_nome(titolo_piatto)
     
     def recupero_totale_ingredienti_base(self, descrizione):
         return self.repository.recupero_totale_ingredienti_base(descrizione)
     
     def recupero_totale_peso_ingredienti(self, descrizione):
         return self.repository.recupero_totale_peso_ingredienti(descrizione)
+    
+    def peso_ingredienti_qunatita_totale(self, descrizione, quantita_totale):
+        return self.repository.peso_ingredienti_qunatita_totale(descrizione, quantita_totale)
 

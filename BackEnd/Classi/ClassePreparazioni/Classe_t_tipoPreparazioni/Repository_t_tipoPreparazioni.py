@@ -77,3 +77,9 @@ class Repository_t_tipipreparazioni:
         finally:
             # Chiudi sempre la sessione
             self.session.close()
+
+
+
+
+
+

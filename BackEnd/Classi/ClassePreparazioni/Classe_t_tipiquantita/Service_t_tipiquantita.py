@@ -20,3 +20,9 @@ class Service_t_tipoquantita:
 
     def delete_tipoquantita(self, id):
         return self.repository.delete_tipoquantita(id)
+    
+    def transform_tipoquantita_g(self, quantita, id):
+        return self.repository.transform_tipoquantita_g(quantita, id)
+
+    def transform_tipoquantita_kg(self, quantita, id):   
+        return self.repository.transform_tipoquantita_kg(quantita, id) 

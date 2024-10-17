@@ -144,3 +144,6 @@ class RepositoryAlimenti:
         finally:
             if self.session:
                 self.session.close()
+
+
+    

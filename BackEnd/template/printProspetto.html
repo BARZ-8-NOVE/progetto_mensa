@@ -13,12 +13,13 @@
             <thead>
                 <tr>
                     <th>Reparto</th>
-                    {% set preparazioni_totali = preparazioni_totals.keys() %}
+                    {% set preparazioni_totali = preparazioni_totals.keys() | sort(attribute=1) %}
                     {% for preparazione in preparazioni_totali %}
-                        <th>{{ preparazione }}</th>
+                        <th>{{ preparazione[0] }}</th>
                     {% endfor %}
                     <th>Totale Reparto</th>
                 </tr>
+                
             </thead>
             <tbody>
                 {% for reparto_id, count_data in piatti_count.items() %}

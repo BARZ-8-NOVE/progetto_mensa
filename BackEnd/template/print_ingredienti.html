@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stampa Schede</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
+</head>
+
+<body>
+    <h1>totali ingredienti per l'ordine del giorno {{ordine.data}} servizio {{servizi_map[ordine.fkServizio]}}</h1>
+    <div class="stampa">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ingrediente</th>
+                    <th>Totale Ingrediente</th>
+                    <th>unità di misura</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ingrediente in ingredienti.keys() %}
+                    <tr>
+                        <td>{{ alimenti_map[ingrediente] }}</td>
+                        <td>{{ ingredienti[ingrediente] }}</td> 
+                        <td>grammi</td> 
+                    </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+</body>
+</html>

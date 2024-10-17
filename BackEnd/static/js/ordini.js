@@ -7,6 +7,8 @@ function handlePrintOption() {
         printPage(ordineId);
     } else if (selectedValue === "prospetto") {
         printProspetto(ordineId);
+    } else if (selectedValue === "ingredienti") {
+        printIngredienti(ordineId);    
     } else if (selectedValue === "pagina") {
         priint();  // Supponendo che ci sia un errore di battitura in 'priint', correggilo se necessario.
     }
@@ -14,6 +16,20 @@ function handlePrintOption() {
 
 // Chiama la funzione su qualche evento, ad esempio quando cambia la selezione
 document.getElementById("printOptions").addEventListener("change", handlePrintOption);
+
+
+function printIngredienti(ordineId) {
+    // Costruisci l'URL per la pagina di stampa
+    var url = '/app_cucina/ordini/ingredienti/totale/' + ordineId;
+
+    // Apri una nuova finestra con la pagina di stampa
+    var printWindow = window.open(url, '_blank', 'width=800,height=600');
+    
+    // Attendere che la finestra venga caricata
+    printWindow.onload = function() {
+        printWindow.print();
+    };
+}
 
 
 

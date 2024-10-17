@@ -25,8 +25,10 @@ class RepositoryOrdiniPiatti:
     def get_all_by_ordine_scheda(self, fkOrdineScheda):
         try:
             results = self.session.query(TOrdiniPiatti).filter_by(fkOrdineScheda=fkOrdineScheda).all()
-            return [{'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 
-                     'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 
+            return [{'id': result.id, 
+                     'fkOrdineScheda': result.fkOrdineScheda, 
+                     'fkPiatto': result.fkPiatto, 
+                     'quantita': result.quantita, 
                      'note': result.note} for result in results]
         except Exception as e:
             self.session.rollback()
@@ -38,8 +40,10 @@ class RepositoryOrdiniPiatti:
         try:
             result = self.session.query(TOrdiniPiatti).filter_by(id=id).first()
             if result:
-                return {'id': result.id, 'fkOrdineScheda': result.fkOrdineScheda, 
-                        'fkPiatto': result.fkPiatto, 'quantita': result.quantita, 
+                return {'id': result.id, 
+                        'fkOrdineScheda': result.fkOrdineScheda, 
+                        'fkPiatto': result.fkPiatto, 
+                        'quantita': result.quantita, 
                         'note': result.note}
             else:
                 return {'Error': f'No match found for this id: {id}'}, 404

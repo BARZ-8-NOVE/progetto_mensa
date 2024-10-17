@@ -84,3 +84,68 @@ class Repository_t_tipoquantita:
         finally:
             # Chiudi sempre la sessione
             self.session.close()
+
+    def transform_tipoquantita_g(self, quantita, id):
+        try:
+            # Recupera il record dal database
+            result = self.session.query(TTipoQuantita).filter_by(id=id).first()
+            
+            if result:
+                if result.peso_valore_in_grammi is not None: 
+                    # Se è disponibile il valore in grammi, calcola la nuova quantità
+                    nuova_quantita = quantita * result.peso_valore_in_grammi
+                    return { 
+                        'quantita_in_g': nuova_quantita,
+                        'id': 1
+                    }
+                else: 
+                    # Se non è disponibile una trasformazione, restituisci la quantità originale
+                    return { 
+                        'trasformazione_non_disponibile': quantita,
+                        'id': id
+                    }
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        
+        except Exception as e:
+            # In caso di errore, esegui il rollback della transazione
+            self.session.rollback()
+            return {'Error': str(e)}, 400
+        
+        finally:
+            # Chiudi la sessione solo se non è gestita da qualche altra parte
+            if not self.session.is_active:
+                self.session.close()
+
+
+    def transform_tipoquantita_kg(self, quantita, id):
+        try:
+            # Recupera il record dal database
+            result = self.session.query(TTipoQuantita).filter_by(id=id).first()
+            
+            if result:
+                if result.peso_valore_in_grammi is not None: 
+                    # Se è disponibile il valore in grammi, calcola la nuova quantità
+                    nuova_quantita = quantita * result.peso_valore_in_Kg
+                    return { 
+                        'quantita_in_kg': nuova_quantita,
+                        'id': 3
+                    }
+                else: 
+                    # Se non è disponibile una trasformazione, restituisci la quantità originale
+                    return { 
+                        'trasformazione_non_disponibile': quantita,
+                        'id': id
+                    }
+            else:
+                return {'Error': f'No match found for this id: {id}'}, 404
+        
+        except Exception as e:
+            # In caso di errore, esegui il rollback della transazione
+            self.session.rollback()
+            return {'Error': str(e)}, 400
+        
+        finally:
+            # Chiudi la sessione solo se non è gestita da qualche altra parte
+            if not self.session.is_active:
+                self.session.close()

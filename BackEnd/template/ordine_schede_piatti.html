@@ -197,6 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
         totalCalories = 0; // Reset totalCalories on each selection
 
         if (selectedId) {
+
+            schedePreconfezionateSelect.disabled = true; 
+            schedePreconfezionateSelect.classList.add('disabled'); // Optional: add a CSS class for styling
             
             fetch(`/app_cucina/ordini/scheda_preconfezionata/${selectedId}`)
                 .then(response => {

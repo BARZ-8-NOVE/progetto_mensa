@@ -265,6 +265,52 @@ class Repository_t_preparazioni:
             return {'Error': str(e)}, 500
 
 
+    def peso_ingredienti_qunatita_totale(self, descrizione, quantita_totale):
+        try:
+            # Recupera la preparazione in base alla descrizione fornita
+            preparazione = self.session.query(TPreparazioni).filter_by(descrizione=descrizione).first()
+            if not preparazione:
+                return {'Error': 'Nessuna preparazione trovata con questa descrizione.'}, 404
+
+            # Recupera gli ingredienti associati alla preparazione
+            ingredienti_base = self.session.query(TPreparazioniContenuti).filter_by(
+                fkPreparazione=preparazione.id, 
+                dataCancellazione=None).all()
+            
+            # Inizializza una lista per i risultati
+            risultati = []
+
+            # Calcola il peso totale degli ingredienti
+            peso_totale_ingredienti = 0
+
+            # Itera su ogni ingrediente di base
+            for ingrediente in ingredienti_base:
+                # Aggiungi un dizionario per ogni ingrediente
+                risultati.append({
+                    'fkAlimento': ingrediente.fkAlimento,
+                    'quantita': ingrediente.quantita,
+                    'fkTipoQuantita': ingrediente.fkTipoQuantita  # Supponendo che questo campo rappresenti il tipo di peso
+                })
+                peso_totale_ingredienti += ingrediente.quantita  # Somma per il peso totale
+
+            # Calcola le proporzioni basate sulla quantità totale desiderata
+            proporzioni = []
+            if peso_totale_ingredienti > 0:
+                for item in risultati:
+                    proporzioni.append({
+                        'fkAlimento': item['fkAlimento'],
+                        'quantita': round((item['quantita'] / peso_totale_ingredienti) * quantita_totale),
+                        'fkTipoQuantita': item['fkTipoQuantita']
+                    })
+
+            # Restituisce i risultati con le proporzioni per ogni ingrediente
+            return proporzioni
+
+        except Exception as e:
+            return {'Error': str(e)}, 500
+
+
+
 
     def recupero_totale_ingredienti_base(self, descrizione):
         try:
@@ -280,10 +326,12 @@ class Repository_t_preparazioni:
             
             # Inizializza il dizionario per i risultati
             risultati = defaultdict(lambda: {'quantita': 0})
+            peso_totale = 0  # Aggiungi una variabile per tenere traccia del peso totale degli ingredienti
 
             # Itera su ogni ingrediente di base
             for ingrediente in ingredienti_base:
                 self.processa_ingredienti(ingrediente.fkAlimento, ingrediente.quantita, risultati)
+                peso_totale += ingrediente.quantita  # Somma il peso totale degli ingredienti
 
             # Inizializza un dizionario per i risultati finali
             ingredienti_finali = {}
@@ -296,7 +344,6 @@ class Repository_t_preparazioni:
 
             # Calcola le calorie totali e gli allergeni
             for key in ingredienti_finali.keys():
-                
                 result = (
                     self.session.query(
                         TAlimenti.energia_Kcal,
@@ -310,8 +357,6 @@ class Repository_t_preparazioni:
                     energia_kcal, fk_allergene = result
                     quantita = ingredienti_finali[key]['quantita']
                     calorie_totali += energia_kcal * quantita / 100  # Calcola calorie in base alla quantità
-
-                    
 
                     if fk_allergene:
                         # Dividi fk_allergene in una lista
@@ -327,10 +372,17 @@ class Repository_t_preparazioni:
                 # Se non ci sono allergeni, assegna '15'
                 allergeni_set.add('15')
 
+            # Calcola le calorie per 100 grammi
+            if peso_totale > 0:
+                calorie_per_100g = (calorie_totali * 100) / peso_totale
+            else:
+                calorie_per_100g = 0
+
             # Crea e restituisci un dizionario con i risultati
             return {
                 'descrizione': descrizione,
-                'calorie_totali': calorie_totali if calorie_totali else 0,
+                'calorie_totali': round(calorie_totali) if calorie_totali else 0,
+                'calorie_per_100g': round(calorie_per_100g) if calorie_per_100g else 0,  # Calorie per 100g
                 'allergeni': ','.join(sorted(allergeni_set)) if allergeni_set else None  # Ordina e unisci in stringa
             }
         except Exception as e:
@@ -341,50 +393,51 @@ class Repository_t_preparazioni:
             self.session.close()
 
 
-    def calcola_calorie_per_nome(self, titolo_piatto):
-        try:
-            results = (
-                self.session.query(
-                    TPreparazioni.descrizione,
-                    func.sum(TAlimenti.energia_Kcal * TPreparazioniContenuti.quantita / 100).label('calorie_totali'),
-                    func.count(TPreparazioniContenuti.fkAlimento.distinct()).label('numero_ingredienti'),
-                    func.group_concat(
-                        func.distinct(case(
-                            (TAlimenti.fkAllergene != 15, TAlimenti.fkAllergene)
-                        ))
-                    ).label('allergeni')  # Usa DISTINCT per evitare duplicati
-                )
-                .join(TPreparazioniContenuti, 
-                    (TPreparazioniContenuti.fkPreparazione == TPreparazioni.id) & 
-                    (TPreparazioniContenuti.dataCancellazione == None))  # Aggiungi il filtro per data_cancellazione
-                .join(TAlimenti, TPreparazioniContenuti.fkAlimento == TAlimenti.id)
-                .filter(TPreparazioni.descrizione == titolo_piatto)  # Filtra per nome del piatto
-                .group_by(TPreparazioniContenuti.fkPreparazione)
-                .first()  # Prendi il primo risultato
-            )
 
-            if results:
-                calorie_totali = results.calorie_totali if results.calorie_totali is not None else 0  # Imposta a 0 se None
-                # Crea e restituisci un dizionario con i risultati
-                return {
-                    'descrizione': results.descrizione,
-                    'calorie_totali': calorie_totali,
-                    'allergeni': results.allergeni
-                }
+    # def calcola_calorie_per_nome(self, titolo_piatto):
+    #     try:
+    #         results = (
+    #             self.session.query(
+    #                 TPreparazioni.descrizione,
+    #                 func.sum(TAlimenti.energia_Kcal * TPreparazioniContenuti.quantita / 100).label('calorie_totali'),
+    #                 func.count(TPreparazioniContenuti.fkAlimento.distinct()).label('numero_ingredienti'),
+    #                 func.group_concat(
+    #                     func.distinct(case(
+    #                         (TAlimenti.fkAllergene != 15, TAlimenti.fkAllergene)
+    #                     ))
+    #                 ).label('allergeni')  # Usa DISTINCT per evitare duplicati
+    #             )
+    #             .join(TPreparazioniContenuti, 
+    #                 (TPreparazioniContenuti.fkPreparazione == TPreparazioni.id) & 
+    #                 (TPreparazioniContenuti.dataCancellazione == None))  # Aggiungi il filtro per data_cancellazione
+    #             .join(TAlimenti, TPreparazioniContenuti.fkAlimento == TAlimenti.id)
+    #             .filter(TPreparazioni.descrizione == titolo_piatto)  # Filtra per nome del piatto
+    #             .group_by(TPreparazioniContenuti.fkPreparazione)
+    #             .first()  # Prendi il primo risultato
+    #         )
 
-            # Se non ci sono risultati, ritorna 0 calorie
-            return {
-                'descrizione': titolo_piatto,
-                'calorie_totali': 0,
-                'allergeni': None
-            }
+    #         if results:
+    #             calorie_totali = results.calorie_totali if results.calorie_totali is not None else 0  # Imposta a 0 se None
+    #             # Crea e restituisci un dizionario con i risultati
+    #             return {
+    #                 'descrizione': results.descrizione,
+    #                 'calorie_totali': calorie_totali,
+    #                 'allergeni': results.allergeni
+    #             }
 
-        except Exception as e:
-            print(f"Si è verificato un errore: {e}")
-            return None
+    #         # Se non ci sono risultati, ritorna 0 calorie
+    #         return {
+    #             'descrizione': titolo_piatto,
+    #             'calorie_totali': 0,
+    #             'allergeni': None
+    #         }
 
-        finally:
-            self.session.close()
+    #     except Exception as e:
+    #         print(f"Si è verificato un errore: {e}")
+    #         return None
+
+    #     finally:
+    #         self.session.close()
 
 
 

@@ -1183,12 +1183,8 @@ def modifica_tipologia_alimenti(id):
             tipologia_alimenti = service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
             conservazione = service_t_TipologiaConservazioni.get_all()
 
-           
-
             formTipoAlimento = TipoAlimentoForm(obj=tipologia_alimenti)
             formTipoAlimento.fktipologiaConservazione.choices = [(cons['id'], cons['nome']) for cons in conservazione]
-
-
             
             if tipologia_alimenti:
                 all_json = jsonify({
@@ -1223,7 +1219,6 @@ def modifica_tipologia_alimenti(id):
                 print(f"Errore durante l'aggiornamento: {e}")
                 return jsonify({'error': 'Errore durante l\'aggiornamento della tipologia alimento'}), 500
             
-
         if request.method == 'DELETE':
             tipologia_alimenti = service_t_tipologiaalimenti.get_tipologiaalimenti_by_id(id)
             if not tipologia_alimenti:
@@ -1247,12 +1242,8 @@ def modifica_metodo_conservazione(id):
         if request.method == 'GET':
             conservazione = service_t_TipologiaConservazioni.get_by_id(id)
 
-           
-
             formConservazione = ConservazioneForm(obj=conservazione)
 
-
-            
             if conservazione:
                 all_json = jsonify({
                     'nome': conservazione.get('nome'), 
@@ -1350,7 +1341,6 @@ def alimenti():
         form.fkAllergene.choices = [(allergene['id'], allergene['nome']) for allergene in allergeni]
         form.fkTipologiaAlimento.choices = [(tipologia['id'], tipologia['nome']) for tipologia in tipologie]
 
-    
         if form.validate_on_submit():
             fkAllergene = ",".join(str(allergene_id) for allergene_id in form.fkAllergene.data)
 
@@ -1369,7 +1359,6 @@ def alimenti():
             flash('Alimento aggiunto con successo!', 'success')
             return redirect(url_for('app_cucina.alimenti'))
             
-
         return render_template(
             'alimenti.html',
             alimenti=alimenti_list,
@@ -1803,6 +1792,52 @@ def get_by_fkTipoPreparazione(fkTipoPreparazione):
     tutti_i_piatti = service_t_Piatti.get_all()
     return jsonify(piatti if piatti else tutti_i_piatti)
 
+
+
+@app_cucina.route('/preparazioni/dettagli/<int:id_preparazione>', methods=['GET', 'POST'])
+def preparazioni_dettagli(id_preparazione):
+    if 'authenticated' in session:
+        grammatura = request.args.get('grammatura', type=float)  # Ottieni la grammatura dai parametri della query
+        preparazione = service_t_preparazioni.get_preparazione_by_id(id_preparazione)  # Recupera la preparazione
+        if preparazione is None:
+            flash('Preparazione non trovata.', 'danger')
+            return redirect(url_for('app_cucina.preparazioni'))
+        tipi_prep = service_t_tipipreparazioni.get_all_tipipreparazioni()
+        prep_contenuti = service_t_preparazionicontenuti.get_preparazioni_contenuti_by_id_preparazione(id_preparazione)   
+        tipi_quantita = service_t_tipoquantita.get_all_tipoquantita()
+        alimenti = service_t_Alimenti.get_all()
+        calorie_e_allergeni = service_t_preparazioni.recupero_totale_ingredienti_base(preparazione['descrizione'])
+        allergeni = service_t_Allergeni.get_all()
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+        
+        prep_gramm = service_t_preparazioni.peso_ingredienti_qunatita_totale(preparazione['descrizione'], grammatura)
+        if grammatura:
+            prep_contenuti = prep_gramm
+        
+        preparazione_map = {int(tipo['id']): tipo['descrizione'] for tipo in tipi_prep}
+        prep_map_per_ingredienti_composti = {preparazione['id'] + 100000: preparazione['descrizione'] for preparazione in preparazioni}
+        quantita_map = {int(tipo['id']): tipo['tipo'] for tipo in tipi_quantita}
+        alimenti_map = {alimento['id']: alimento['alimento'] for alimento in alimenti}
+        allergeni_map = {str(allergene['id']): allergene['nome'] for allergene in allergeni}
+
+        try:
+            return render_template(
+                'preparazioni_dettagli.html',
+                preparazione=preparazione,
+                preparazione_map=preparazione_map,
+                prep_contenuti=prep_contenuti,
+                calorie_e_allergeni=calorie_e_allergeni,
+                quantita_map=quantita_map,
+                allergeni_map=allergeni_map,
+                prep_map_per_ingredienti_composti=prep_map_per_ingredienti_composti,
+                alimenti_map=alimenti_map)
+        except Exception as e:
+            print(f"Errore nel rendering del template: {e}")
+            flash('Errore nel caricamento dei dettagli della preparazione.', 'danger')
+            return redirect(url_for('app_cucina.preparazioni'))
+    else:
+        flash('Please log in first.', 'warning')
+        return redirect(url_for('app_cucina.login'))
 
 
 @app_cucina.route('/piatti', methods=['GET', 'POST'])
@@ -4483,11 +4518,16 @@ def print_printProspetto(id):
         preparazioni = service_t_preparazioni.get_all_preparazioni()  # Recupera tutte le preparazioni disponibili
         piatti = service_t_Piatti.get_all()  # Recupera tutti i piatti disponibili
         reparti = service_t_Reparti.get_all()  # Recupera tutti i reparti disponibili
+        tipo_prep = service_t_tipipreparazioni.get_all_tipipreparazioni()
 
         # Crea mappe per le descrizioni delle preparazioni, reparti e piatti
         preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
+        preparazioni_tipo_map = {prep['id']: prep['fkTipoPreparazione'] for prep in preparazioni}
+        tipo_prep_map = {t_prep['id']: t_prep['descrizione'] for t_prep in tipo_prep}
         reparti_map = {reparto['id']: reparto['descrizione'] for reparto in reparti}
         piatti_map = {piatto['id']: piatto['titolo'] for piatto in piatti}
+        piatto_tipo_map = {piatto['id']: piatto['fkTipoPiatto'] for piatto in piatti}
+        
 
         # Inizializza un dizionario per contare i piatti per reparto
         piatti_count = {reparto['id']: {} for reparto in reparti}
@@ -4507,11 +4547,12 @@ def print_printProspetto(id):
                 # Estrae le associazioni valide per i piatti del menu
                 associazioni_valide = {item['fkAssociazione'] for item in piatti_del_menu}
                 piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(scheda['id'])  # Recupera i piatti ordinati nella scheda
-
+    
                 # Itera attraverso i piatti ordinati
                 for piatto_ordinato in piatti_ordinati:
                     fkPiatto = piatto_ordinato['fkPiatto']  # ID del piatto ordinato
                     quantità = piatto_ordinato['quantita']  # Quantità ordinata
+
 
                     # Recupera tutte le associazioni di preparazione per il piatto
                     tutte_associazioni = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(fkPiatto)
@@ -4521,19 +4562,22 @@ def print_printProspetto(id):
                     for assoc in associazioni_filtrate:
                         fkPreparazione = assoc['fkPreparazione']  # ID della preparazione
                         preparazione_nome = preparazioni_map.get(fkPreparazione, "Non Disponibile")  # Nome della preparazione
-
+                        preparazione_tipo = preparazioni_tipo_map.get(fkPreparazione, "Non Disponibile")  # tipo della preparazione
                         # Aggiorna il conteggio delle preparazioni per il reparto
                         if preparazione_nome not in piatti_count[scheda['fkReparto']]:
-                            piatti_count[scheda['fkReparto']][preparazione_nome] = 0  # Inizializza il conteggio se non esiste
-                        piatti_count[scheda['fkReparto']][preparazione_nome] += quantità  # Incrementa la quantità
+                            piatti_count[scheda['fkReparto']][preparazione_nome, preparazione_tipo] = 0  # Inizializza il conteggio se non esiste
+                        piatti_count[scheda['fkReparto']][preparazione_nome, preparazione_tipo] += quantità  # Incrementa la quantità
                         used_preparazioni.add(fkPreparazione)  # Aggiungi la preparazione all'insieme delle preparazioni utilizzate
-
+                    
                     # Se non ci sono associazioni valide, conta il piatto stesso
                     if not associazioni_filtrate:
                         piatto_nome = piatti_map.get(fkPiatto, "Non Disponibile")  # Nome del piatto
+                        piatto_tipo = piatto_tipo_map.get(fkPiatto, "Non Disponibile")  # tipo del piatto
+                        piatto_tipo_mod = service_t_AssociazioneTipiPiattiTipiPreparazioni.get_tipoPreparazione_by_TipoPiatto(piatto_tipo)# modifico il tipo di piatto in tipo preparazione
+                        tipo_prep_associato = piatto_tipo_mod[0]['fkTipoPreparazione']
                         if piatto_nome not in piatti_count[scheda['fkReparto']]:
-                            piatti_count[scheda['fkReparto']][piatto_nome] = 0  # Inizializza il conteggio se non esiste
-                        piatti_count[scheda['fkReparto']][piatto_nome] += quantità  # Incrementa la quantità
+                            piatti_count[scheda['fkReparto']][piatto_nome, tipo_prep_associato] = 0  # Inizializza il conteggio se non esiste ho aggiunto il tipo piatto ma è una porcata non ho saputo fare di meglio
+                        piatti_count[scheda['fkReparto']][piatto_nome, tipo_prep_associato] += quantità  # Incrementa la quantità
 
         # Calcolo dei totali per preparazioni
         preparazioni_totals = {preparazione: 0 for preparazione in set(p for d in piatti_count.values() for p in d.keys())}
@@ -4541,14 +4585,15 @@ def print_printProspetto(id):
             for preparazione_nome, count in counts.items():
                 if preparazione_nome in preparazioni_totals:
                     preparazioni_totals[preparazione_nome] += count  # Somma le quantità per ogni preparazione
-
+        print(preparazioni_totals)
         # Calcolo del totale aziendale
         totale_azienda = sum(count for counts in piatti_count.values() for count in counts.values())  # Somma totale di tutti i piatti
-
+        
         # Restituisci il template con i dati calcolati
         return render_template(
             'printProspetto.html', 
             preparazioni_map=preparazioni_map,
+            tipo_prep_map=tipo_prep_map,
             piatti_count=piatti_count,
             preparazioni_totals=preparazioni_totals,
             piatti_map=piatti_map,
@@ -4558,6 +4603,71 @@ def print_printProspetto(id):
     else:
         # Reindirizza alla pagina di login se non autenticato
         return redirect(url_for('app_cucina.login'))
+
+
+
+@app_cucina.route('/ordini/ingredienti/totale/<int:id>', methods=['GET'])
+def get_totale_ingredienti(id):
+    if 'authenticated' in session:
+        totale_ingredienti = {}  # Solo questo dizionario è necessario
+        ordine = service_t_Ordini.get_by_id(id)
+        print(ordine)
+        schede = service_t_OrdiniSchede.get_all_by_ordine(id)
+        preparazioni = service_t_preparazioni.get_all_preparazioni()
+        alimenti = service_t_Alimenti.get_all()
+        servizi = service_t_Servizi.get_all_servizi()
+
+        preparazioni_map = {prep['id']: prep['descrizione'] for prep in preparazioni}
+        servizi_map = {servizo['id']: servizo['descrizione'] for servizo in servizi}
+        alimenti_map = {alimento['id']: alimento['alimento'] for alimento in alimenti}
+
+        for scheda in schede:
+            menu_by_scheda = service_t_Schede.get_by_id(scheda['fkScheda'])
+            tipo_menu = service_t_Menu.get_by_data(ordine['data'], menu_by_scheda['fkTipoMenu'])
+            tipo_servizio = service_t_MenuServizi.get_all_by_menu_ids_con_servizio_per_stampa(tipo_menu['id'], ordine['fkServizio'])
+
+            if tipo_servizio:
+                tipo_servizio = tipo_servizio[0]
+                piatti_del_menu = service_t_MenuServiziAssociazione.get_info_by_fk_menu_servizio(tipo_servizio['id'])
+
+                associazioni_valide = {item['fkAssociazione'] for item in piatti_del_menu}
+                piatti_ordinati = service_t_OrdiniPiatti.get_all_by_ordine_scheda(scheda['id'])
+
+                for piatto_ordinato in piatti_ordinati:
+                    fkPiatto = piatto_ordinato['fkPiatto']
+                    quantità = piatto_ordinato['quantita']
+
+                    tutte_associazioni = service_t_AssociazionePiattiPreparazionie.get_preparazione_by_piatto(fkPiatto)
+                    associazioni_filtrate = [assoc for assoc in tutte_associazioni if assoc['id'] in associazioni_valide]
+
+                    for assoc in associazioni_filtrate:
+                        fkPreparazione = assoc['fkPreparazione']
+                        preparazione_nome = preparazioni_map.get(fkPreparazione, "Non Disponibile")
+
+                        # Ottieni il peso totale degli ingredienti per la preparazione
+                        ingredienti = service_t_preparazioni.recupero_totale_peso_ingredienti(preparazione_nome)
+                        print(ingredienti)
+                        # Somma i pesi degli ingredienti
+                        for ingrediente_id, peso in ingredienti.items():
+                            if ingrediente_id not in totale_ingredienti:
+                                totale_ingredienti[ingrediente_id] = 0  # Inizializza se non esiste
+                            totale_ingredienti[ingrediente_id] += peso * quantità  # Accumula il peso
+
+        print(totale_ingredienti)  # Debug finale
+
+        return render_template(
+            'print_ingredienti.html',
+            ingredienti=totale_ingredienti,  # Passa totale_ingredienti al template
+            alimenti_map=alimenti_map,
+            ordine=ordine,
+            servizi_map=servizi_map
+        )
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+
+
 
 
 

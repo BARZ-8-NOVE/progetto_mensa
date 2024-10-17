@@ -23,6 +23,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 
     <table>
         <thead>
+            <th></th>
             {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
             <th></th>
             {% endif %}
@@ -30,7 +31,6 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                 <th>Tipo Preparazione</th>
                 <th>Estivo</th>
                 <th>Invernale</th>
-                <th>Immagine</th>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <th></th>
                 {% endif %}
@@ -41,8 +41,9 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 
             <tr class="{% if preparazione.id in preparazioni_senza_ingredienti %}warning{% endif %}" 
                 {% if preparazione.id in preparazioni_senza_ingredienti %} title="Preparazione senza ingredienti"{% endif %}>
+                <td> <div class="icon-controlla" onclick="visualizaPrep({{ preparazione.id }})"title="visualizza preparazione"></div></td>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
-                <td> <div class="icon-pencil" onclick="showModificaPreparazioneForm({{ preparazione.id }})"title="visualizza preparazione"></div></td>
+                <td> <div class="icon-pencil" onclick="showModificaPreparazioneForm({{ preparazione.id }})"title="modifica preparazione"></div></td>
                 {% endif %}
                 <td>{{ preparazione.descrizione }}</td>
                 <td>{{ TipoPreparazione_map[preparazione.fkTipoPreparazione] }}</td>
@@ -51,13 +52,6 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                 </td>
                 <td>
                     <input type="checkbox" disabled {% if preparazione.isInvernale %}checked{% endif %}>
-                </td>
-                <td>
-                    {% if preparazione.immagine %}
-                    <img src="{{ url_for('static', filename='images/' ~ preparazione.immagine) }}" alt="Immagine" />
-                    {% else %}
-                    <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Default Immagine" />
-                    {% endif %}
                 </td>
                 {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
                 <td><div class="icon-cancella" onclick="elimina({{ preparazione.id }})" title='Elimina preparazione'></div></td>                      
@@ -360,8 +354,8 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
-                const descrizione = row.cells[1].textContent.toLowerCase();
-                const tipo = row.cells[2].textContent;
+                const descrizione = row.cells[2].textContent.toLowerCase();
+                const tipo = row.cells[3].textContent;
 
                 const matchesName = descrizione.includes(searchName);
                 const matchesType = searchType === '' || tipo === searchTypeMap[searchType];
@@ -554,7 +548,13 @@ function setPreparazioneDetails(id, descrizione, tipo, estivo, invernale, dataIn
             });
     }
     
-    
+
+
+
+    function visualizaPrep(id_preparazione) {
+        // Reindirizza l'utente alla pagina dei dettagli della preparazione
+        window.location.href = `/app_cucina/preparazioni/dettagli/${id_preparazione}`;
+    }
     
     
         </script>
