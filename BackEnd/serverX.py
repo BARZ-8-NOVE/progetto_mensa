@@ -869,6 +869,113 @@ def home():
             month = request.args.get('month', today.month, type=int)
             day = request.args.get('day', today.day, type=int)
             servizi = service_t_Servizi.get_all_servizi()
+            user = service_t_utenti.get_utente_by_public_id(session['user_id'])
+            
+
+            # Definisci i dati utente
+            data = f'{year}-{month}-{day}'
+            nome = user['nome']
+            cognome = user['cognome']
+
+
+            piatti = service_t_Piatti.get_all()
+            menu_personale = service_t_Schede.get_all_personale()
+            tipi_menu = service_t_TipiMenu.get_all()
+            
+            # Crea mappe per descrizioni e colori dei tipi di menu
+            tipi_menu_map = {int(tipo_menu['id']): tipo_menu['descrizione'] for tipo_menu in tipi_menu}
+            tipi_menu_colore = {int(tipo_menu['id']): tipo_menu['backgroundColor'] for tipo_menu in tipi_menu}
+            servizi_map = {int(servizio['id']): servizio['descrizione'] for servizio in servizi}
+
+            dizionario_servizi = {}
+
+            for servizio in servizi:
+                controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(
+                    data, nome, cognome, servizio['id'], piatti, menu_personale
+                )
+                
+                # Gestione del caso in cui controllo_ordine è None
+                dizionario_servizi[servizio['id']] = {
+                    'inf_scheda': inf_scheda,
+                    'piatti_ordine_map': piatti_ordine_map,
+                    'controllo_ordine': controllo_ordine if controllo_ordine else 'Null'
+                }
+
+            # Rendering della template con i dati calcolati
+            return render_template(
+                'home.html',
+                year=year,
+                month=month,
+                day=day,
+                servizi=servizi,
+                controllo_ordine=controllo_ordine, 
+                inf_scheda=inf_scheda,                                                     
+                piatti_ordine_map=piatti_ordine_map, 
+                utente=user['username'],
+                nome=nome,
+                cognome=cognome,
+                servizi_map=servizi_map,
+                dizionario_servizi=dizionario_servizi,
+                tipi_menu_map=tipi_menu_map,
+                tipi_menu_colore=tipi_menu_colore,
+                today=today
+            )
+
+        except Exception as e:
+            # Gestione degli errori imprevisti
+            print(f"Errore: {e}")
+            return redirect(url_for('app_cucina.login'))
+
+    else:
+        return redirect(url_for('app_cucina.login'))
+
+
+@app_cucina.route('/dash_board', methods=['GET', 'POST'])
+def dash_board():
+    """
+    Gestisce la visualizzazione della pagina principale per gli utenti autenticati.
+
+    Questa funzione consente di:
+    - Visualizzare le informazioni quotidiane relative agli ordini, compresi i totali per servizio.
+    - Recuperare i dettagli dell'utente autenticato e dei servizi disponibili.
+
+    La funzione esegue le seguenti operazioni a seconda del metodo HTTP della richiesta:
+    - **GET**: Recupera e visualizza le informazioni relative agli ordini per il giorno specificato.
+    - **POST**: Attualmente non supporta la creazione o la modifica di dati, ma potrebbe essere esteso in futuro.
+
+    Args:
+        Nessuno. Le informazioni sul giorno, i servizi e gli ordini sono gestite attraverso le query string e i dati di sessione.
+
+    Query Parameters:
+        year (int, optional): L'anno da visualizzare (default è l'anno corrente).
+        month (int, optional): Il mese da visualizzare (default è il mese corrente).
+        day (int, optional): Il giorno da visualizzare (default è il giorno corrente).
+
+    Returns:
+        Response:
+            - **GET**:
+                - Mostra la pagina 'home.html' con i seguenti dati:
+                    - Informazioni sugli ordini totali per servizio per la data specificata.
+                    - Totale pazienti e personale per il giorno selezionato.
+                    - Dettagli dei piatti e dei servizi disponibili.
+                    - Controllo degli ordini associati all'utente.
+                    - Informazioni personali dell'utente autenticato, inclusi nome e cognome.
+                    - Mappa dei servizi disponibili e tipi di menu.
+
+    Notes:
+        - Se l'utente non è autenticato, viene reindirizzato alla pagina di login.
+        - La funzione utilizza vari servizi per recuperare dati come ordini, piatti, e dettagli dell'utente.
+        - Viene calcolato il totale degli ordini per ogni servizio per il giorno specificato.
+        - La funzione gestisce anche il caso in cui non siano presenti ordini per il giorno e il servizio specificati, restituendo un valore di controllo appropriato.
+    """ 
+    if 'authenticated' in session:
+        try:
+             # Ottieni la data di domani
+            today = datetime.now().date() 
+            year = request.args.get('year', today.year, type=int)
+            month = request.args.get('month', today.month, type=int)
+            day = request.args.get('day', today.day, type=int)
+            servizi = service_t_Servizi.get_all_servizi()
             ultimi_menu = service_t_Menu.get_latest_by_fkTipoMenu()
             user = service_t_utenti.get_utente_by_public_id(session['user_id'])
             
@@ -923,17 +1030,6 @@ def home():
 
             dizionario_servizi = {}
 
-            for servizio in servizi:
-                controllo_ordine, inf_scheda, preparazioni_map, piatti_ordine_map = processa_ordine(
-                    data, nome, cognome, servizio['id'], piatti, menu_personale
-                )
-                
-                # Gestione del caso in cui controllo_ordine è None
-                dizionario_servizi[servizio['id']] = {
-                    'inf_scheda': inf_scheda,
-                    'piatti_ordine_map': piatti_ordine_map,
-                    'controllo_ordine': controllo_ordine if controllo_ordine else 'Null'
-                }
 
             # Rendering della template con i dati calcolati
             return render_template(
@@ -942,10 +1038,7 @@ def home():
                 month=month,
                 day=day,
                 ultimi_menu=ultimi_menu,
-                servizi=servizi,
-                controllo_ordine=controllo_ordine, 
-                inf_scheda=inf_scheda,                                                     
-                piatti_ordine_map=piatti_ordine_map, 
+                servizi=servizi, 
                 utente=user['username'],
                 nome=nome,
                 cognome=cognome,
@@ -980,7 +1073,6 @@ def home():
 
     else:
         return redirect(url_for('app_cucina.login'))
-
 
 @app_cucina.route('/allergeni', methods=['GET', 'POST'])
 def allergeni():

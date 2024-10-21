@@ -22,9 +22,10 @@
                 <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
             </div>
         {% endif %}
-    <table>
+    <table class="table table-bordered table-striped">
         <thead>
-            <tr><th></th>
+            <tr>
+                <th></th>
                 <th>Nome</th>
                 <th>Energia (Kcal)</th>
                 <th>Energia (KJ)</th>
@@ -69,46 +70,54 @@
 </div>
 
 
-<!-- Modal for Adding/Editing Alimento -->
-<div id="addAlimentoModal" class="modal" tabindex="-1" role="dialog">
+<!-- Modal per Aggiungere/Modificare Alimento -->
+<div id="addAlimentoModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <span class="close" onclick="closeAddAlimentoForm()">&times;</span>
+            <span class="close" onclick="closeAddAlimentoForm()" aria-label="Chiudi">&times;</span>
             <h2 id="modalTitle">Aggiungi alimento</h2>
             <form id="alimentoForm" method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
-                
-                <!-- Campo nascosto per l'ID dell'alimento (usato per modifiche) -->
-                <input type="hidden" id="alimentoId" name="alimentoId">
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Campo nascosto per l'ID dell'alimento (usato per modifiche) -->
+                        <input type="hidden" id="alimentoId" name="alimentoId">
 
-                <div>
-                    {{ form.alimento.label }} {{ form.alimento(size=32) }}
+                        <div class="form-group">
+                            {{ form.alimento.label }} {{ form.alimento(size=32) }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.energia_Kcal.label }} {{ form.energia_Kcal() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.energia_KJ.label }} {{ form.energia_KJ() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.prot_tot_gr.label }} {{ form.prot_tot_gr() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.glucidi_tot.label }} {{ form.glucidi_tot() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.lipidi_tot.label }} {{ form.lipidi_tot() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.saturi_tot.label }} {{ form.saturi_tot() }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.fkTipologiaAlimento.label }} {{ form.fkTipologiaAlimento() }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <!-- Campo allergeni a destra -->
+                        <div class="form-group">
+                            {{ form.fkAllergene.label }}
+                            {{ form.fkAllergene(class="form-group-allergene") }}  <!-- Allineamento a sinistra -->
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    {{ form.energia_Kcal.label }} {{ form.energia_Kcal() }}
-                </div>
-                <div>
-                    {{ form.energia_KJ.label }} {{ form.energia_KJ() }}
-                </div>
-                <div>
-                    {{ form.prot_tot_gr.label }} {{ form.prot_tot_gr() }}
-                </div>
-                <div>
-                    {{ form.glucidi_tot.label }} {{ form.glucidi_tot() }}
-                </div>
-                <div>
-                    {{ form.lipidi_tot.label }} {{ form.lipidi_tot() }}
-                </div>
-                <div>
-                    {{ form.saturi_tot.label }} {{ form.saturi_tot() }}
-                </div>
-                <div>
-                    {{ form.fkAllergene.label }} {{ form.fkAllergene() }}
-                </div>
-                <div>
-                    {{ form.fkTipologiaAlimento.label }} {{ form.fkTipologiaAlimento() }}
-                </div>
-                
+
                 <div class="modal-footer">
                     <button type="submit" id="submitButton" class="btn btn-primary">Aggiungi Alimento</button>
                     <button type="button" class="btn btn-secondary" onclick="closeAddAlimentoForm()">Annulla</button>
@@ -117,6 +126,16 @@
         </div>
     </div>
 </div>
+
+            
+            
+        </div>
+    </div>
+</div>
+
+
+
+
 
 
 <script>

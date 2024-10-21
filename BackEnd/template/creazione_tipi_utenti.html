@@ -13,7 +13,7 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
         </div>
         <button onclick="showAddUtenteForm()">Aggiungi Tipo Utente</button>
     </div>
-    <table>
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th></th>
@@ -33,7 +33,7 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
                             <li>
                                 {{ funzionalita_map[funz_utente.fkFunzionalita] }}
                                 {% if not funz_utente.permessi %}
-                                    - solo lettura
+                                    - <strong>solo lettura</strong>
                                 {% endif %}
                             </li>
                         {% endfor %}

@@ -1,167 +1,160 @@
-/* Stili globali */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    height: 100%; /* Assicurati che il body occupi l'intera altezza della finestra */
-    padding: 0;
-    background-color: #f8f9fa;
+.logo {
+    max-width: 100px; /* Imposta la larghezza massima del logo */
+    height: auto; /* Mantiene le proporzioni dell'immagine */
 }
 
-.wrapper {
-    max-width: 1200px; /* o un valore appropriato */
-    margin: 0 auto; /* Centra il wrapper */
-    padding: 20px; /* Spazio interno */
+ 
+ 
+ /* Cambia il colore del titolo */
+ h1 {
+    color: #000000; /* Verde personalizzato */
 }
+
+/* Cambia il colore del testo dell'username */
+.user-info span {
+    color: #2c3e50; /* Blu scuro per il testo utente */
+}
+
+/* Cambia il colore del pulsante Impostazioni */
+.user-info .btn-settings {
+    background-color: #a6c9ee; /* Arancione per il pulsante Impostazioni */
+    color: white; /* Testo bianco */
+    
+}
+
+/* Cambia il colore del pulsante Logout */
+.user-info .btn-logout {
+    background-color:  #a6c9ee; /* Rosso per il pulsante Logout */
+    color: white; /* Testo bianco */
+}
+
+/* Aggiungere bordi arrotondati per i pulsanti */
+.user-info .btn {
+    border-radius: 5px;
+}
+
+/* Colore del pulsante al passaggio del mouse */
+.user-info .btn:hover {
+    opacity: 0.8;
+}
+
+
 
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #2b2e31;
+    display: flex; /* Utilizza Flexbox per il layout */
+    justify-content: space-between; /* Spazia il titolo e le info utente */
+    align-items: center; /* Allinea gli elementi verticalmente al centro */
+    padding: 10px; /* Padding per il header */
 }
 
-header h1 {
-    margin: 0;
+.user-info {
+    display: flex; /* Utilizza Flexbox per allineare gli elementi */
+    align-items: center; /* Allinea gli elementi verticalmente al centro */
+    gap: 15px; /* Spazio tra gli elementi */
 }
 
-header .user-info {
-    display: flex;
-    align-items: center;
+.user-info span {
+    font-size: 16px; /* Dimensione del testo */
+    color: #333; /* Colore del testo */
 }
 
-header .user-info span {
-    margin-right: 10px;
+.btn {
+    margin-left: 10px; /* Spazio a sinistra dei pulsanti */
 }
 
-header .user-info a,
-#logout {
-    text-decoration: none;
-    color: white;
-    background-color: #a6c9ee; /* Same color for both */
-    padding: 8px 12px; /* Increased padding for equal height */
-    border-radius: 5px;
-    margin-left: 10px;
-    border: none; /* Remove border */
-    display: inline-flex; /* Use flexbox for centering */
-    align-items: center; /* Center text vertically */
-    font-size: 16px; /* Ensure font size is the same */
-    line-height: 1; /* Ensure consistent line height */
+@media (max-width: 768px) {
+    .user-info {
+        justify-content: flex-end; /* Mantieni i pulsanti a destra */
+    }
+
+    .user-info .btn {
+        width: auto; /* Mantieni i pulsanti alla loro larghezza naturale */
+    }
 }
 
-#logout {
-    cursor: pointer; /* Cambia il cursore in manina */
+
+.navbar {
+    background-color: #4CAF50; /* Cambia con il colore che preferisci */
 }
 
 
 
 
 
-nav {
-    margin: 20px;
-    background-color: #e8f4ff;
-    padding: 10px;
-    border-radius: 5px;
+/* Cambia il colore di sfondo dell'intera navbar */
+.navbar {
+    background-color: #e8f4ff; /* Applica il colore di sfondo desiderato all'intera navbar */
 }
 
-nav ul {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    gap: 20px;
-}
-
-nav ul li {
-    position: absolute;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: #07437e;
-    font-weight: bold;
-    padding: 5px 10px;
-    display: block;
-}
-
-
-.flash-messages {
-    margin: 20px 20px;
-}
-
-.flash {
-    padding: 10px;
-    border-radius: 5px;
+/* Cambia il colore del testo dei link */
+.navbar .nav-link {
+    color: #07437e; /* Colore nero per i link */
+    background-color: transparent; /* Rendi trasparente lo sfondo dei singoli link */
+    font-size: 20px;
+    margin-left: 20px;
+    margin-top: 10px;
     margin-bottom: 10px;
+
 }
 
-.flash.success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.flash.error {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.flash.warning {
-    background-color: #fff3cd;
-    color: #856404;
+/* Cambia il colore dei link al passaggio del mouse */
+.navbar .nav-link:hover {
+    color: #80b9f1; /* Colore personalizzato al passaggio del mouse */
 }
 
 
 
-/* Assicurati che il contenitore dropdown sia posizionato relativamente */
-.dropdown {
+.dropdown-item {
+    color: #07437e; /* Colore del testo */
+    padding: 10px 25px; /* Padding per dare l'aspetto di un pulsante */
+    font-size: 20px ;
+    text-align: left; /* Allinea il testo a sinistra */
+    
+}
+
+/* Azzurra il background dei dropdown */
+.dropdown-menu {
+    color: #07437e;
+    background-color: #e8f4ff; /* Colore di sfondo azzurrino */
+    border-top: none;
+    border-left: none;
+   
+}
+
+/* Cambia il colore del testo al passaggio del mouse */
+.dropdown-item:hover {
+    color: #80b9f1;
+    background-color: #e8f4ff; /* Colore di sfondo al passaggio del mouse */
+    cursor: pointer; /* Cambia il cursore per indicare che è cliccabile */
+}
+
+
+
+/* Rimuovi la freccia dai padri e dai figli */
+.dropdown-toggle::after {
+    display: none; /* Rimuovi la freccia */
+}
+
+.dropdown-submenu {
     position: relative;
 }
 
-/* Stile per il menu principale */
-.dropdown-content {
-    display: none;
+.dropdown-submenu .dropdown-menu {
+    display: none; /* Nasconde il sottomenu inizialmente */
     position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-/* Stile per il sottomenu */
-.dropdown-subcontent {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 2; /* Assicurati che sia sopra il menu principale */
     left: 100%; /* Posiziona il sottomenu direttamente a destra del menu principale */
     top: 0; /* Allinea verticalmente con il menu principale */
+    z-index: 1000; /* Assicura che il sottomenu sia sopra gli altri elementi */
 }
 
-/* Stili per i link nei menu */
-.dropdown-content a, .dropdown-subcontent a {
-    color: #07437e;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
+/* Mostra il sottomenu (nipoti) al passaggio del mouse sul figlio */
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block; /* Mostra il sottomenu quando il mouse è sopra il genitore */
 }
 
-/* Hover effects per i link */
-.dropdown-content a:hover, .dropdown-subcontent a:hover {
-    background-color: #f1f1f1;
+.dropdown-submenu:hover .dropdown-menu:hover {
+    display: block; /* Mantiene il sottomenu visibile anche quando il mouse è sopra di esso */
 }
-
-/* Mostra il menu principale al passaggio del mouse */
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
-/* Mostra il sottomenu al passaggio del mouse */
-.dropdown:hover .dropdown-content .dropdown:hover .dropdown-subcontent {
-    display: block;
-}
-
 
 
 .container {
@@ -278,24 +271,7 @@ nav ul li a {
     background-color: #002b5e;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
 
-table, th, td {
-    border: 1px solid #dee2e6;
-}
-
-th, td {
-    padding: 10px;
-    text-align: left;
-}
-
-th {
-    background-color: #f8f9fa;
-}
 
 /* CSS per il pop-up */
 .modal {
@@ -307,8 +283,15 @@ th {
     width: 100%; 
     height: 100%; 
     overflow: auto; 
-    background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.4); 
+    background-color: rgba(0, 0, 0, 0.5); 
+}
+
+.modal-dialog {
+    display: flex;
+    align-items: center;
+    height: 200%;
+    min-width: 600px;
+
 }
 
 .modal-content {
@@ -316,31 +299,19 @@ th {
     margin: 5% auto; 
     padding: 20px;
     border: 1px solid #888;
-    width: 50%; 
+    width: 100%; /* Aumentato */
+
+    max-width: 800px; /* Limite massimo */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     animation: fadeIn 0.5s;
 }
 
-
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+@media (max-width: 768px) {
+    .modal-content {
+        height: 200%;
+        width: 20%; /* Aumentato per dispositivi più piccoli */
+    }
 }
 
 .modal-content h2 {
@@ -378,24 +349,60 @@ th {
     background-color: #002b5e;
 }
 
-.radio-inline {
-    display: inline-block;
-    margin-right: 10px;
+
+
+
+/* Rimuovi i numeri e allinea le checkbox in verticale */
+.form-group-allergene {
+    display: flex; /* Imposta il display su flex */
+    flex-direction: column; /* Posiziona gli elementi in verticale */
+    margin-top: 15px; /* Spazio sopra il campo */
+    align-items: flex-start; /* Allinea a sinistra */
 }
 
-.calendar {
-    border-collapse: collapse;
-    width: 100%;
+/* Nascondi i numeri nel campo di allergeni */
+.form-group-allergene label {
+    list-style-type: none; /* Rimuove i numeri */
+    margin-bottom: 5px; /* Spazio tra label e checkbox */
+    align-self: flex-start; /* Allinea l'etichetta a sinistra */
 }
-.calendar th, .calendar td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-    vertical-align: top;
+
+/* Ingrandisci le checkbox */
+.form-group-allergene input[type="checkbox"] {
+    transform: scale(1.5); /* Ingrandisci le checkbox */
+    margin-right: 10px; /* Spazio tra checkbox e etichetta */
 }
-.calendar th {
-    background-color: #f4f4f4;
+
+/* Allinea le etichette a sinistra */
+.form-group-allergene .form-check {
+    display: flex; /* Display flex per etichetta e checkbox */
+    align-items: center; /* Allinea verticalmente al centro */
+    justify-content: flex-start; /* Allinea a sinistra */
 }
+
+
+
+
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .empty {
     background-color: #f9f9f9;
     text-align: center;
@@ -663,6 +670,7 @@ li {
     display: flex;
     gap: 10px; /* Spazio tra gli elementi */
     align-items: center; /* Allinea verticalmente al centro */
+    margin-top: 20px;
     margin-bottom: 20px;
     margin-right: 20px;
     margin-left: 20px; /* Spazio sotto il contenitore */
@@ -674,37 +682,6 @@ li {
 }
 
 
-.controls-home-menu-sx {
-    display: flex;
-    gap: 10px; /* Spazio tra gli elementi */
-    align-items: center; /* Allinea verticalmente al centro */
-    margin-bottom: 20px;
-    margin-top: 0px;
-    margin-right: 51%;
-    margin-left: 20px; /* Spazio sotto il contenitore */
-}
-
-.controls-home-menu-custom-dx {
-    display: flex;
-    gap: 10px; /* Spazio tra gli elementi */
-    align-items: center;
-    margin-top: -411px; 
-    margin-bottom: 20px;
-    margin-left: 51%;
-    margin-right: 20px; /* Spazio sotto il contenitore */
-    position: relative
-}
-
-.controls-home-menu-dx {
-    display: flex;
-    gap: 10px; /* Spazio tra gli elementi */
-    align-items: center;
-    margin-top: -215px; 
-    margin-bottom: 5px;
-    margin-left: 51%;
-    margin-right: 20px; /* Spazio sotto il contenitore */
-    position: relative
-}
 
 .stampa {
     
@@ -842,15 +819,15 @@ li {
 /* Stile per la tabella e le celle */
 table {
     width: 100%;
-    border-collapse: collapse;
+
 }
 
 th, td {
     padding: 10px;
     text-align: left;
-    border: 1px solid #07437e;
-    vertical-align: top; /* Allinea il contenuto delle celle in alto */
+    vertical-align: auto; /* Allinea il contenuto delle celle in alto */
 }
+
 
 thead {
     background-color: #ffffff;
@@ -1416,7 +1393,7 @@ select {
 /* Stile specifico per i campi di selezione data */
 .form-control[type="date"] {
     display: block;
-    width: 30%;
+    width: 100%;
     padding: 10px;
     font-size: 14px;
     line-height: 1.5;

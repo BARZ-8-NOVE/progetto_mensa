@@ -22,7 +22,7 @@
                 <button onclick="showAddConservazioneForm()">Aggiungi metodo di conservazione</button>
             </div>
         {% endif %}
-    <table>
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
                 <th></th>
@@ -61,7 +61,7 @@
                 <button onclick="showAddTipologiaAlimentoForm()">Aggiungi tipologia alimento</button>
             </div>
         {% endif %}
-    <table>
+    <table class="table table-bordered table-striped">
         <thead>
             <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
                 <th></th>

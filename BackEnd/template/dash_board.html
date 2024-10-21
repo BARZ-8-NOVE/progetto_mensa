@@ -1,0 +1,252 @@
+{% extends "index.html" %}
+
+{% block title %}
+Home - Gestione Cucina
+{% endblock %}
+
+{% block content %}
+<!-- Contenitore per i pulsanti e i form -->
+<div class="controls-container">
+    
+    <!-- Pulsanti di navigazione del giorno -->
+    <form method="GET" action="{{ url_for('app_cucina.home') }}">
+        <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
+        {% set prev_day = day - 1 %}
+        {% set prev_month = month %}
+        {% set prev_year = year %}
+        {% if prev_day < 1 %}
+            {% set prev_month = month - 1 %}
+            {% if prev_month < 1 %}
+                {% set prev_month = 12 %}
+                {% set prev_year = year - 1 %}
+            {% endif %}
+            {% if prev_month in [1, 3, 5, 7, 8, 10, 12] %}
+                {% set prev_day = 31 %}
+            {% elif prev_month in [4, 6, 9, 11] %}
+                {% set prev_day = 30 %}
+            {% elif prev_month == 2 %}
+                {% if (prev_year % 4 == 0 and prev_year % 100 != 0) or (prev_year % 400 == 0) %}
+                    {% set prev_day = 29 %}
+                {% else %}
+                    {% set prev_day = 28 %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        <input type="hidden" name="day" value="{{ prev_day }}">
+        <input type="hidden" name="month" value="{{ prev_month }}">
+        <input type="hidden" name="year" value="{{ prev_year }}">
+        <button type="submit" class="icon-freccia-sx" title="giono precedente" onclick="showLoadingSpinner()"></button>
+    </form>
+    <h2>{{ day }}/{{ month }}/{{ year }}  </h2>
+    <form method="GET" action="{{ url_for('app_cucina.home') }}">
+        <input type="hidden" name="servizio" value="{{ request.args.get('servizio', '1') }}">
+        {% set next_day = day + 1 %}
+        {% set next_month = month %}
+        {% set next_year = year %}
+        {% if next_day > 31 %}
+            {% set next_day = 1 %}
+            {% set next_month = month + 1 %}
+            {% if next_month > 12 %}
+                {% set next_month = 1 %}
+                {% set next_year = year + 1 %}
+            {% endif %}
+        {% endif %}
+        {% if next_month in [1, 3, 5, 7, 8, 10, 12] %}
+            {% if next_day > 31 %}
+                {% set next_day = 1 %}
+                {% set next_month = next_month + 1 %}
+                {% if next_month > 12 %}
+                    {% set next_month = 1 %}
+                    {% set next_year = next_year + 1 %}
+                {% endif %}
+            {% endif %}
+        {% elif next_month in [4, 6, 9, 11] %}
+            {% if next_day > 30 %}
+                {% set next_day = 1 %}
+                {% set next_month = next_month + 1 %}
+                {% if next_month > 12 %}
+                    {% set next_month = 1 %}
+                    {% set next_year = next_year + 1 %}
+                {% endif %}
+            {% endif %}
+        {% elif next_month == 2 %}
+            {% if (next_year % 4 == 0 and next_year % 100 != 0) or (next_year % 400 == 0) %}
+                {% if next_day > 29 %}
+                    {% set next_day = 1 %}
+                    {% set next_month = next_month + 1 %}
+                    {% if next_month > 12 %}
+                        {% set next_month = 1 %}
+                        {% set next_year = next_year + 1 %}
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                {% if next_day > 28 %}
+                    {% set next_day = 1 %}
+                    {% set next_month = next_month + 1 %}
+                    {% if next_month > 12 %}
+                        {% set next_month = 1 %}
+                        {% set next_year = next_year + 1 %}
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        <input type="hidden" name="day" value="{{ next_day }}">
+        <input type="hidden" name="month" value="{{ next_month }}">
+        <input type="hidden" name="year" value="{{ next_year }}">
+        <button type="submit" class="icon-freccia-dx" title="giorno successivo" onclick="showLoadingSpinner()"></button>
+    </form>
+</div>
+{% if page_permissions['/app_cucina/home']['can_write'] %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">   
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Servizio</th>
+                                <th>Totale Ordini Pazienti</th>
+                                <th>Totale Ordini Personale</th>
+                                <th>Totale Completo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servizio_nome, totali in ordini_totali_per_servizio.items() %}
+                                <tr>
+                                    <td>{{ servizio_nome }}</td>
+                                    <td>{{ totali['totale_pazienti'] }}</td>
+                                    <td>{{ totali['totale_personale'] }}</td>
+                                    <td>{{ totali['totale_completo'] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td><strong>Totali</strong></td>
+                                <td><strong>{{ totale_pazienti }}</strong></td>
+                                <td><strong>{{ totale_personale }}</strong></td>
+                                <td><strong>{{ totale_completo }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tipo Menu</th>
+                                <th>Menu Creati Fino Alla Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for menu in ultimi_menu %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center;">
+                                            <div style="width: 20px; height: 20px; background-color: {{ tipi_menu_colore[menu.fkTipoMenu] }}; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                            {{ tipi_menu_map[menu.fkTipoMenu] }}
+                                        </div>
+                                    </td>
+                                    <td class="{% if (menu.data - today).days < 7 and (menu.data - today).days >= 0 %}table-danger{% endif %}">
+                                        {{ menu.data.strftime('%d/%m/%Y') }} 
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 20px; height: 20px; background-color: #FFD700; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                        Brodo
+                                    </div>
+                                </td>
+                                <td> Sempre Presente </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>             
+            </div>
+            <div class="col-md-6">
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Servizio</th>
+                                <th>Totale mese scorso</th>
+                                <th>Totale mese corrente</th>
+                                <th>Totale anno corrente</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servizio in servizi %}
+                                <tr>
+                                    <td>{{ servizio.descrizione }}</td>
+                                    <td>
+                                        {% if ordini_totali_mese_scorso_per_servizio[servizio.descrizione ] is defined %}
+                                            {{ ordini_totali_mese_scorso_per_servizio[servizio.descrizione ] }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if ordini_totali_mese_corrente_per_servizio[servizio.descrizione ] is defined %}
+                                            {{ ordini_totali_mese_corrente_per_servizio[servizio.descrizione ] }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if ordini_totali_anno_per_servizio[servizio.descrizione ] is defined %}
+                                            {{ ordini_totali_anno_per_servizio[servizio.descrizione ] }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td><strong>Totali</strong></td>
+                                <td><strong>{{ totale_mese_scorso_completo }}</strong></td>
+                                <td><strong>{{ totale_mese_corrente_completo }}</strong></td>
+                                <td><strong>{{ totale_anno_completo }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>                
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Totali Menu Ordinati</th>
+                                <th>Giorno</th>
+                                <th>Mese</th>
+                                <th>Anno</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo_menu, conteggio_anno in ordini_per_menu_anno['conteggi_menu'].items() %}
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center;">
+                                            {% if tipo_menu == 'brodi' %}
+                                                <div style="width: 20px; height: 20px; background-color: #FFD700; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                                Brodo
+                                            {% else %}
+                                                <div style="width: 20px; height: 20px; background-color: {{ tipi_menu_colore[tipo_menu] }}; border-radius: 5px; border: 1px solid black; margin-right: 5px;"></div>
+                                                {{ tipi_menu_map[tipo_menu] }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ ordini_per_menu_giorno['conteggi_menu'].get(tipo_menu, 0) }}</td>
+                                    <td>{{ ordini_per_menu_mese['conteggi_menu'].get(tipo_menu, 0) }}</td>
+                                    <td>{{ conteggio_anno }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

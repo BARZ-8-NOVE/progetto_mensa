@@ -1,49 +1,67 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+   
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}Gestione Cucina e Mensa Ospedaliera{% endblock %}</title>
+    <title>{% block title %}Ncook{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stili.css') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+
 </head>
 <body>
-    <header>
-        <h1>Gestione Cucina e Mensa Ospedaliera</h1>
-        <div class="user-info">
-            <span>Utente: <span id="username">{{ username }}</span></span>
-            <a href="/app_cucina/impostazioni">Impostazioni</a>
-            <form method="POST" action="{{ url_for('app_cucina.do_logout') }}" style="display: inline;" onsubmit="disableAllSubmitButtons()">
-                <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}" />
-                <button type="submit" id="logout">Logout</button>
-            </form>
+    <header class="d-flex align-items-center">
+        <img src="{{ url_for('static', filename='images/nnuova.png') }}" alt="Logo" class="logo me-3">
+        <h1 class="text-left mb-0">Cook</h1> <!-- mb-0 rimuove il margine inferiore -->
+        <div class="user-info d-flex flex-column flex-sm-row justify-content-end align-items-center ms-auto mt-2">
+            <span class="me-3 mb-2 mb-sm-0">Utente: <span id="username">{{ username }}</span></span>
+            <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-end">
+                <a href="/app_cucina/impostazioni" class="btn btn-settings mb-2 mb-sm-0 me-2">Impostazioni</a>
+                <form method="POST" action="{{ url_for('app_cucina.do_logout') }}" style="display: inline;" onsubmit="disableAllSubmitButtons()">
+                    <input type="hidden" name="csrf_token" value="{{ form.csrf_token._value() }}" />
+                    <button type="submit" id="logout" class="btn btn-logout">Logout</button>
+                </form>
+            </div>
         </div>
-
     </header>
     
-    <nav>
-        <ul>
-            {% for padre in menu_structure %}
-                <li class="dropdown">
-                    <a href="{{ padre['link'] }}" {% if padre['link'] == '/app_cucina/home' %}class="load-link"{% endif %}>{{ padre['titolo'] }}</a>
-                    <div class="dropdown-content">
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <ul class="navbar-nav">
+                {% for padre in menu_structure %}
+                <li class="nav-item {% if padre['figli'] %} dropdown {% endif %}">
+                    <a class="nav-link {% if padre['figli'] %} dropdown-toggle {% endif %}" href="{{ padre['link'] }}" id="navbarDropdown{{ loop.index }}" role="{% if padre['figli'] %}button{% else %}link{% endif %}" data-bs-toggle="{% if padre['figli'] %}dropdown{% endif %}" aria-expanded="false">
+                        {{ padre['titolo'] }}
+                    </a>
+                    {% if padre['figli'] %}
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown{{ loop.index }}">
                         {% for figlio in padre['figli'] %}
-                            <div class="dropdown">
-                                <a href="{{ figlio['link'] }}" {% if figlio['link'] == '/app_cucina/qualifiche' %}class="load-link"{% endif %}>{{ figlio['titolo'] }}</a>
-                                <div class="dropdown-subcontent">
-                                    {% for nipote in figlio['nipoti'] %}
-                                        <a href="{{ nipote['link'] }}" class="load-link">{{ nipote['titolo'] }}</a>
-                                    {% endfor %}
-                                </div>
-                            </div>
+                            <li class="dropdown-submenu">
+                                {% if figlio['nipoti'] %}
+                                    <a class="dropdown-item dropdown-toggle" href="{{ figlio['link'] }}">{{ figlio['titolo'] }}</a>
+                                    <ul class="dropdown-menu">
+                                        {% for nipote in figlio['nipoti'] %}
+                                            <li>
+                                                <a class="dropdown-item load-link" href="{{ nipote['link'] }}">{{ nipote['titolo'] }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <a class="dropdown-item" href="{{ figlio['link'] }}" role="button">{{ figlio['titolo'] }}</a>
+                                {% endif %}
+                            </li>
                         {% endfor %}
-                    </div>
+                    </ul>
+                    {% endif %}
                 </li>
-            {% endfor %}
-        </ul>
-        
-        
-        
+                {% endfor %}
+            </ul>
+        </div>
     </nav>
 
     <!-- Flash messages -->
@@ -57,16 +75,21 @@
         {% endif %}
     {% endwith %}
 
-    <div class="wrapper">
-        {% block content %}
-        {% endblock %}
+    <div class="row justify-content-center">
+        <div class="col-md-9 text-center">
+            {% block content %}
+            {% endblock %}
+        </div>
     </div>
-    
+
     <footer>
         <div class="footer-content">
             <p>© 2024 <img src='https://www.be-team.eu/wp-content/uploads/2023/05/beteam_darker-400x108.png' alt="Logo Azienda" class="logo-BeTeam"> Tutti i diritti riservati.</p>
         </div>
     </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         const token = "{{ token }}";  // Retrieves the token from Flask

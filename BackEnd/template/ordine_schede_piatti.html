@@ -120,43 +120,42 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             </div>
         </div>
         
+        <div clas="fluid">
+            
+                <!-- Bottone Precedente -->
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
+                class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
+                id="prev-button">
+                <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
+            </a>
+            
+            <!-- Info Scheda -->
+            <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
+            
+            <!-- Bottone Successivo -->
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
+                class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
+                id="next-button">
+                <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
+            </a>
         
-        
-        
-        
-        
-            <!-- Bottone Precedente -->
-        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
-            class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
-            id="prev-button">
-             <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
-         </a>
-         
-         <!-- Info Scheda -->
-         <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
-         
-         <!-- Bottone Successivo -->
-         <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
-            class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
-            id="next-button">
-             <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
-         </a>
-    
-        
-        <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
-            <button type="button" class="styled-button" onclick="showLoadingSpinner()">Nuova Scheda</button>
-        </a>
+            
+            <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id) }}">
+                <button type="button" class="styled-button" onclick="showLoadingSpinner()">Nuova Scheda</button>
+            </a>
 
-        <a href="{{ url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio) }}">
-            <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
-        </a>
+            <a href="{{ url_for('app_cucina.ordini', year=year, month=month, day=day, servizio=servizio) }}">
+                <button type="button" class="styled-button" onclick="showLoadingSpinner()">Annulla Ordine</button>
+            </a>
 
-        {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
-        
-       <!-- Totale Calorie -->
-        <div id="totaleCalorie" style="totaleCalorie">
-            Totale Kcal: <span id="calorieTotali">0</span>
-        </div>
+            {{ form.submit(class="styled-button", id="submitButton", disabled="disabled", onclick="showLoadingSpinner()") }}
+            
+        <!-- Totale Calorie -->
+            <div id="totaleCalorie" style="totaleCalorie">
+                Totale Kcal: <span id="calorieTotali">0</span>
+            </div>
+
+        </div>    
         
         <input type="hidden" id="piattiList" name="piattiList">
         <input type="hidden" name="ordine_id" id="ordineId" value="{{ ordine_id }}">

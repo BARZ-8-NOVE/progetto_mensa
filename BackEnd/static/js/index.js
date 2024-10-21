@@ -11,7 +11,7 @@ function showLoadingSpinner() {
         if (spinnerOverlay) {
             document.body.removeChild(spinnerOverlay);
         }
-    }, 1000); // Rimuovi dopo 1 secondo (o qualsiasi valore tu desideri)
+    }, 1500); // Rimuovi dopo 1 secondo (o qualsiasi valore tu desideri)
 }
 
 // Aggiungi un gestore di eventi per tutti i link nel menu

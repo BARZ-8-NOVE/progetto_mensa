@@ -21,7 +21,7 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
         {% endif %}
     </div>
 
-    <table>
+    <table class="table table-bordered table-striped">
         <thead>
             <th></th>
             {% if page_permissions['/app_cucina/preparazioni']['can_write'] %}
@@ -108,33 +108,39 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                             <span class="text-danger">{{ error }}</span>
                         {% endfor %}
                     </div>
+                    <div class="row">
+                        <div class="col-md-6"> 
+                            <div class="form-group">
+                                {{ form.isEstivo.label(class="form-label") }}
+                                {{ form.isEstivo(class="form-group-allergene")}}
+                            </div>
+                            <div class="form-group">
+                                {{ form.fine.label(class="form-label") }}
+                                {{ form.fine (class="form-control") }}
+                                {% for error in form.fine.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        {{ form.isEstivo.label(class="form-check-label") }}
-                        {{ form.isEstivo(class="form-check-input") }}
+                    
+
+
+                    <div class="col-md-6"> 
+                        <div class="form-group">
+                            {{ form.isInvernale.label(class="form-label") }}
+                            {{ form.isInvernale(class="form-group-allergene") }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.inizio.label(class="form-label") }}
+                            {{ form.inizio(class="form-control", type="date") }}
+                            {% for error in form.inizio.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
-
-                    <div class="form-group">
-                        {{ form.isInvernale.label(class="form-check-label") }}
-                        {{ form.isInvernale(class="form-check-input") }}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.inizio.label(class="form-label") }}
-                        {{ form.inizio(class="form-control", type="date") }}
-                        {% for error in form.inizio.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
-                    </div>
-
-                    <div class="form-group">
-                        {{ form.fine.label(class="form-label") }}
-                        {{ form.fine(class="form-control", type="date") }}
-                        {% for error in form.fine.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
-                    </div>
-
+                    
+                </div>
                     <div class="form-group">
                         {{ form.immagine.label(class="form-label") }}
                         {{ form.immagine(class="form-control-file") }}
