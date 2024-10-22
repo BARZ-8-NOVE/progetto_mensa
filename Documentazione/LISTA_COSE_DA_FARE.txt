@@ -38,3 +38,7 @@ t_funzionalita __confermare i controlli
 t_autorizzazioni __confermare i controlli
 t_tipiUtenti __confermare i controlli
 t_utenti __confermare i controlli
+
+
+NUOVE COSE DA FARE
+ricerca nomi tipologia alimenti e allergeni

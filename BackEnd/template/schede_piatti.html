@@ -91,7 +91,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
 <div class="modal" id="piattoModal">
     <div class="modal-content">
         <span class="close" onclick="closePiattoModal()">&times;</span>
-        <h2 id="piattoModalTitle">Aggiungi Nuovo Piatto</h2>
+        <h2 id="piattoModalTitle">Aggiungi Scheda Piatto</h2>
         <form id="piattoForm" method="POST" onsubmit="disableAllSubmitButtons()">
             <input type="hidden" id="piattoId" name="piatto_id">
             <input type="hidden" id="servizioId" name="servizio_id" value="{{ request.args.get('servizio', '1') }}">

@@ -129,46 +129,47 @@ Ordini - Gestione Cucina
 
     
 </div>
-<div class="controls-container">
-    <table>
-        <thead>
-            <thead>
-                <tr>
-                    <th class="rotated-header"> Reparto</th>
-                    {% for scheda in schede_attive %}
-                    <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
-                        <div>{{ scheda.nome }}</div>
-                        <div>{{ scheda.titolo }}</div>
-                    </th>
-                    {% endfor %}
-                    <th class="rotated-header"> Totali reparti</th>
-                </tr>
-                
-            </thead>
-            
-        </thead>
-        <tbody id="schedeTableBody">
-            {% for reparto in reparti %}
-            <tr>
-                <td>{{ reparto.descrizione }}</td>
 
-                {% for scheda in schede_attive %}
-                <td onclick="showLoadingSpinner();showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
-                    {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
-                </td>
-                {% endfor %}
-                <td>{{ reparti_totals[reparto.id] }}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td>Totali Schede</td>
-                {% for scheda in schede_attive %}
-                <td>{{ schede_totals[scheda.id] }}</td>
-                {% endfor %}
-                <td>{{ total_general }}</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="controls-container">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th class="rotated-header"> Reparto</th>
+                        {% for scheda in schede_attive %}
+                        <th class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
+                            <div>{{ scheda.nome }}</div>
+                            <div>{{ scheda.titolo }}</div>
+                        </th>
+                        {% endfor %}
+                        <th class="rotated-header"> Totali reparti</th>
+                    </tr>
+                </thead>
+                <tbody id="schedeTableBody">
+                    {% for reparto in reparti %}
+                    <tr>
+                        <td>{{ reparto.descrizione }}</td>
+
+                        {% for scheda in schede_attive %}
+                        <td onclick="showLoadingSpinner();showForm('{{ ordine_esistente.id }}','{{ servizio_corrente }}', '{{ reparto.id }}', '{{ scheda.id }}')">
+                            {{ schede_count[reparto.id][scheda.id] if schede_count[reparto.id] and scheda.id in schede_count[reparto.id] else 0 }}
+                        </td>
+                        {% endfor %}
+                        <td>{{ reparti_totals[reparto.id] }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td>Totali Schede</td>
+                        {% for scheda in schede_attive %}
+                        <td>{{ schede_totals[scheda.id] }}</td>
+                        {% endfor %}
+                        <td>{{ total_general }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 <!-- Calendario FullCalendar -->
 <div id="calendar"></div>

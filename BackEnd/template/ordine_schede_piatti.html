@@ -10,7 +10,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
         <h2>
             {{ info_servizio.descrizione }}, {{ info_reparto.codiceAreas }}, {{ info_reparto.descrizione }}
         </h2>
-        <h2 style="width: 400px; height: 30px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 30px; margin: 0; ">
+        <h2 style="width: 400px; height: 45px; background-color: {{ scheda.backgroundColor }}; border-radius: 5px; border: 1px solid black; text-align: center; line-height: 35px; margin: 0; ">
             {{ scheda.nome }} - {{scheda.titolo}}
         </h2>
         {% if ordine_id %}
@@ -68,7 +68,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                             <span class="item-id">{{ piatto.codice }}</span>
                             <div class="item-name">{{ piatto.titolo }}</div>
                             
-                            <div class="tooltip">
+                            <div class="custom-tooltip">
                                 Calorie: {{ calorie }} Kcal | Allergeni: 
                                 {% if allergeni is not none %}
                                     {% set allergene_ids = allergeni.split(',') %}
@@ -101,7 +101,7 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
                             <span class="item-id">{{ piatto.codice }}</span>
                             <div class="item-name">{{ piatto.titolo }}</div>
                             
-                            <div class="tooltip">
+                            <div class="custom-tooltip">
                                 Calorie: {{ calorie }} | Allergeni: 
                                 {% if allergeni is not none %}
                                     {% set allergene_ids = allergeni.split(',') %}
@@ -120,23 +120,23 @@ schedePiatti - Gestione Cucina e Mensa Ospedaliera
             </div>
         </div>
         
-        <div clas="fluid">
+        <div class="container-fluid d-flex flex-wrap">
             
                 <!-- Bottone Precedente -->
             <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=prev_order_id) }}" 
                 class="{% if prev_order_id %}enabled{% else %}disabled{% endif %}" 
                 id="prev-button">
-                <button type="button" class="icon-freccia-sx" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
+                <button type="button" class="icon-freccia-sx mx-1 mt-1" {% if not prev_order_id %}disabled{% endif %} onclick="showLoadingSpinner()"></button>
             </a>
             
             <!-- Info Scheda -->
-            <span class="scheda-info">{{ current_scheda_index }} / {{ total_schede }}</span>
+            <span class="scheda-info mx-1 mt-1"><h3>{{ current_scheda_index }} / {{ total_schede }}</h3></span>
             
             <!-- Bottone Successivo -->
             <a href="{{ url_for('app_cucina.ordine_schede_piatti', id=id, servizio=info_servizio.id, reparto=info_reparto.id, scheda=scheda.id, ordine_id=next_order_id) }}" 
                 class="{% if next_order_id %}enabled{% else %}disabled{% endif %}" 
                 id="next-button">
-                <button type="button" class="icon-freccia-dx"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
+                <button type="button" class="icon-freccia-dx mx-1 mt-1"  {% if not next_order_id %}disabled{% endif %}n onclick="showLoadingSpinner()"></button>
             </a>
         
             

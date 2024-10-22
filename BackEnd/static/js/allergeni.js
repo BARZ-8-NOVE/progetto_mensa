@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.elements['nome'].value = alimento.nome;
     
                 submitButton.textContent = 'Salva Modifiche';
-                document.getElementById('modalTitle').textContent = 'Modifica Alimento';
+                document.getElementById('modalTitle').textContent = 'Modifica Allergene';
                 addAlimentoModal.style.display = 'block';
             })
             .catch(error => {

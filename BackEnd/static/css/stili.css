@@ -241,6 +241,7 @@ header {
 
 
 
+
 .styled-button {
     text-decoration: none;  /* Rimuove la sottolineatura */
     padding: 10px 20px;
@@ -251,6 +252,10 @@ header {
     cursor: pointer;
     margin: 20px 0 20px auto;
     transition: background-color 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggero ombreggiatura */
+
+
+    margin: 5px
 }
 
 .styled-button:hover {
@@ -386,10 +391,13 @@ header {
 
 .close {
     color: #aaa;
-    float: right;
     font-size: 28px;
     font-weight: bold;
+    position: absolute; /* Usa position: absolute per posizionarlo */
+    right: 20px; /* Distanza dal bordo destro */
+    top: 10px; /* Distanza dalla parte superiore */
 }
+
 
 .close:hover,
 .close:focus {
@@ -418,7 +426,7 @@ li {
 
 .rotated-header {
     position: relative;
-    height: 210px; /* Altezza della cella, modifica se necessario */
+    height: 230px; /* Altezza della cella, modifica se necessario */
     width: 100px; /* Larghezza della cella, modifica se necessario */
     text-align: center; /* Centra orizzontalmente il testo */
     vertical-align: top; /* Allinea verticalmente il testo */
@@ -431,6 +439,7 @@ li {
     transform: translateX(-50%); /* Sposta il testo a sinistra di metà della sua larghezza per centrarlo */
     width: 100%; /* Larghezza al 100% della cella */
     box-sizing: border-box; /* Include il padding e il bordo nelle dimensioni */
+    
 }
 
 
@@ -634,6 +643,7 @@ li {
 .form-group-ordiniPiatti {
     flex: 1; /* Ensures the fields grow to fill available space */
     min-width: 10px; /* Optional: Sets a minimum width for each field */
+    border-radius: 5px;
 }
 
 .form-group-schede-preconfezionate {
@@ -1393,7 +1403,7 @@ select {
 /* Stile specifico per i campi di selezione data */
 .form-control[type="date"] {
     display: block;
-    width: 100%;
+    width: 90%;
     padding: 10px;
     font-size: 14px;
     line-height: 1.5;
@@ -1539,7 +1549,9 @@ select {
     width: 24px;
     height: 24px;
     background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
-    background-size: contain;
+    background-size: auto;
+    background-color: white;
+    border-radius: 5px;
     cursor: pointer;
   }
   
@@ -1609,7 +1621,9 @@ select {
     height: 24px;
     position: relative;
     background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="red" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"%3E%3C/path%3E%3C/svg%3E') no-repeat center center;
-    background-size: contain;
+    background-size: auto;
+    background-color: white;
+    border-radius: 5px;
     cursor: pointer;
   }
   
@@ -1624,17 +1638,34 @@ select {
     cursor: pointer;
 }
 
+
   
+.icon-piu {
+    width: auto; /* Consente al pulsante di adattarsi al contenuto */
+    height: 43px; /* Aumenta l'altezza dell'icona */
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2.5' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'/%3E%3C/svg%3E") no-repeat;
+    background-size: 30px 30px; /* Dimensione ingrandita dell'icona */
+    background-position: center; /* Posiziona l'icona a sinistra */
+    background-color: #07437e; /* Colore di sfondo del pulsante */
+    color: white; /* Colore del testo del pulsante */
+    border: none; /* Rimuove il bordo predefinito */
+    border-radius: 5px; /* Angoli arrotondati */
+    cursor: pointer; /* Cambia il cursore quando si passa sopra l'icona */
+    padding: 20px 20px 20px 20px; /* Spaziatura interna per il testo */
+    transition: background-color 0.3s ease; /* Transizione per il colore di sfondo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggera ombreggiatura */
+}
 
-
-
+.icon-piu:hover {
+    background-color: #052f6e; /* Colore di sfondo al passaggio del mouse */
+}
 
 
 
 
   .icon-freccia-sx {
-    width: 35px; /* Imposta la larghezza dell'icona */
-    height: 35px; /* Imposta l'altezza dell'icona */
+    width: 40px; /* Imposta la larghezza dell'icona */
+    height: 43px; /* Imposta l'altezza dell'icona */
     background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /%3E%3C/svg%3E') no-repeat center center;
     background-size: contain; /* Assicura che l'icona si adatti all'elemento */
     display: inline-block; /* Mantiene l'elemento in linea */
@@ -1645,8 +1676,8 @@ select {
     border: none; /* Rimuove il bordo predefinito */
     border-radius: 5px; /* Angoli arrotondati */
     cursor: pointer; /* Cambia il cursore quando si passa sopra l'icona */
-    margin: 20px 0 20px auto; /* Margine per posizionare il pulsante */
     transition: background-color 0.3s ease; /* Transizione per il colore di sfondo */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggero ombreggiatura */
   }
   
   .icon-freccia-sx:hover {
@@ -1654,8 +1685,8 @@ select {
   }
   
   .icon-freccia-dx {
-    width: 30px; /* Imposta la larghezza dell'icona */
-    height: 35px; /* Imposta l'altezza dell'icona */
+    width: 35px; /* Imposta la larghezza dell'icona */
+    height: 43px; /* Imposta l'altezza dell'icona */
     background: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="white" class="size-6"%3E%3Cpath stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /%3E%3C/svg%3E') no-repeat center center;
     background-size: contain; /* Assicura che l'icona si adatti all'elemento */
     display: inline-block; /* Mantiene l'elemento in linea */
@@ -1666,7 +1697,7 @@ select {
     border: none; /* Rimuove il bordo predefinito */
     border-radius: 5px; /* Angoli arrotondati */
     cursor: pointer; /* Cambia il cursore quando si passa sopra l'icona */
-    margin: 20px 0 20px auto; /* Margine per posizionare il pulsante */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggero ombreggiatura */
     transition: background-color 0.3s ease; /* Transizione per il colore di sfondo */
   }
   
@@ -1745,33 +1776,34 @@ select {
 }
 
 #totaleCalorie {
-    margin-left: 550px;
-    margin-top: -59px;
+
      /* Margine sinistro per distanziare dagli altri elementi */
     font-weight: bold; /* Grassetto per il testo */
     font-size: 1.2em; /* Dimensione del font leggermente più grande */
     color: #333; /* Colore del testo (puoi cambiarlo come preferisci) */
-    padding: 10px; /* Padding per spaziatura interna */
+    padding: 10px 20px; /* Padding per spaziatura interna */
     border: 1px solid #ccc; /* Bordo grigio chiaro */
     border-radius: 5px; /* Angoli arrotondati */
     background-color: #f9f9f9; /* Colore di sfondo chiaro */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Leggero ombreggiatura */
     display: flex; /* Utilizza flexbox per allineare il testo */
     align-items: center; /* Allinea verticalmente gli elementi */
-    position: absolute;
+
 }
+
+
 .popup-item {
     position: relative; /* Necessario per il posizionamento assoluto del tooltip */
 }
 
-.tooltip {
+.custom-tooltip {
     display: none; /* Nascondi il tooltip per impostazione predefinita */
     position: absolute;
     background-color: #ffffff; /* Colore di sfondo del tooltip */
     color: #000000; /* Colore del testo del tooltip */
     padding: 5px; /* Spaziatura interna */
     border-radius: 5px; /* Angoli arrotondati */
-    border: 2px solid #07437e; /* Colore blu del bordo */
+    border: 1px solid #07437e; /* Colore blu del bordo */
     z-index: 100; /* Assicurati che il tooltip sia sopra altri elementi */
     top: 100%; /* Posiziona il tooltip sotto l'elemento */
     left: 50%;
@@ -1780,14 +1812,14 @@ select {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Ombra per dare profondità */
 }
 
-.popup-item:hover .tooltip {
+.popup-item:hover .custom-tooltip {
     display: block; /* Mostra il tooltip al passaggio del mouse */
 }
 
-.popup-custom-column-item:hover .tooltip {
+.popup-custom-column-item:hover .custom-tooltip {
     display: block; /* Mostra il tooltip al passaggio del mouse */
 }
 
-.icon-cancella:hover .tooltip {
+.icon-cancella:hover .custom-tooltip {
     display: block; /* Mostra il tooltip al passaggio del mouse */
 }

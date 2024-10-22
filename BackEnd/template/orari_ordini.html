@@ -6,36 +6,40 @@ orari - Gestione Cucina e Mensa Ospedaliera
 
 {% block content %}
 <div class="container">
-    <div class="orari-list">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Nome</th>  
-                    <th>Orario</th>
-                    <th>Tempo Limite</th> 
-                    <th>Ordine Dipendente</th> 
-                    <th>Ordine Per Oggi</th>
-                </tr>
-            </thead>
-            <tbody id="orariTableBody">
-                {% for orario in orari %}
-                <tr>
-                    {% if page_permissions['/app_cucina/orari']['can_write'] %}
-                        <td>
-                            <div class="icon-pencil" onclick="showModificaForm({{ orario.id }})" title="Modifica orario"></div>
-                        </td>
-                    {% endif %}
-                    <td>{{ orario.nomeOrdine }}</td>
-                    <td>{{ servizio_map[orario.fkServizio] }}</td>
-                    <td>{{ orario.tempoLimite }}</td>
-                    <td>{{ orario.ordineDipendente }}</td>
-                    <td>{{ orario.ordinePerOggi }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <div class="col-md-12">
+        <div class="orari-list">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nome</th>  
+                            <th>Orario</th>
+                            <th>Tempo Limite</th> 
+                            <th>Ordine Dipendente</th> 
+                            <th>Ordine Per Oggi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orariTableBody">
+                        {% for orario in orari %}
+                        <tr>
+                            {% if page_permissions['/app_cucina/orari']['can_write'] %}
+                                <td>
+                                    <div class="icon-pencil" onclick="showModificaForm({{ orario.id }})" title="Modifica orario"></div>
+                                </td>
+                            {% endif %}
+                            <td>{{ orario.nomeOrdine }}</td>
+                            <td>{{ servizio_map[orario.fkServizio] }}</td>
+                            <td>{{ orario.tempoLimite }}</td>
+                            <td>{{ orario.ordineDipendente }}</td>
+                            <td>{{ orario.ordinePerOggi }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>    
+        </div>
+    </div>    
 </div>    
 
 <!-- Modal per la modifica degli orari -->

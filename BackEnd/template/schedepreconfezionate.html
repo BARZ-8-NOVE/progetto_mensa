@@ -55,15 +55,10 @@ Creazione Schede - Gestione Cucina
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle"></h2>
             <form id="schedaForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
 
-
-
-
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Aggiungi SchedaPreconfezionata</h5>
-                </div>
                 <div class="modal-body">
                     
                     <div class="form-group">

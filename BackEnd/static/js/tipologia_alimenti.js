@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const conservazioneIdField = document.getElementById('conservazioneId');
     const conservazioneModal = document.getElementById('addConservazioneModal');
     const conservazioneSubmitButton = document.getElementById('submitButton');
-
+    
+    const searchtipologiaInput = document.getElementById('searchTipologia');
+    const searchmetodoInput = document.getElementById('searchMetodo');
     // Elements for Tipologia Alimento modal
     const tipologiaAlimentoForm = document.getElementById('tipologiaAlimentoForm');
     const tipologiaAlimentoIdField = document.getElementById('tipologiaAlimentoId');
@@ -84,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tipologiaAlimentoForm.reset(); // Reset form fields
         tipologiaAlimentoIdField.value = ''; // Empty the ID field for creation
         tipologiaAlimentoSubmitButton.textContent = 'Aggiungi Tipologia Alimento';
-        document.getElementById('modalTitle').textContent = 'Aggiungi Tipologia Alimento';
+        document.getElementById('modalTipoTitle').textContent = 'Aggiungi Tipologia Alimento';
         tipologiaAlimentoModal.style.display = 'block'; // Show the modal
     };
 
@@ -98,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tipologiaAlimentoForm.elements['fktipologiaConservazione'].value = data.fktipologiaConservazione;
                 tipologiaAlimentoIdField.value = id;
                 tipologiaAlimentoSubmitButton.textContent = 'Salva Modifiche';
-                document.getElementById('modalTitle').textContent = 'Modifica Tipologia Alimento';
+                document.getElementById('modalTipoTitle').textContent = 'Modifica Tipologia Alimento';
                 tipologiaAlimentoModal.style.display = 'block'; // Show the modal
             })
             .catch(error => {
@@ -140,5 +142,48 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Errore:', error);
             alert('Errore durante l\'operazione.');
         });
+
     });
-});
+    
+
+
+    // Funzione per filtrare i piatti solo per nome
+    function filterTable() {
+        const searchName = searchtipologiaInput.value.trim().toLowerCase();
+        const rows = metodoTableBody.getElementsByTagName('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const nameCell = rows[i].getElementsByTagName('td')[1]; // Colonna 'Descrizione'
+            const nameMatches = nameCell && nameCell.textContent.trim().toLowerCase().includes(searchName);
+            
+            if (nameMatches) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
+    searchtipologiaInput.addEventListener('input', filterTable);
+
+    // Funzione per filtrare i piatti solo per nome
+    function filterTable() {
+        const searchName = searchmetodoInput.value.trim().toLowerCase();
+        const rows = tipologiaTableBody.getElementsByTagName('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const nameCell = rows[i].getElementsByTagName('td')[1]; // Colonna 'Descrizione'
+            const nameMatches = nameCell && nameCell.textContent.trim().toLowerCase().includes(searchName);
+            
+            if (nameMatches) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
+    searchmetodoInput.addEventListener('input', filterTable);
+
+});  
+

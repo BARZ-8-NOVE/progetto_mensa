@@ -102,12 +102,12 @@ Home
     <div class="row">
         {% if dizionario_servizi %}
             {% for servizio_id, servizio_info in dizionario_servizi.items() %}
-                <div class="col-md-6 mb-4">
-                    <div class="service-card card">
+                <div class="col-md-6">
+                    <div class="service-card">
                         {% if servizio_info['controllo_ordine'] == 'Null' %}
                             <div class="order-reminder text-center">
-                                <a href="{{ url_for('app_cucina.ordina_pasto', servizio=servizio_id) }}" class="btn btn-primary" onclick="showLoadingSpinner()">
-                                    <span class="order-icon">🍽️</span> Effettua l'ordine per {{ servizi_map[servizio_id] }}
+                                <a href="{{ url_for('app_cucina.ordina_pasto', servizio=servizio_id) }}" class="styled-button" onclick="showLoadingSpinner()">
+                                    Effettua l'ordine per {{ servizi_map[servizio_id] }}
                                 </a>
                             </div>
                         {% else %}
@@ -135,22 +135,42 @@ Home
                                         
                                         <li class="piatti-category">Primi</li>
                                         {% for piatto in primi %}
-                                            <li class="piatto-item">{{ piatto.codice }} - {{ piatto.titolo or 'Titolo non disponibile' }}</li>
+                                        <li class="piatto-item piatto-row primo">
+                                            <span class="piatto-code">{{ piatto.codice }}</span>
+                                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                        </li>
                                         {% endfor %}
                                         
                                         <li class="piatti-category">Secondi</li>
                                         {% for piatto in secondi %}
-                                            <li class="piatto-item">{{ piatto.codice }} - {{ piatto.titolo or 'Titolo non disponibile' }}</li>
+                                        <li class="piatto-item piatto-row secondo">
+                                            <span class="piatto-code">{{ piatto.codice }}</span>
+                                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                        </li>
                                         {% endfor %}
                                         
                                         <li class="piatti-category">Contorni</li>
                                         {% for piatto in contorni %}
-                                            <li class="piatto-item">{{ piatto.codice }} - {{ piatto.titolo or 'Titolo non disponibile' }}</li>
+                                        <li class="piatto-item piatto-row contorno">
+                                            <span class="piatto-code">{{ piatto.codice }}</span>
+                                            <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                        </li>
                                         {% endfor %}
                                         
                                         <li class="piatti-category">Dolce e Pane</li>
                                         {% for piatto in altri %}
-                                            <li class="piatto-item">{{ piatto.codice }} - {{ piatto.titolo or 'Titolo non disponibile' }}</li>
+                                            {% if piatto.fkTipoPiatto == 4 %}
+                                                <!-- Colore personalizzato per il dolce -->
+                                                <li class="piatto-item piatto-row dolce">
+                                                    <span class="piatto-code">{{ piatto.codice }}</span>
+                                                    <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                                </li>
+                                            {% else %}
+                                                <li class="piatto-item piatto-row pane">
+                                                    <span class="piatto-code">{{ piatto.codice }}</span>
+                                                    <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
+                                                </li>
+                                            {% endif %}
                                         {% endfor %}
                                     </ul>
                                 </div>

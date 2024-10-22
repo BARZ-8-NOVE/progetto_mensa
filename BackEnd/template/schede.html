@@ -62,6 +62,7 @@ Creazione Schede - Gestione Cucina
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Aggiungi Scheda</h2>
             <form id="schedaForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
 

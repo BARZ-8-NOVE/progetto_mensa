@@ -31,67 +31,63 @@ Ordini - Gestione Cucina
                     </option>
                 {% endfor %}
             {% endif %}
-        </select>
-        
-        
-        
+        </select>  
     </form>
 </div>
-
 <!-- Visualizzazione dei menu disponibili -->
 {% if controllo_ordine is none %}
 <div>
-    <ul class="menu-list">
+    <div class="row">
         {% for scheda in menu_personale %}
-        <li class="menu-item" style="background-color: {{ scheda.backgroundColor }};"
-        onclick="showLoadingSpinner();showForm2('{{ scheda.id }}', '{{ ordine_esistente.id }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ request.args.get('servizio', '1') }}')">
-   
-            {{ tipi_menu_map[scheda.fkTipoMenu] }}
-            <!-- Display the list of dishes (piatti) under each menu -->
-            <ul class="piatti-list">
-                {% set primi = [] %}
-                {% set secondi = [] %}
-                {% set contorni = [] %}
-                {% for piatto_id, piatto in scheda.piatti.items() %}
-                    {% if piatto.fkTipoPiatto == 1 %}
-                        {% set _ = primi.append(piatto) %}
-                    {% elif piatto.fkTipoPiatto == 2 %}
-                        {% set _ = secondi.append(piatto) %}
-                    {% elif piatto.fkTipoPiatto == 3 %}
-                        {% set _ = contorni.append(piatto) %}
-                    {% endif %}
-                {% endfor %}
+        <div class="col-12 col-md-4"> 
+            <div class="menu-item" style="background-color: {{ scheda.backgroundColor }};"
+                onclick="showLoadingSpinner();showForm2('{{ scheda.id }}', '{{ ordine_esistente.id }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ request.args.get('servizio', '1') }}')">
+                <h4>{{ tipi_menu_map[scheda.fkTipoMenu] }}</h4>
+                <!-- Display the list of dishes (piatti) under each menu -->
+                <ul class="piatti-list">
+                    {% set primi = [] %}
+                    {% set secondi = [] %}
+                    {% set contorni = [] %}
+                    {% for piatto_id, piatto in scheda.piatti.items() %}
+                        {% if piatto.fkTipoPiatto == 1 %}
+                            {% set _ = primi.append(piatto) %}
+                        {% elif piatto.fkTipoPiatto == 2 %}
+                            {% set _ = secondi.append(piatto) %}
+                        {% elif piatto.fkTipoPiatto == 3 %}
+                            {% set _ = contorni.append(piatto) %}
+                        {% endif %}
+                    {% endfor %}
 
-                <li class="piatti-category">Primi</li>
-                {% for piatto in primi %}
-                <li class="piatto-item piatto-row primo">
-                    <span class="piatto-code">{{ piatto.codice }}</span>
-                    <span>{{ piatto.titolo }}</span>
-                </li>
-                {% endfor %}
+                    <li class="piatti-category">Primi</li>
+                    {% for piatto in primi %}
+                    <li class="piatto-item piatto-row primo">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo }}</span>
+                    </li>
+                    {% endfor %}
 
-                <li class="piatti-category">Secondi</li>
-                {% for piatto in secondi %}
-                <li class="piatto-item piatto-row secondo">
-                    <span class="piatto-code">{{ piatto.codice }}</span>
-                    <span>{{ piatto.titolo }}</span>
-                </li>
-                {% endfor %}
+                    <li class="piatti-category">Secondi</li>
+                    {% for piatto in secondi %}
+                    <li class="piatto-item piatto-row secondo">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo }}</span>
+                    </li>
+                    {% endfor %}
 
-                <li class="piatti-category">Contorni</li>
-                {% for piatto in contorni %}
-                <li class="piatto-item piatto-row contorno">
-                    <span class="piatto-code">{{ piatto.codice }}</span>
-                    <span>{{ piatto.titolo }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </li>
+                    <li class="piatti-category">Contorni</li>
+                    {% for piatto in contorni %}
+                    <li class="piatto-item piatto-row contorno">
+                        <span class="piatto-code">{{ piatto.codice }}</span>
+                        <span>{{ piatto.titolo }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
 
-
-    {% elif controllo_ordine is not none %}
+{% elif controllo_ordine is not none %}
     <div class="menu-selezionato">
         <div class="menu-details" style="background-color: {{ inf_scheda.backgroundColor }};">
             <h1>{{ tipi_menu_map[inf_scheda.fkTipoMenu] }}</h1>
@@ -112,7 +108,7 @@ Ordini - Gestione Cucina
                         {% set _ = altri.append(piatto) %}
                     {% endif %}
                 {% endfor %}
-    
+
                 <li class="piatti-category">Primi</li>
                 {% for piatto in primi %}
                     <li class="piatto-item piatto-row primo">
@@ -120,7 +116,7 @@ Ordini - Gestione Cucina
                         <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
                     </li>
                 {% endfor %}
-    
+
                 <li class="piatti-category">Secondi</li>
                 {% for piatto in secondi %}
                     <li class="piatto-item piatto-row secondo">
@@ -128,7 +124,7 @@ Ordini - Gestione Cucina
                         <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
                     </li>
                 {% endfor %}
-    
+
                 <li class="piatti-category">Contorni</li>
                 {% for piatto in contorni %}
                 <li class="piatto-item piatto-row contorno">
@@ -140,37 +136,32 @@ Ordini - Gestione Cucina
                 <li class="piatti-category">Dolce e Pane</li>
                 {% for piatto in altri %}
                     {% if piatto.fkTipoPiatto == 4 %}
-                        <!-- Colore personalizzato per il dolce -->
-                        <li class="piatto-item piatto-row dolce" > <!-- ad esempio, rosso chiaro -->
+                        <li class="piatto-item piatto-row dolce">
                             <span class="piatto-code">{{ piatto.codice }}</span>
                             <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
                         </li>
                     {% elif piatto.fkTipoPiatto == 5 %}
-                        <!-- Colore personalizzato per il pane -->
-                        <li class="piatto-item piatto-row pane" > <!-- ad esempio, giallo chiaro -->
+                        <li class="piatto-item piatto-row pane">
                             <span class="piatto-code">{{ piatto.codice }}</span>
                             <span>{{ piatto.titolo or 'Titolo non disponibile' }}</span>
                         </li>
                     {% endif %}
-                    
                 {% endfor %}
             </ul>
-        
-    
-        <div class="action-buttons">
-            
-            <button type="button" class="modifica-scheda-utente" onclick="showLoadingSpinner(); modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')">Modifica</button>
 
-
-            <button type="button" class="delete-button-scheda-utente" onclick="elimina('{{ controllo_ordine.id }}')">X</button>
-
+            <div class="action-buttons d-flex justify-content-start">
+                <div class="icon-pencil me-3" 
+                    onclick="showLoadingSpinner(); modifica('{{ controllo_ordine.fkOrdine }}','{{ controllo_ordine.fkServizio }}', '{{ request.args.get('reparto', reparti[0].id) }}', '{{ controllo_ordine.fkScheda }}', '{{ controllo_ordine.id }}')"
+                    title='Modifica ordine'></div>  
+                <div class="icon-bidone-ordine" 
+                    onclick="elimina('{{ controllo_ordine.id }}')" 
+                    title='Elimina ordine'></div>
+            </div>
         </div>
-    
     </div>
-    
-    </div>
-    
-    {% endif %}
+{% endif %}
+
+
     
 
 

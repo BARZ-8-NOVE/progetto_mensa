@@ -7,88 +7,86 @@
     
 
 {% block content %}
-
-
-
-
-
-<div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome...">
-            
-        {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+<div class="col-md-12">
+    <div class="container"> 
+        <div class="search-container">
+            <div>
+                <input type="text" id="searchMetodo" placeholder="Cerca per nome...">
             </div>
+            {% if page_permissions['/app_cucina/alimenti']['can_write'] %}    
                 <button onclick="showAddConservazioneForm()">Aggiungi metodo di conservazione</button>
-            </div>
-        {% endif %}
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <th></th>
-                {% endif %}
-                <th>Metodo di Conservazione</th>
-    
-                
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <th></th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody id="alimentiTableBody">
-            {% for cons in conservazione %}
-            <tr>
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <td> <div class="icon-pencil" onclick="showModificaConservazioneForm({{ cons.id }})"title="visualizza tipologia_alimento"></div></td>
-                {% endif %}
-                <td>{{ cons.nome }}</td>
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <td><div class="icon-cancella" onclick="eliminaConservazione({{ cons.id }})" title='Elimina tipologia_alimento'></div></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            {% endif %}
+        </div>   
+        <div class="table-responsive">    
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                        <th></th>
+                        {% endif %}
+                        <th>Metodo di Conservazione</th>
+                        {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                        <th></th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody id="metodoTableBody">
+                    {% for cons in conservazione %}
+                    <tr>
+                        {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                        <td> <div class="icon-pencil" onclick="showModificaConservazioneForm({{ cons.id }})"title="visualizza tipologia_alimento"></div></td>
+                        {% endif %}
+                        <td>{{ cons.nome }}</td>
+                        {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                        <td><div class="icon-cancella" onclick="eliminaConservazione({{ cons.id }})" title='Elimina tipologia_alimento'></div></td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<div class="container">
+<div class="container">  
     <div class="search-container">
         <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome...">
+            <input type="text" id="searchMetodo" placeholder="Cerca per nome...">
         
         {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
             </div>
                 <button onclick="showAddTipologiaAlimentoForm()">Aggiungi tipologia alimento</button>
             </div>
         {% endif %}
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <th></th>
-                {% endif %}
-                <th>Tipologia Alimento</th>
-                <th>Tipologia Conservazione</th>
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <th></th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody id="alimentiTableBody">
-            {% for tipologia_alimento in tipologia_alimenti %}
-            <tr>
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <td> <div class="icon-pencil" onclick="showModificaTipologiaAlimentoForm({{ tipologia_alimento.id }})"title="visualizza tipologia_alimento"></div></td>
-                {% endif %}
-                <td>{{ tipologia_alimento.nome }}</td>
-                <td>{{ conservazione_map[tipologia_alimento.fktipologiaConservazione] }}</td>
-                {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
-                <td><div class="icon-cancella" onclick="eliminaTipologia_alimento({{ tipologia_alimento.id }})" title='Elimina tipologia_alimento'></div></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>{% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                    <th></th>
+                    {% endif %}
+                    <th>Tipologia Alimento</th>
+                    <th>Tipologia Conservazione</th>
+                    {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                    <th></th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="tipologiaTableBody">
+                {% for tipologia_alimento in tipologia_alimenti %}
+                <tr>
+                    {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                    <td> <div class="icon-pencil" onclick="showModificaTipologiaAlimentoForm({{ tipologia_alimento.id }})"title="visualizza tipologia_alimento"></div></td>
+                    {% endif %}
+                    <td>{{ tipologia_alimento.nome }}</td>
+                    <td>{{ conservazione_map[tipologia_alimento.fktipologiaConservazione] }}</td>
+                    {% if page_permissions['/app_cucina/tipologia_alimenti']['can_write'] %}
+                    <td><div class="icon-cancella" onclick="eliminaTipologia_alimento({{ tipologia_alimento.id }})" title='Elimina tipologia_alimento'></div></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>    
 
 
 <!-- Modal for Adding/Editing Metodo di Conservazione -->
@@ -96,7 +94,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeAddConservazioneForm()">&times;</span>
-            <h2 id="modalTitle">Aggiungi Metodo di Conservazione</h2>
+            <h2 id="modalTitle"></h2>
             <form id="conservazioneForm" method="POST" enctype="multipart/form-data">
                 {{ formConservazione.hidden_tag() }}
                 
@@ -115,13 +113,13 @@
         </div>
     </div>
 </div>
-
+</div>
 <!-- Modal for Adding/Editing Tipologia Alimento -->
 <div id="addTipologiaAlimentoModal" class="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeAddTipologiaAlimentoForm()">&times;</span>
-            <h2 id="modalTitle">Aggiungi Tipologia Alimento</h2>
+            <h2 id="modalTipoTitle"></h2>
             <form id="tipologiaAlimentoForm" method="POST" enctype="multipart/form-data">
                 {{ formTipoAlimento.hidden_tag() }}
                 

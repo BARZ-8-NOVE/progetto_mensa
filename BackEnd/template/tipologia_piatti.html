@@ -6,56 +6,58 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
 
 {% block content %}
 <div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome...">
+    <div class="col-md-12">
+        <div class="search-container">
+            <div>
+                <input type="text" id="searchName" placeholder="Cerca per nome...">
+            </div>
+            {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                <button onclick="showAddForm()">Aggiungi Tipo Piatto</button>
+            {% endif %}
         </div>
-        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-            <button onclick="showAddForm()">Aggiungi Tipo Piatto</button>
-        {% endif %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                        <th></th>
+                        {% endif %}
+                        <th>Descrizione</th>
+                        <th>Descrizione Plurale</th>
+                        <th>In Menu</th>
+                        <th>Ordinatore</th>
+                        <th>Colore</th>
+                        <th>Colore Sfondo</th>
+                        <th>Data Inserimento</th>
+                        <th>Utente Inserimento</th>
+                        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                        <th></th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody id="piattiTableBody">
+                    {% for piatto in tipologia_piatti %}
+                    <tr>
+                        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                            <td><div class="icon-pencil" onclick="showModificaForm({{ piatto.id }})"title="visualizza tipologia piatti"></div></td>
+                        {% endif %}  
+                        <td>{{ piatto.descrizione }}</td>
+                        <td>{{ piatto.descrizionePlurale }}</td>
+                        <td>{{ piatto.inMenu }}</td>
+                        <td>{{ piatto.ordinatore }}</td>
+                        <td>{{ piatto.color }}</td>
+                        <td>{{ piatto.backgroundColor }}</td>
+                        <td>{{ piatto.dataInserimento }}</td>
+                        <td>{{ piatto.utenteInserimento }}</td>
+                        {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
+                        <td><div class="icon-cancella" onclick="elimina({{ piatto.id }})" title='Elimina tipo piatto'></div></td>                      
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <!-- Tabella dei piatti -->
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                <th></th>
-                {% endif %}
-                <th>Descrizione</th>
-                <th>Descrizione Plurale</th>
-                <th>In Menu</th>
-                <th>Ordinatore</th>
-                <th>Colore</th>
-                <th>Colore Sfondo</th>
-                <th>Data Inserimento</th>
-                <th>Utente Inserimento</th>
-                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                <th></th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody id="piattiTableBody">
-            {% for piatto in tipologia_piatti %}
-            <tr>
-                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                    <td><div class="icon-pencil" onclick="showModificaForm({{ piatto.id }})"title="visualizza tipologia piatti"></div></td>
-                {% endif %}  
-                <td>{{ piatto.descrizione }}</td>
-                <td>{{ piatto.descrizionePlurale }}</td>
-                <td>{{ piatto.inMenu }}</td>
-                <td>{{ piatto.ordinatore }}</td>
-                <td>{{ piatto.color }}</td>
-                <td>{{ piatto.backgroundColor }}</td>
-                <td>{{ piatto.dataInserimento }}</td>
-                <td>{{ piatto.utenteInserimento }}</td>
-                {% if page_permissions['/app_cucina/tipologia_piatti']['can_write'] %}
-                <td><div class="icon-cancella" onclick="elimina({{ piatto.id }})" title='Elimina tipo piatto'></div></td>                      
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
 
 <!-- Modal per l'aggiunta e la modifica di un piatto -->
@@ -63,12 +65,10 @@ Tipologia Piatti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeForm()">&times;</span>
+            <h2 id="modalTitle">Aggiungi Tipo Piatto</h2>
             <form id="piattoForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
                 <input type="hidden" id="piattoId" name="piattoId">
-                <div class="modal-header">
-                    <h5 id="modalTitle" class="modal-title">Aggiungi Tipo Piatto</h5>
-                </div>
                 <div class="modal-body">
                     <div class="form-group">
                         {{ form.backgroundColor.label(class="form-label") }}

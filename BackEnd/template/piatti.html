@@ -68,16 +68,12 @@ Piatti - Gestione Cucina e Mensa Ospedaliera
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <span class="close" onclick="closeAddPiattoForm()">&times;</span>
+            <h2 id="modalTitle">Aggiungi alimento</h2>
             <form id="piattoForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
 
                 <!-- Campo nascosto per l'ID del piatto -->
                 <input type="hidden" id="piattoId" name="piattoId">
-
-                <div class="modal-header">
-                    <h5 id="modalTitle" class="modal-title">Aggiungi Piatto</h5>
-
-                </div>
                 <div class="modal-body">
                     <div class="form-group">
                         {{ form.fkTipoPiatto.label(class="form-label") }}

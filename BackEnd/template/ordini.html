@@ -132,27 +132,23 @@ Ordini - Gestione Cucina
 </div>
 
 <div class="controls-container">
-<table>
+<table class="table table-bordered table-striped">
     <thead>
-        <thead>
-            <tr>
-                <th class="rotated-header"> Reparto</th>
-                {% for scheda in schede_attive %}
-
-                <th  class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
-                    <div class="rotated-nome-text" class="rotated-header">{{ scheda.nome }}</div>
-                    <span>{{ scheda.titolo }}</span>
-                </th>
-                {% endfor %}
-                <th class="rotated-header"> Totali reparti</th>
-            </tr>
-        </thead>
-        
+        <tr>
+            <th class="rotated-header"> Reparto</th>
+            {% for scheda in schede_attive %}
+            <th  class="rotated-header" style="background-color: {{ scheda.backgroundColor }};">
+                <div class="rotated-nome-text" class="rotated-header">{{ scheda.nome }}</div>
+                <span>{{ scheda.titolo }}</span>
+            </th>
+            {% endfor %}
+            <th class="rotated-header"> Totali reparti</th>
+        </tr>
     </thead>
     <tbody id="schedeTableBody">
         {% for reparto in reparti %}
         <tr>
-            <td>{{ reparto.descrizione }}</td>
+            <td class="text-nowrap">{{ reparto.descrizione }}</td>
 
             {% for scheda in schede_attive %}
             {% if scheda.nome == 'Brodo' %}

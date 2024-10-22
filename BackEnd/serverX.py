@@ -930,7 +930,7 @@ def home():
         return redirect(url_for('app_cucina.login'))
 
 
-@app_cucina.route('/dash_board', methods=['GET', 'POST'])
+@app_cucina.route('/dashboard', methods=['GET', 'POST'])
 def dash_board():
     """
     Gestisce la visualizzazione della pagina principale per gli utenti autenticati.
@@ -1033,7 +1033,7 @@ def dash_board():
 
             # Rendering della template con i dati calcolati
             return render_template(
-                'home.html',
+                'dash_board.html',
                 year=year,
                 month=month,
                 day=day,

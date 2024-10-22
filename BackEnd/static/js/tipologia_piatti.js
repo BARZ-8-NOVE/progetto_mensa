@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.showAddForm = function() {
         form.reset();
         piattoIdField.value = '';
-        submitButton.textContent = 'Aggiungi Piatto';
-        document.getElementById('modalTitle').textContent = 'Aggiungi Piatto';
+        submitButton.textContent = 'Aggiungi tipo Piatto';
+        document.getElementById('modalTitle').textContent = 'Aggiungi tipo Piatto';
         addPiattoModal.style.display = 'block';
     };
 
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             form.elements['ordinatore'].value = data.ordinatore;
             piattoIdField.value = id;
             submitButton.textContent = 'Salva Modifiche';
-            document.getElementById('modalTitle').textContent = 'Modifica Piatto';
+            document.getElementById('modalTitle').textContent = 'Modifica tipo Piatto';
             addPiattoModal.style.display = 'block';
         })
         .catch(error => {

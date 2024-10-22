@@ -7,45 +7,48 @@ Gestione Tipologie Utenti - Cucina e Mensa Ospedaliera
 {% block content %}
 
 <div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
+    <div class="col-md-12"></div>
+        <div class="search-container">
+            <div>
+                <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
+            </div>
+            <button onclick="showAddUtenteForm()">Aggiungi Tipo Utente</button>
         </div>
-        <button onclick="showAddUtenteForm()">Aggiungi Tipo Utente</button>
+        <div class="table-responsive"></div>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Nome Tipo Utente</th>
+                        <th>Funzionalità</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="utentiTableBody">
+                    {% for tipoutente in tipologieUtente %}
+                    <tr>
+                        <td><div class="icon-pencil" onclick="openEditUtenteForm({{ tipoutente.id }})"title="visualizza tipo utente"></div></td>
+                        <td>{{ tipoutente.nomeTipoUtente }}</td>
+                        <td>
+                            <ul>
+                                {% for funz_utente in funzionalita_per_tipologia[tipoutente.id] %}
+                                    <li>
+                                        {{ funzionalita_map[funz_utente.fkFunzionalita] }}
+                                        {% if not funz_utente.permessi %}
+                                            - <strong>solo lettura</strong>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td><div class="icon-cancella" onclick="elimina({{ tipoutente.id }})" title='Elimina tipo utente'></div></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nome Tipo Utente</th>
-                <th>Funzionalità</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="utentiTableBody">
-            {% for tipoutente in tipologieUtente %}
-            <tr>
-                <td><div class="icon-pencil" onclick="openEditUtenteForm({{ tipoutente.id }})"title="visualizza tipo utente"></div></td>
-                <td>{{ tipoutente.nomeTipoUtente }}</td>
-                <td>
-                    <ul>
-                        {% for funz_utente in funzionalita_per_tipologia[tipoutente.id] %}
-                            <li>
-                                {{ funzionalita_map[funz_utente.fkFunzionalita] }}
-                                {% if not funz_utente.permessi %}
-                                    - <strong>solo lettura</strong>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </td>
-                <td><div class="icon-cancella" onclick="elimina({{ tipoutente.id }})" title='Elimina tipo utente'></div></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-
 <!-- Modal for adding/modifying user type -->
 <div id="addUtenteModal" class="modal" style="display:none;">
     <div class="modal-content">

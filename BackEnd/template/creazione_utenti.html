@@ -7,57 +7,61 @@ Utenti - Gestione Cucina e Mensa Ospedaliera
 {% block content %}
 
 <div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
-            <select id="searchType" onchange="filterTable()">
-                <option value="">Seleziona tipologia</option>
-                {% for tipologia in tipologieUtente %}
-                <option value="{{ tipologia.id }}">{{ tipologia.nomeTipoUtente }}</option>
-                {% endfor %}
-            </select>
+    <div class="col-md-12"></div>
+        <div class="search-container">
+            <div>
+                <input type="text" id="searchName" placeholder="Cerca per nome..." onkeyup="filterTable()">
+                <select id="searchType" onchange="filterTable()">
+                    <option value="">Seleziona tipologia</option>
+                    {% for tipologia in tipologieUtente %}
+                    <option value="{{ tipologia.id }}">{{ tipologia.nomeTipoUtente }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button onclick="showAddUtenteForm()">Aggiungi Nuovo Utente</button>
         </div>
-        <button onclick="showAddUtenteForm()">Aggiungi Nuovo Utente</button>
-    </div>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th></th>
-                <th>User Name</th>
-                <th>Cognome</th>
-                <th>Nome</th>
-                <th>Ruolo</th>
-                <th>Inizio</th>
-                <th>Fine</th>
-                <th>Abilitazioni</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="utentiTableBody">
-            {% for utente in utenti %}
-            <tr>
-                <td><div class="icon-pencil" onclick="showModificaForm('{{ utente.public_id }}')" title="visualizza utente"></div></td>
-                <td>{{ utente.username }}</td>
-                <td>{{ utente.cognome }}</td>
-                <td>{{ utente.nome }}</td>
-                <td>{{ tipologieUtente_map[utente.fkTipoUtente] }}</td>
-                <td>{{ utente.inizio }}</td>
-                <td>{{ utente.fine }}</td>
-                <td>
-                    {% set abilitazioni_ids = utente.reparti.split(',') if utente.reparti else [] %}
-                    {% if abilitazioni_ids %}
-                        {% for id in abilitazioni_ids %}
-                            {% set int_id = id.strip() | int %}
-                            {% set reparto = reparti_map.get(int_id, 'Reparto non trovato') %}
-                            {{ reparto }}{% if not loop.last %},<br>{% endif %}
-                        {% endfor %}
-                    {% endif %}
-                </td>         
-                <td><div class="icon-utente" onclick="impersonifica('{{ utente.public_id }}')" title="Impersonifica utente"></div></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <div class="table-responsive"></div>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>User Name</th>
+                        <th>Cognome</th>
+                        <th>Nome</th>
+                        <th>Ruolo</th>
+                        <th>Inizio</th>
+                        <th>Fine</th>
+                        <th>Abilitazioni</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="utentiTableBody">
+                    {% for utente in utenti %}
+                    <tr>
+                        <td><div class="icon-pencil" onclick="showModificaForm('{{ utente.public_id }}')" title="visualizza utente"></div></td>
+                        <td>{{ utente.username }}</td>
+                        <td>{{ utente.cognome }}</td>
+                        <td>{{ utente.nome }}</td>
+                        <td>{{ tipologieUtente_map[utente.fkTipoUtente] }}</td>
+                        <td>{{ utente.inizio }}</td>
+                        <td>{{ utente.fine }}</td>
+                        <td>
+                            {% set abilitazioni_ids = utente.reparti.split(',') if utente.reparti else [] %}
+                            {% if abilitazioni_ids %}
+                                {% for id in abilitazioni_ids %}
+                                    {% set int_id = id.strip() | int %}
+                                    {% set reparto = reparti_map.get(int_id, 'Reparto non trovato') %}
+                                    {{ reparto }}{% if not loop.last %},<br>{% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </td>         
+                        <td><div class="icon-utente" onclick="impersonifica('{{ utente.public_id }}')" title="Impersonifica utente"></div></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>    
 </div>
 
 <!-- Modal for Adding Utente -->

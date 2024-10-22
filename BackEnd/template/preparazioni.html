@@ -73,16 +73,14 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
 </div>
 
 <!-- Modal Structure -->
-<div id="preparazioneModal" class="modal" tabindex="-1" role="dialog">
+<div id="preparazioneModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
+            <span class="close" onclick="closeModal()" aria-label="Chiudi">&times;</span>
+            <h2 class="modal-title">Aggiungi Preparazione</h2>
             <form id="PreparazioniForm"method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Aggiungi Preparazione</h5>
-                </div>
                 <div class="modal-body">
                     <!-- Existing fields for preparazione details -->
                     <div class="form-group">
@@ -110,88 +108,90 @@ preparazioni - Gestione Cucina e Mensa Ospedaliera
                     </div>
                     <div class="row">
                         <div class="col-md-6"> 
-                            <div class="form-group">
-                                {{ form.isEstivo.label(class="form-label") }}
-                                {{ form.isEstivo(class="form-group-allergene")}}
+                            <div class="form-group d-flex align-items-center">
+                                {{ form.isEstivo(class="form-group-allergene checkbox-large") }}
+                                {{ form.isEstivo.label(class="ms-2") }}
                             </div>
-                            <div class="form-group">
-                                {{ form.fine.label(class="form-label") }}
+                            
+                            <div class="form-group mt-3"> 
+                                <label class="form-label text-start">{{ form.inizio.label }}</label> <!-- Allinea a sinistra -->
+                                {{ form.inizio(class="form-control", type="date") }}
+                                {% for error in form.inizio.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            
+                            
+                            
+                            
+                        </div>
+                        <div class="col-md-6"> 
+                            <div class="form-group d-flex align-items-center">
+                                {{ form.isInvernale(class="form-group-allergene checkbox-large") }} <!-- Checkbox con margine sinistro -->
+                                {{ form.isInvernale.label (class="ms-2")}} <!-- Etichetta senza margine inferiore -->
+                            </div>
+                            <div class="form-group mt-3">
+                                {{ form.fine.label(class="form-label ms-2") }}
                                 {{ form.fine (class="form-control") }}
                                 {% for error in form.fine.errors %}
                                     <span class="text-danger">{{ error }}</span>
                                 {% endfor %}
                             </div>
                         </div>
-
-                    
-
-
-                    <div class="col-md-6"> 
-                        <div class="form-group">
-                            {{ form.isInvernale.label(class="form-label") }}
-                            {{ form.isInvernale(class="form-group-allergene") }}
-                        </div>
-                        <div class="form-group">
-                            {{ form.inizio.label(class="form-label") }}
-                            {{ form.inizio(class="form-control", type="date") }}
-                            {% for error in form.inizio.errors %}
+                    </div>
+                        <div class="form-group mt-3">
+                            {{ form.immagine.label(class="form-label") }}
+                            {{ form.immagine(class="form-control-file") }}
+                            {% for error in form.immagine.errors %}
                                 <span class="text-danger">{{ error }}</span>
                             {% endfor %}
                         </div>
-                    </div>
-                    
-                </div>
-                    <div class="form-group">
-                        {{ form.immagine.label(class="form-label") }}
-                        {{ form.immagine(class="form-control-file") }}
-                        {% for error in form.immagine.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
-                    </div>
 
-                    <!-- Single ingredient input section -->
-                    <div class="form-group">
-                        {{ alimform.fkAlimento.label(class="form-label") }}
-                        {{ alimform.fkAlimento(class="form-control") }}
-                        {% for error in alimform.fkAlimento.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
+                        <!-- Single ingredient input section -->
+                        <div class="form-group mt-5">
+                            {{ alimform.fkAlimento.label(class="form-label") }}
+                            {{ alimform.fkAlimento(class="form-control") }}
+                            {% for error in alimform.fkAlimento.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
 
-                        {{ alimform.quantita.label(class="form-label") }}
-                        {{ alimform.quantita(class="form-control") }}
-                        {% for error in alimform.quantita.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
+                            {{ alimform.quantita.label(class="form-label") }}
+                            {{ alimform.quantita(class="form-control") }}
+                            {% for error in alimform.quantita.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
 
-                        {{ alimform.fkTipoQuantita.label(class="form-label") }}
-                        {{ alimform.fkTipoQuantita(class="form-control") }}
-                        {% for error in alimform.fkTipoQuantita.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
+                            {{ alimform.fkTipoQuantita.label(class="form-label") }}
+                            {{ alimform.fkTipoQuantita(class="form-control") }}
+                            {% for error in alimform.fkTipoQuantita.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
 
-                        {{ alimform.note.label(class="form-label") }}
-                        {{ alimform.note(class="form-control") }}
-                        {% for error in alimform.note.errors %}
-                            <span class="text-danger">{{ error }}</span>
-                        {% endfor %}
+                            {{ alimform.note.label(class="form-label") }}
+                            {{ alimform.note(class="form-control") }}
+                            {% for error in alimform.note.errors %}
+                                <span class="text-danger">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" class="btn btn-secondary mt-3" onclick="addAlimento()">Aggiungi Alimento</button>
                     </div>
 
-                    <button type="button" class="btn btn-secondary" onclick="addAlimento()">Aggiungi Alimento</button>
-                </div>
+                    <div class="modal-body">
+                        <!-- Ingredient list section -->
+                        <h5>Ingredienti Aggiunti</h5>
+                        <ul id="ingredientList" class="list-group"></ul>
+                        <input type="hidden" id="ingredientListInput" name="ingredientList">
+                    </div>
 
-                <div class="modal-body">
-                    <!-- Ingredient list section -->
-                    <h5>Ingredienti Aggiunti</h5>
-                    <ul id="ingredientList" class="list-group"></ul>
-                    <input type="hidden" id="ingredientListInput" name="ingredientList">
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Aggiungi</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
-                </div>
-            </form>
-        </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Aggiungi</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                    </div>
+                </form>
+            </div>
+        </div>    
     </div>
 </div>
 

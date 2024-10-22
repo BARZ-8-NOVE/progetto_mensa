@@ -6,69 +6,75 @@
     {% endblock %}
     
 
-{% block content %}
-<div class="container">
-    <div class="search-container">
-        <div>
-            <input type="text" id="searchName" placeholder="Cerca per nome...">
-            <select id="searchType">
-                <option value="">Seleziona tipologia</option>
-                {% for tipologia in tipologie %}
-                <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
-                {% endfor %}
-            </select>
-        {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+    {% block content %}
+    <div class="container">
+        <div class="col-md-12">
+            <div class="search-container">
+                <div>
+                    <input type="text" id="searchName" placeholder="Cerca per nome...">
+                    <select id="searchType">
+                        <option value="">Seleziona tipologia</option>
+                        {% for tipologia in tipologie %}
+                        <option value="{{ tipologia.id }}">{{ tipologia.nome }}</option>
+                        {% endfor %}
+                    </select>
+                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                    </div>
+                    <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
+                </div>
+                {% endif %}
+                <div class="table-responsive"> <!-- Contenitore per la tabella -->
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Nome</th>
+                                <th>Energia (Kcal)</th>
+                                <th>Energia (KJ)</th>
+                                <th>Proteine (g)</th>
+                                <th>Carboidrati (g)</th>
+                                <th>Grassi (g)</th>
+                                <th>Grassi Saturi (g)</th>
+                                <th>Allergeni</th>
+                                <th>Tipologia</th>
+                                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                                <th></th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody id="alimentiTableBody">
+                            {% for alimento in alimenti %}
+                            <tr>
+                                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                                <td><div class="icon-pencil" onclick="showModificaAlimentoForm({{ alimento.id }})" title="visualizza Alimento"></div></td>
+                                {% endif %}
+                                <td>{{ alimento.alimento }}</td>
+                                <td>{{ alimento.energia_Kcal }}</td>
+                                <td>{{ alimento.energia_KJ }}</td>
+                                <td>{{ alimento.prot_tot_gr }}</td>
+                                <td>{{ alimento.glucidi_tot }}</td>
+                                <td>{{ alimento.lipidi_tot }}</td>
+                                <td>{{ alimento.saturi_tot }}</td>
+                                <td>
+                                    {% set allergene_ids = alimento.fkAllergene.split(',') %}
+                                    {% for id in allergene_ids %}
+                                    {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
+                                    {% endfor %}
+                                </td>
+                                <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
+                                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
+                                <td><div class="icon-cancella" onclick="eliminaAlimento({{ alimento.id }})" title='Elimina Alimento'></div></td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- Fine del contenitore della tabella -->
             </div>
-                <button onclick="showAddAlimentoForm()">Aggiungi Alimento</button>
-            </div>
-        {% endif %}
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Nome</th>
-                <th>Energia (Kcal)</th>
-                <th>Energia (KJ)</th>
-                <th>Proteine (g)</th>
-                <th>Carboidrati (g)</th>
-                <th>Grassi (g)</th>
-                <th>Grassi Saturi (g)</th>
-                <th>Allergeni</th>
-                <th>Tipologia</th>
-                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
-                <th></th>
-                {% endif %}
-            </tr>
-        </thead>
-        <tbody id="alimentiTableBody">
-            {% for alimento in alimenti %}
-            <tr>
-                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
-                <td> <div class="icon-pencil" onclick="showModificaAlimentoForm({{ alimento.id }})"title="visualizza Alimento"></div></td>
-                {% endif %}
-                <td>{{ alimento.alimento }}</td>
-                <td>{{ alimento.energia_Kcal }}</td>
-                <td>{{ alimento.energia_KJ }}</td>
-                <td>{{ alimento.prot_tot_gr }}</td>
-                <td>{{ alimento.glucidi_tot }}</td>
-                <td>{{ alimento.lipidi_tot }}</td>
-                <td>{{ alimento.saturi_tot }}</td>
-                <td>
-                    {% set allergene_ids = alimento.fkAllergene.split(',') %}
-                    {% for id in allergene_ids %}
-                    {{ allergeni_map[id.strip()] }}{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-                <td>{{ tipologie_map[alimento.fkTipologiaAlimento] }}</td>
-                {% if page_permissions['/app_cucina/alimenti']['can_write'] %}
-                <td><div class="icon-cancella" onclick="eliminaAlimento({{ alimento.id }})" title='Elimina Alimento'></div></td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+        </div>
+    </div>
 
+    
 
 <!-- Modal per Aggiungere/Modificare Alimento -->
 <div id="addAlimentoModal" class="modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -76,7 +82,7 @@
         <div class="modal-content">
             <span class="close" onclick="closeAddAlimentoForm()" aria-label="Chiudi">&times;</span>
             <h2 id="modalTitle">Aggiungi alimento</h2>
-            <form id="alimentoForm" method="POST" enctype="multipart/form-data">
+            <form id="alimentoForm" method="POST" enctype="multipart/form-data" onsubmit="disableAllSubmitButtons()">
                 {{ form.hidden_tag() }}
                 <div class="row">
                     <div class="col-md-6">
